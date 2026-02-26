@@ -40,3 +40,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+#Doc
+PROJECT_STRUCTURE.md
+CORE_USAGE.md

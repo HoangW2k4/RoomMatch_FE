@@ -5,7 +5,8 @@ export interface BaseEntity {
 }
 
 export interface ApiResponse<T> {
-  success: boolean;
+  code?: number;
+  success?: boolean;
   data?: T;
   message?: string;
   error?: string;

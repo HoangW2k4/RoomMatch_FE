@@ -1,0 +1,37 @@
+/* Divider for social login */
+.divider-line {
+  position: relative;
+}
+
+.divider-text {
+  z-index: 1;
+}
+
+.divider-hr {
+  z-index: 0;
+  margin: 0;
+  border-color: var(--gray-300);
+}
+
+/* Social login buttons */
+.btn-social-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-color: var(--gray-300);
+  transition: all 0.3s ease;
+}
+
+.btn-social-login:hover {
+  background-color: var(--gray-100);
+  border-color: var(--gray-400);
+}
+
+.btn-social-login img {
+  flex-shrink: 0;
+}
+
+.link-clickable {
+  cursor: pointer;
+}

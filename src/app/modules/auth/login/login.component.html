@@ -1,0 +1,122 @@
+<!-- Modal Overlay -->
+<div class="modal-overlay" (click)="closeModal()">
+  <!-- Modal Content -->
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Close Button -->
+    <button class="close-btn" (click)="closeModal()">
+      <img src="assets/icons/ic_close.svg" alt = "Close" class="icon-close">
+    </button>
+
+    <!-- Left Panel - Animated Background -->
+    <div class="left-panel">
+      <div class="background-slider">
+        <div class="slide" *ngFor="let banner of banners; let i = index" 
+             [class.active]="currentSlide === i"
+             [style.background-image]="'url(' + banner + ')'">
+        </div>
+      </div>
+      <div class="content-overlay">
+        <div class="logo">
+          <img src="assets/images/Logo_flat.svg" alt="RoomMatch" class="logo-img">
+        </div>
+        <div class="hero-text">
+          <h1>Kết nối phòng trọ nhanh chóng tiện lợi</h1>
+          <p>Tham gia mạng xã hội chia sẻ phòng trọ uy tín tiện lợi với hàng nghìn bài đăng và các chủ trọ thân thiện</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Form -->
+    <div class="right-panel">
+    <div class="form-container">
+      <h2 class="fw-bold">{{ showForgotPassword ? 'Quên mật khẩu' : (isSignUp ? 'Tạo tài khoản' : 'Chào mừng bạn trở lại') }}</h2>
+      <p class="text-muted mb-4">{{ showForgotPassword ? 'Đặt lại mật khẩu của bạn' : (isSignUp ? 'Nhập các thông tin yêu cầu để tạo mới tài khoản.' : 'Đăng nhập vào tài khoản của bạn') }}</p>
+
+      <!-- Toggle Tabs -->
+      <ul class="nav nav-tabs mb-4" *ngIf="!showOtpInput && !showForgotPassword">
+        <li class="nav-item flex-fill">
+          <button 
+            class="nav-link w-100" 
+            [class.active]="!isSignUp"
+            (click)="toggleMode(false)"
+            type="button">
+            Đăng nhập
+          </button>
+        </li>
+        <li class="nav-item flex-fill">
+          <button 
+            class="nav-link w-100" 
+            [class.active]="isSignUp"
+            (click)="toggleMode(true)"
+            type="button">
+            Đăng ký
+          </button>
+        </li>
+      </ul>
+
+      <!-- Sign Up Form -->
+      <app-sign-up 
+        *ngIf="isSignUp && !showOtpInput && !showForgotPassword"
+        (signUp)="onSignUp($event)"
+        (showTerms)="onShowTerms()"
+        (showInfo)="onShowRoommateInfo()"
+        (validationError)="onSignUpValidationError($event)">
+      </app-sign-up>
+
+      <!-- OTP Verification Form -->
+      <app-otp-verification
+        *ngIf="showOtpInput"
+        [email]="currentEmail"
+        (verify)="onVerifyOtp($event)"
+        (resend)="onResendOtp()"
+        (back)="onBackToSignUp()">
+      </app-otp-verification>
+
+      <!-- Forgot Password Form -->
+      <app-forgot-password
+        *ngIf="showForgotPassword && !showOtpInput"
+        (submit)="onForgotPasswordSubmit($event)"
+        (backToSignIn)="onBackToSignInFromForgot()"
+        (validationError)="onForgotPasswordValidationError($event)">
+      </app-forgot-password>
+
+      <!-- Sign In Form -->
+      <app-sign-in
+        *ngIf="!isSignUp && !showForgotPassword && !showOtpInput"
+        (signIn)="onSignIn($event)"
+        (forgotPassword)="onForgotPassword()"
+        (signInWithGoogle)="onSignInWithGoogle()"
+        (signInWithFacebook)="onSignInWithFacebook()">
+      </app-sign-in>
+
+      <!-- Toggle Link -->
+      <div class="text-center mt-4 text-muted" *ngIf="!showOtpInput && !showForgotPassword">
+        <span *ngIf="isSignUp">
+          Bạn đã có tài khoản? <a class="text-primary fw-semibold" (click)="toggleMode(false)">Đăng nhập</a>
+        </span>
+        <span *ngIf="!isSignUp">
+          Chưa có tài khoản? <a class="text-primary fw-semibold" (click)="toggleMode(true)">Đăng ký</a>
+        </span>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- Feature Not Developed Modal -->
+<app-feature-not-developed 
+  [visible]="showFeatureNotDeveloped"
+  [title]="featureNotDevelopedTitle"
+  [message]="featureNotDevelopedMessage"
+  (close)="closeFeatureAlert()">
+</app-feature-not-developed>
+
+<!-- Alert Modal -->
+<app-alert
+  [visible]="showAlert"
+  [type]="alertType"
+  [title]="alertTitle"
+  [message]="alertMessage"
+  [confirmText]="alertConfirmText"
+  (close)="closeAlert()">
+</app-alert>

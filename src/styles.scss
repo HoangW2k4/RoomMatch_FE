@@ -1,1 +1,47 @@
+/* Import Bootstrap */
+@use 'bootstrap/scss/bootstrap';
+
 /* You can add global styles to this file, and also import other style files */
+:root {
+  /* Colors */
+  --primary-color: #3179c7;    /* Màu xanh thương hiệu */
+  --secondary-color: #76b3f4;  /* Màu cho giá tiền hoặc nút liên hệ */
+  --danger-color: #ef4444;     /* Màu cho nút Xóa, Báo cáo */
+  --warning-color: #f59e0b;    /* Màu cho nút Chờ duyệt, Repost */
+  
+  /* Neutral Colors */
+  --text-main: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --bg-light: #f3f4f6;
+  --border-color: #e5e7eb;
+  --background-secondary: #F1F5F9;
+
+  /* Spacing & Borders */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Custom Scrollbar cho phần Chat */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+/* Override Bootstrap Primary Color */
+$primary: #2563eb;
+
+/* Custom Button Styles */
+.btn-primary {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+a{
+  cursor: pointer;
+  text-decoration: none;
+}

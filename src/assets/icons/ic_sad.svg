@@ -1,0 +1,13 @@
+<svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circle -->
+  <circle cx="12" cy="12" r="10" stroke="#9ca3af" stroke-width="1.5" fill="none"/>
+  <!-- Left eye -->
+  <circle cx="8.5" cy="9.5" r="1.5" fill="#9ca3af"/>
+  <!-- Right eye -->
+  <circle cx="15.5" cy="9.5" r="1.5" fill="#9ca3af"/>
+  <!-- Sad mouth -->
+  <path d="M7 15.5C7 15.5 9 13.5 12 13.5C15 13.5 17 15.5 17 15.5" 
+        stroke="#9ca3af" 
+        stroke-width="1.5" 
+        stroke-linecap="round"/>
+</svg>

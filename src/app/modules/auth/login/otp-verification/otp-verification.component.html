@@ -1,0 +1,60 @@
+<div class="otp-verification">
+  <div class="text-center mb-4">
+    <h3 class="fw-bold mb-3">Xác thực OTP</h3>
+    <p class="text-muted">
+      Mã OTP đã được gửi đến email<br>
+      <span class="fw-semibold text-primary">{{ email }}</span>
+    </p>
+  </div>
+
+  <!-- OTP Input Fields -->
+  <div class="otp-inputs d-flex justify-content-center gap-2 mb-4">
+    <div *ngFor="let digit of otpCode; let i = index" class="otp-input-wrapper">
+    <input 
+        #otpInput
+        type="text" 
+        maxlength="1"  class="form-control text-center otp-input"
+        [value]="otpCode[i]"
+        [attr.data-index]="i"
+        (input)="onOtpInput($event)"
+        (keydown)="onOtpKeyDown($event)"
+        (focus)="$event.target.select()"
+        (paste)="i === 0 ? onOtpPaste($event) : $event.preventDefault()"
+        [attr.name]="'otp-' + i"
+        placeholder="-"
+        inputmode="numeric"
+        autocomplete="one-time-code">
+    </div>
+  </div>
+
+  <!-- Verify Button -->
+  <button 
+    type="button" 
+    class="btn btn-primary w-100 py-2 fw-semibold mb-3"
+    (click)="verifyOtp()"
+    [disabled]="!isOtpComplete">
+    Xác thực OTP
+  </button>
+
+  <!-- Resend OTP -->
+  <div class="text-center mb-3">
+    <span class="text-muted">Không nhận được mã? </span>
+    <button 
+      type="button"
+      class="btn btn-link p-0 text-primary fw-semibold text-decoration-none"
+      (click)="resendOtp()"
+      [disabled]="otpTimer > 0">
+      {{ otpTimer > 0 ? 'Gửi lại (' + otpTimer + 's)' : 'Gửi lại mã' }}
+    </button>
+  </div>
+
+  <!-- Back to Sign Up -->
+  <div class="text-center">
+    <button 
+      type="button"
+      class="btn btn-outline-secondary w-100 py-2"
+      (click)="goBack()">
+      Quay lại
+    </button>
+  </div>
+</div>

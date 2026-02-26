@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { ModalService } from '../../services/modal.service';
 
 @Component({
   selector: 'app-navbar',
@@ -9,7 +10,9 @@ import { RouterModule } from '@angular/router';
   template: `
     <nav class="navbar">
       <div class="navbar-container">
-        <a routerLink="/" class="navbar-brand">RoomMatch</a>
+        <a routerLink="/" class="navbar-brand">
+          <img src="assets/images/Logo_flat-removebg-preview.png" alt="RoomMatch" class="navbar-logo">
+        </a>
         <div class="navbar-menu">
           <a routerLink="/home" routerLinkActive="active">Trang chủ</a>
           <a routerLink="/search" routerLinkActive="active">Tìm kiếm</a>
@@ -17,7 +20,7 @@ import { RouterModule } from '@angular/router';
           <a routerLink="/chat" routerLinkActive="active">Chat</a>
           <a routerLink="/profile" routerLinkActive="active">Profile</a>
           <a routerLink="/notification" routerLinkActive="active">Thông báo</a>
-          <a routerLink="/auth/login" routerLinkActive="active">Đăng nhập</a>
+          <button class="login-btn" (click)="openLoginModal()">Đăng nhập</button>
         </div>
       </div>
     </nav>
@@ -43,10 +46,18 @@ import { RouterModule } from '@angular/router';
       font-weight: 700;
       text-decoration: none;
       color: #333;
+      display: flex;
+      align-items: center;
+    }
+    .navbar-logo {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
     }
     .navbar-menu {
       display: flex;
       gap: 24px;
+      align-items: center;
     }
     .navbar-menu a {
       text-decoration: none;
@@ -62,6 +73,26 @@ import { RouterModule } from '@angular/router';
       color: #3498db;
       background: #e3f2fd;
     }
+    .login-btn {
+      padding: 8px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .login-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
   `]
 })
-export class NavbarComponent {}
+export class NavbarComponent {
+  constructor(private modalService: ModalService) {}
+  
+  openLoginModal(): void {
+    this.modalService.openLoginModal();
+  }
+}
