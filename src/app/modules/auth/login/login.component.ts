@@ -9,6 +9,7 @@ import { OtpVerificationComponent } from './otp-verification/otp-verification.co
 import { ForgotPasswordComponent, ForgotPasswordData, ForgotPasswordError } from './forgot-password/forgot-password.component';
 import { LoginService } from './login.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { LoadingService } from '../../../core/services/loading.service';
 
 @Component({
   selector: 'app-login',
@@ -30,7 +31,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   @Output() close = new EventEmitter<void>();
   
   // Mode toggle
-  isSignUp = true;
+  isSignUp = false; // Show sign-in form by default
   showForgotPassword = false;
   
   // Background carousel
@@ -67,7 +68,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private loginService: LoginService,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadingService: LoadingService
   ) {}
   
   ngOnInit(): void {
@@ -99,12 +101,12 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   // Sign In handlers
   onSignIn(data: SignInData): void {
-    console.log('Sign In Data:', data);
+    this.loadingService.show('Đang đăng nhập...');
     
     // Call signin API
     this.authService.login({ email: data.email, password: data.password }).subscribe({
       next: (response) => {
-        console.log('Login successful:', response);
+        this.loadingService.hide();
         this.showAlertModal('success', 'Thành công', 'Đăng nhập thành công!');
         
         // Navigate to home or dashboard
@@ -114,9 +116,11 @@ export class LoginComponent implements OnInit, OnDestroy {
         }, 1500);
       },
       error: (error) => {
+        this.loadingService.hide();
         console.error('Login error:', error);
+        // Backend returns: { status: number, message: string, data: null }
         const message = error.error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.';
-        this.showAlertModal('error', 'Lỗi', message);
+        this.showAlertModal('error', 'Đăng nhập thất bại', message);
       }
     });
   }
@@ -128,7 +132,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   
   // Forgot Password handlers
   onForgotPasswordSubmit(data: ForgotPasswordData): void {
-    console.log('Forgot Password Data:', data);
+    this.loadingService.show('Đang gửi mã OTP...');
     
     // Store data for OTP verification
     this.currentEmail = data.email;
@@ -138,7 +142,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Send OTP to email via API
     this.authService.sendResetPasswordOtp(data.email).subscribe({
       next: () => {
-        console.log('Reset password OTP sent successfully');
+        this.loadingService.hide();
         this.showOtpInput = true;
         this.showAlertModal(
           'success', 
@@ -147,9 +151,10 @@ export class LoginComponent implements OnInit, OnDestroy {
         );
       },
       error: (error) => {
+        this.loadingService.hide();
         console.error('Send reset password OTP error:', error);
         const message = error.error?.message || 'Gửi mã OTP thất bại. Vui lòng thử lại.';
-        this.showAlertModal('error', 'Lỗi', message);
+        this.showAlertModal('error', 'Gửi OTP thất bại', message);
       }
     });
   }
@@ -165,11 +170,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   
   // Sign Up handlers
   onSignUp(event: { data: SignUpData, lookingFor: string }): void {
-    console.log('Sign Up Data:', {
-      ...event.data,
-      lookingFor: event.lookingFor
-    });
-    
+    this.loadingService.show('Đang gửi mã OTP...');
+
     // Store data for OTP verification
     this.currentEmail = event.data.email;
     this.currentSignUpData = event.data;
@@ -179,7 +181,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Send OTP to email via API
     this.authService.sendSignupOtp(event.data.email).subscribe({
       next: () => {
-        console.log('Signup OTP sent successfully');
+        this.loadingService.hide();
         this.showOtpInput = true;
         this.showAlertModal(
           'success', 
@@ -188,9 +190,10 @@ export class LoginComponent implements OnInit, OnDestroy {
         );
       },
       error: (error) => {
+        this.loadingService.hide();
         console.error('Send signup OTP error:', error);
         const message = error.error?.message || 'Gửi mã OTP thất bại. Vui lòng thử lại.';
-        this.showAlertModal('error', 'Lỗi', message);
+        this.showAlertModal('error', 'Gửi OTP thất bại', message);
       }
     });
   }
@@ -209,11 +212,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   
   // OTP handlers
   onVerifyOtp(otpString: string): void {
-    console.log('Verifying OTP:', otpString, 'Mode:', this.otpMode);
     
     if (this.otpMode === 'forgotPassword') {
+      this.loadingService.show('Đang đặt lại mật khẩu...');
+      
       // Handle forgot password verification
       if (!this.currentForgotPasswordData) {
+        this.loadingService.hide();
         this.showAlertModal('error', 'Lỗi', 'Dữ liệu không hợp lệ. Vui lòng thử lại.');
         return;
       }
@@ -226,7 +231,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         otpString
       ).subscribe({
         next: (response) => {
-          console.log('Reset password successful:', response);
+          this.loadingService.hide();
           this.showAlertModal('success', 'Đặt lại mật khẩu thành công', 'Mật khẩu của bạn đã được cập nhật. Vui lòng đăng nhập với mật khẩu mới.');
           
           setTimeout(() => {
@@ -237,14 +242,18 @@ export class LoginComponent implements OnInit, OnDestroy {
           }, 2000);
         },
         error: (error) => {
+          this.loadingService.hide();
           console.error('Reset password error:', error);
           const message = error.error?.message || 'Đặt lại mật khẩu thất bại. Vui lòng kiểm tra mã OTP và thử lại.';
-          this.showAlertModal('error', 'Lỗi', message);
+          this.showAlertModal('error', 'Đặt lại mật khẩu thất bại', message);
         }
       });
     } else {
+      this.loadingService.show('Đang đăng ký tài khoản...');
+      
       // Handle sign up verification
       if (!this.currentSignUpData) {
+        this.loadingService.hide();
         this.showAlertModal('error', 'Lỗi', 'Dữ liệu không hợp lệ. Vui lòng thử lại.');
         return;
       }
@@ -263,7 +272,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         otpString
       ).subscribe({
         next: (response) => {
-          console.log('Signup successful:', response);
+          this.loadingService.hide();
           this.showAlertModal('success', 'Xác thực thành công', 'Tài khoản của bạn đã được tạo thành công!');
           
           setTimeout(() => {
@@ -273,35 +282,42 @@ export class LoginComponent implements OnInit, OnDestroy {
           }, 2000);
         },
         error: (error) => {
+          this.loadingService.hide();
           console.error('Signup error:', error);
           const message = error.error?.message || 'Đăng ký thất bại. Vui lòng kiểm tra mã OTP và thử lại.';
-          this.showAlertModal('error', 'Lỗi', message);
+          this.showAlertModal('error', 'Đăng ký thất bại', message);
         }
       });
     }
   }
   
   onResendOtp(): void {
+    this.loadingService.show('Đang gửi lại mã OTP...');
+    
     if (this.otpMode === 'forgotPassword') {
       this.authService.sendResetPasswordOtp(this.currentEmail).subscribe({
         next: () => {
+          this.loadingService.hide();
           this.showAlertModal('success', 'Thành công', `Mã OTP mới đã được gửi đến email ${this.currentEmail}.`);
         },
         error: (error) => {
-          console.error('Resend OTP error:', error);
+          this.loadingService.hide();
+          console.error('Resend reset password OTP error:', error);
           const message = error.error?.message || 'Gửi lại mã OTP thất bại. Vui lòng thử lại.';
-          this.showAlertModal('error', 'Lỗi', message);
+          this.showAlertModal('error', 'Gửi OTP thất bại', message);
         }
       });
     } else {
       this.authService.sendSignupOtp(this.currentEmail).subscribe({
         next: () => {
+          this.loadingService.hide();
           this.showAlertModal('success', 'Thành công', `Mã OTP mới đã được gửi đến email ${this.currentEmail}.`);
         },
         error: (error) => {
-          console.error('Resend OTP error:', error);
+          this.loadingService.hide();
+          console.error('Resend signup OTP error:', error);
           const message = error.error?.message || 'Gửi lại mã OTP thất bại. Vui lòng thử lại.';
-          this.showAlertModal('error', 'Lỗi', message);
+          this.showAlertModal('error', 'Gửi OTP thất bại', message);
         }
       });
     }
@@ -317,7 +333,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   
   // Social login handlers
   onSignInWithGoogle(): void {
-    console.log('Sign in with Google');
     this.showFeatureAlert(
       'Đăng nhập Google',
       'Tính năng đăng nhập bằng Google đang được phát triển và sẽ sớm có mặt trong phiên bản tiếp theo.'
@@ -325,7 +340,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
   
   onSignInWithFacebook(): void {
-    console.log('Sign in with Facebook');
     this.showFeatureAlert(
       'Đăng nhập Facebook',
       'Tính năng đăng nhập bằng Facebook đang được phát triển và sẽ sớm có mặt trong phiên bản tiếp theo.'

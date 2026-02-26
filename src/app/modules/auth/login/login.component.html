@@ -29,11 +29,11 @@
     <!-- Right Panel - Form -->
     <div class="right-panel">
     <div class="form-container">
-      <h2 class="fw-bold">{{ showForgotPassword ? 'Quên mật khẩu' : (isSignUp ? 'Tạo tài khoản' : 'Chào mừng bạn trở lại') }}</h2>
-      <p class="text-muted mb-4">{{ showForgotPassword ? 'Đặt lại mật khẩu của bạn' : (isSignUp ? 'Nhập các thông tin yêu cầu để tạo mới tài khoản.' : 'Đăng nhập vào tài khoản của bạn') }}</p>
+      <h2 class="fw-bold">{{ isSignUp ? 'Tạo tài khoản' : 'Chào mừng bạn trở lại' }}</h2>
+      <p class="text-muted mb-4">{{ isSignUp ? 'Nhập các thông tin yêu cầu để tạo mới tài khoản.' : 'Đăng nhập vào tài khoản của bạn' }}</p>
 
       <!-- Toggle Tabs -->
-      <ul class="nav nav-tabs mb-4" *ngIf="!showOtpInput && !showForgotPassword">
+      <ul class="nav nav-tabs mb-4" *ngIf="!showOtpInput">
         <li class="nav-item flex-fill">
           <button 
             class="nav-link w-100" 
@@ -56,7 +56,7 @@
 
       <!-- Sign Up Form -->
       <app-sign-up 
-        *ngIf="isSignUp && !showOtpInput && !showForgotPassword"
+        *ngIf="isSignUp && !showOtpInput"
         (signUp)="onSignUp($event)"
         (showTerms)="onShowTerms()"
         (showInfo)="onShowRoommateInfo()"
@@ -65,24 +65,16 @@
 
       <!-- OTP Verification Form -->
       <app-otp-verification
-        *ngIf="showOtpInput"
+        *ngIf="isSignUp && showOtpInput"
         [email]="currentEmail"
         (verify)="onVerifyOtp($event)"
         (resend)="onResendOtp()"
         (back)="onBackToSignUp()">
       </app-otp-verification>
 
-      <!-- Forgot Password Form -->
-      <app-forgot-password
-        *ngIf="showForgotPassword && !showOtpInput"
-        (submit)="onForgotPasswordSubmit($event)"
-        (backToSignIn)="onBackToSignInFromForgot()"
-        (validationError)="onForgotPasswordValidationError($event)">
-      </app-forgot-password>
-
       <!-- Sign In Form -->
       <app-sign-in
-        *ngIf="!isSignUp && !showForgotPassword && !showOtpInput"
+        *ngIf="!isSignUp"
         (signIn)="onSignIn($event)"
         (forgotPassword)="onForgotPassword()"
         (signInWithGoogle)="onSignInWithGoogle()"
@@ -90,7 +82,7 @@
       </app-sign-in>
 
       <!-- Toggle Link -->
-      <div class="text-center mt-4 text-muted" *ngIf="!showOtpInput && !showForgotPassword">
+      <div class="text-center mt-4 text-muted" *ngIf="!showOtpInput">
         <span *ngIf="isSignUp">
           Bạn đã có tài khoản? <a class="text-primary fw-semibold" (click)="toggleMode(false)">Đăng nhập</a>
         </span>

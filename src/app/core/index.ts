@@ -1,6 +1,7 @@
 // Services
 export * from './services/api.service';
 export * from './services/auth.service';
+export * from './services/loading.service';
 
 // Interceptors
 export * from './interceptors/jwt.interceptor';
