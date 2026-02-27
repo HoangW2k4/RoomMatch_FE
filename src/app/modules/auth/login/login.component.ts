@@ -2,14 +2,14 @@ import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FeatureNotDevelopedComponent } from '../../../shared/module/feature-not-developed';
-import { AlertComponent, AlertType } from '../../../shared/module/alert';
+import { AlertType } from '../../../shared/module/alert';
 import { SignInComponent, SignInData } from './sign-in/sign-in.component';
 import { SignUpComponent, SignUpData, SignUpError } from './sign-up/sign-up.component';
 import { OtpVerificationComponent } from './otp-verification/otp-verification.component';
 import { ForgotPasswordComponent, ForgotPasswordData, ForgotPasswordError } from './forgot-password/forgot-password.component';
 import { LoginService } from './login.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { LoadingService } from '../../../core/services/loading.service';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +18,6 @@ import { LoadingService } from '../../../core/services/loading.service';
     CommonModule, 
     RouterModule, 
     FeatureNotDevelopedComponent, 
-    AlertComponent,
     SignInComponent,
     SignUpComponent,
     OtpVerificationComponent,
@@ -58,18 +57,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   featureNotDevelopedTitle = '';
   featureNotDevelopedMessage = '';
   
-  // Alert modal
-  showAlert = false;
-  alertType: AlertType = 'info';
-  alertTitle = '';
-  alertMessage = '';
-  alertConfirmText = 'OK';
-  
   constructor(
     private router: Router,
     private loginService: LoginService,
-    private authService: AuthService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    private alertService: AlertService
   ) {}
   
   ngOnInit(): void {
@@ -104,11 +96,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loadingService.show('Đang đăng nhập...');
     
     // Call signin API
-    this.authService.login({ email: data.email, password: data.password }).subscribe({
+    this.loginService.signin({ email: data.email, password: data.password }).subscribe({
       next: (response) => {
         this.loadingService.hide();
         this.showAlertModal('success', 'Thành công', 'Đăng nhập thành công!');
-        
+        localStorage.setItem('accessToken', response?.data?.accessToken || '');
+        localStorage.setItem('refreshToken', response?.data?.refreshToken || '');
+        localStorage.setItem('userRole', response?.data?.role || '');
         // Navigate to home or dashboard
         setTimeout(() => {
           this.closeModal();
@@ -140,7 +134,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.otpMode = 'forgotPassword';
     
     // Send OTP to email via API
-    this.authService.sendResetPasswordOtp(data.email).subscribe({
+    this.loginService.sendResetPasswordOtp(data.email).subscribe({
       next: () => {
         this.loadingService.hide();
         this.showOtpInput = true;
@@ -179,7 +173,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.otpMode = 'signup';
     
     // Send OTP to email via API
-    this.authService.sendSignupOtp(event.data.email).subscribe({
+    this.loginService.sendSignupOtp(event.data.email).subscribe({
       next: () => {
         this.loadingService.hide();
         this.showOtpInput = true;
@@ -223,7 +217,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         return;
       }
       
-      this.authService.resetPassword(
+      this.loginService.resetPassword(
         { 
           email: this.currentForgotPasswordData.email, 
           password: this.currentForgotPasswordData.newPassword 
@@ -261,7 +255,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       // Determine role based on lookingFor
       const role = this.currentLookingFor === 'roommate' ? 'ROLE_LANDLORD' : 'ROLE_SEEKER';
       
-      this.authService.register(
+      this.loginService.signup(
         {
           fullName: this.currentSignUpData.fullName,
           email: this.currentSignUpData.email,
@@ -295,7 +289,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loadingService.show('Đang gửi lại mã OTP...');
     
     if (this.otpMode === 'forgotPassword') {
-      this.authService.sendResetPasswordOtp(this.currentEmail).subscribe({
+      this.loginService.sendResetPasswordOtp(this.currentEmail).subscribe({
         next: () => {
           this.loadingService.hide();
           this.showAlertModal('success', 'Thành công', `Mã OTP mới đã được gửi đến email ${this.currentEmail}.`);
@@ -308,7 +302,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.authService.sendSignupOtp(this.currentEmail).subscribe({
+      this.loginService.sendSignupOtp(this.currentEmail).subscribe({
         next: () => {
           this.loadingService.hide();
           this.showAlertModal('success', 'Thành công', `Mã OTP mới đã được gửi đến email ${this.currentEmail}.`);
@@ -364,14 +358,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
   
   showAlertModal(type: AlertType, title: string, message: string, confirmText: string = 'OK'): void {
-    this.alertType = type;
-    this.alertTitle = title;
-    this.alertMessage = message;
-    this.alertConfirmText = confirmText;
-    this.showAlert = true;
-  }
-  
-  closeAlert(): void {
-    this.showAlert = false;
+    this.alertService.show(type, title, message, confirmText);
   }
 }

@@ -50,11 +50,6 @@ export class SignUpComponent {
   
   onSubmit(): void {
     if (this.signUpData.password !== this.signUpData.confirmPassword) {
-      this.validationError.emit({
-        type: 'error',
-        title: 'Lỗi',
-        message: 'Mật khẩu không khớp!'
-      });
       return;
     }
     

@@ -74,12 +74,20 @@
 
       <!-- Sign In Form -->
       <app-sign-in
-        *ngIf="!isSignUp"
+        *ngIf="!isSignUp && !showForgotPassword"
         (signIn)="onSignIn($event)"
         (forgotPassword)="onForgotPassword()"
         (signInWithGoogle)="onSignInWithGoogle()"
         (signInWithFacebook)="onSignInWithFacebook()">
       </app-sign-in>
+
+      <!-- Forgot Password Form -->
+      <app-forgot-password
+        *ngIf="!isSignUp && showForgotPassword"
+        (submit)="onForgotPasswordSubmit($event)"
+        (validationError)="onForgotPasswordValidationError($event)"
+        (backToSignIn)="onBackToSignInFromForgot()">
+      </app-forgot-password>
 
       <!-- Toggle Link -->
       <div class="text-center mt-4 text-muted" *ngIf="!showOtpInput">
@@ -102,13 +110,3 @@
   [message]="featureNotDevelopedMessage"
   (close)="closeFeatureAlert()">
 </app-feature-not-developed>
-
-<!-- Alert Modal -->
-<app-alert
-  [visible]="showAlert"
-  [type]="alertType"
-  [title]="alertTitle"
-  [message]="alertMessage"
-  [confirmText]="alertConfirmText"
-  (close)="closeAlert()">
-</app-alert>

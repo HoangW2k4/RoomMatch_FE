@@ -1,3 +1,4 @@
+import { ApiService } from './../../core/services/api.service';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -12,7 +13,7 @@ import { ModalService } from '../../services/modal.service';
       <h1>Trang chủ</h1>
       <p><a routerLink="/search">Tìm kiếm</a></p>
       <p><a routerLink="/social">Tìm người ở ghép</a></p>
-      
+      <button (click)="sendTestEvent()">Gửi test event</button>
       <button class="login-btn" (click)="openLoginModal()">
         Đăng nhập / Đăng ký
       </button>
@@ -49,8 +50,19 @@ import { ModalService } from '../../services/modal.service';
   `]
 })
 export class HomeComponent {
-  constructor(private modalService: ModalService) {}
-  
+  constructor(private modalService: ModalService,
+    private apiService: ApiService
+  ) {}
+  sendTestEvent(): void {
+    this.apiService.get('/test/all').subscribe({
+      next: (response) => {
+        console.log('Test event response:', response);
+      },
+      error: (error) => {
+        console.error('Error sending test event:', error);
+      }
+    });
+  }
   openLoginModal(): void {
     this.modalService.openLoginModal();
   }

@@ -1,10 +1,12 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  // Get token from localStorage
+  if (req.url.includes('/refresh-access')) {
+    return next(req);
+  }
+
   const token = localStorage.getItem('accessToken');
 
-  // If token exists, clone the request and add Authorization header
   if (token) {
     const clonedRequest = req.clone({
       setHeaders: {
@@ -14,6 +16,5 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     return next(clonedRequest);
   }
 
-  // If no token, pass the original request
   return next(req);
 };

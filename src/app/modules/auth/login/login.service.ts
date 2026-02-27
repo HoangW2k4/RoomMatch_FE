@@ -54,10 +54,6 @@ export class LoginService {
     );
   }
 
-  /**
-   * Send OTP for signup
-   * POST /api/auth/signup-otp
-   */
   sendSignupOtp(email: string): Observable<ApiResponse<null>> {
     const formData = new FormData();
     formData.append('email', email);

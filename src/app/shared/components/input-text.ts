@@ -336,11 +336,12 @@ export class InputTextComponent implements ControlValueAccessor {
 
   // Check if error should be displayed
   shouldShowError(): boolean {
+    const hasCustomError = !!this.errorMessage;
     const control = this.ngControl?.control;
     if (control) {
-      return !!(control.invalid && (control.touched || control.dirty));
+      return hasCustomError || !!(control.invalid && (control.touched || control.dirty));
     }
-    return this.hasError && (this.touched || this.dirty);
+    return hasCustomError || (this.hasError && (this.touched || this.dirty));
   }
 
   // Get current error message

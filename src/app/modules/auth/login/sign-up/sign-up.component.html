@@ -69,14 +69,8 @@
     [(ngModel)]="signUpData.confirmPassword"
     name="confirmPassword"
     [required]="true"
+    [errorMessage]="isPasswordMismatch ? 'Mật khẩu không khớp' : ''"
   ></app-input-text>
-
-  <!-- Password mismatch warning -->
-  @if (isPasswordMismatch) {
-    <div class="alert alert-danger py-2 px-3 mb-3" role="alert">
-      <small>Mật khẩu không khớp!</small>
-    </div>
-  }
 
   <!-- Terms of Service -->
   <div class="form-check mb-3">

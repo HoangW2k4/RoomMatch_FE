@@ -1,0 +1,17 @@
+<app-spinner-loading 
+    [show]="(isLoading$ | async) ?? false" 
+    [message]="(loadingMessage$ | async) ?? 'Đang tải...'"
+    [size]="'medium'"
+    [overlay]="true">
+</app-spinner-loading>
+<!-- Alert Modal -->
+<app-alert
+  [visible]="(alert$ | async)?.visible ?? false"
+  [type]="(alert$ | async)?.type ?? 'info'"
+  [title]="(alert$ | async)?.title ?? ''"
+  [message]="(alert$ | async)?.message ?? ''"
+  [confirmText]="(alert$ | async)?.confirmText ?? 'OK'"
+  (close)="closeAlert()">
+</app-alert>
+
+<router-outlet></router-outlet>
