@@ -1,69 +1,173 @@
-import { ApiService } from './../../core/services/api.service';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Subject, takeUntil, finalize } from 'rxjs';
+
 import { ModalService } from '../../services/modal.service';
+import { PostService } from './post.service';
+import { AuthService } from '../../core/services/auth.service';
+import { AlertService } from '../../core/services/alert.service';
+
+import { RoomPostResponse, RoomSearchRequest } from '../../core/models/post.interface';
+import { PaginatedResponse, ApiResponse } from '../../core/models/base.interface';
+
+import { PostCardComponent } from './components/post-card/post-card.component';
+import { SearchFilterComponent } from './components/search-filter/search-filter.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  template: `
-    <div class="page-container">
-      <h1>Trang chủ</h1>
-      <p><a routerLink="/search">Tìm kiếm</a></p>
-      <p><a routerLink="/social">Tìm người ở ghép</a></p>
-      <button (click)="sendTestEvent()">Gửi test event</button>
-      <button class="login-btn" (click)="openLoginModal()">
-        Đăng nhập / Đăng ký
-      </button>
-    </div>
-  `,
-  styles: [`
-    .page-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px;
-      text-align: center;
-    }
-    h1 {
-      font-size: 32px;
-      margin-bottom: 20px;
-    }
-    .login-btn {
-      margin-top: 30px;
-      padding: 12px 32px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .login-btn:hover {
-      background: #1d4ed8;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }
-  `]
+  imports: [CommonModule, RouterModule, PostCardComponent, SearchFilterComponent],
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
 })
-export class HomeComponent {
-  constructor(private modalService: ModalService,
-    private apiService: ApiService
+export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
+  posts: RoomPostResponse[] = [];
+  isLoading = false;
+  isLoadingMore = false;
+  totalPosts = 0;
+  currentPage = 1;
+  pageSize = 10;
+  hasMore = false;
+  currentFilters: RoomSearchRequest = {};
+
+  skeletonItems = Array(3).fill(0);
+
+  @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
+  private intersectionObserver!: IntersectionObserver;
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private modalService: ModalService,
+    private postService: PostService,
+    private authService: AuthService,
+    private alertService: AlertService
   ) {}
-  sendTestEvent(): void {
-    this.apiService.get('/test/all').subscribe({
-      next: (response) => {
-        console.log('Test event response:', response);
+
+  ngOnInit(): void {
+    this.loadPosts();
+  }
+
+  ngAfterViewInit(): void {
+    this.setupIntersectionObserver();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.intersectionObserver?.disconnect();
+  }
+
+  get isLandlord(): boolean {
+    return this.authService.hasRole('ROLE_LANDLORD');
+  }
+
+  // ===== Infinite Scroll =====
+
+  private setupIntersectionObserver(): void {
+    this.intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && this.hasMore && !this.isLoading && !this.isLoadingMore) {
+          this.loadMore();
+        }
       },
-      error: (error) => {
-        console.error('Error sending test event:', error);
+      { rootMargin: '200px' }
+    );
+
+    if (this.scrollSentinel?.nativeElement) {
+      this.intersectionObserver.observe(this.scrollSentinel.nativeElement);
+    }
+  }
+
+  private observeSentinel(): void {
+    setTimeout(() => {
+      if (this.scrollSentinel?.nativeElement) {
+        this.intersectionObserver?.observe(this.scrollSentinel.nativeElement);
       }
     });
   }
-  openLoginModal(): void {
-    this.modalService.openLoginModal();
+
+  // ===== Search =====
+
+  onSearch(filters: RoomSearchRequest): void {
+    this.currentFilters = filters;
+    this.currentPage = 1;
+    this.posts = [];
+    this.loadPosts();
+  }
+
+  resetSearch(): void {
+    this.currentFilters = {};
+    this.currentPage = 1;
+    this.posts = [];
+    this.loadPosts();
+  }
+
+  // ===== Load Posts =====
+
+  loadPosts(): void {
+    this.isLoading = true;
+    this.postService.searchPosts(this.currentFilters, this.currentPage, this.pageSize)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+          this.isLoadingMore = false;
+          this.observeSentinel();
+        })
+      )
+      .subscribe({
+        next: (res: ApiResponse<PaginatedResponse<RoomPostResponse>>) => {
+          const data = res.data;
+          if (data) {
+            this.posts = this.currentPage === 1
+              ? data.content
+              : [...this.posts, ...data.content];
+            this.totalPosts = data.totalElements;
+            this.hasMore = !data.last;
+          }
+        },
+        error: (err) => {
+          console.error('Error loading posts:', err);
+          this.alertService.show('error', 'Lỗi', 'Không thể tải danh sách bài đăng. Vui lòng thử lại.');
+        }
+      });
+  }
+
+  loadMore(): void {
+    if (this.isLoading || this.isLoadingMore || !this.hasMore) return;
+    this.isLoadingMore = true;
+    this.currentPage++;
+    this.loadPosts();
+  }
+
+  // ===== Like =====
+
+  onLikePost(postId: string): void {
+    if (!this.authService.isAuthenticated) {
+      this.modalService.openLoginModal();
+      return;
+    }
+
+    this.postService.likePost(postId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          // Update local statistics
+          const post = this.posts.find(p => p.id === postId);
+          if (post && post.statistics) {
+            // Toggle: API returns message "Liked" or "Unliked"
+            const liked = res.message?.toLowerCase().includes('liked') && !res.message?.toLowerCase().includes('unliked');
+            post.statistics.saveCount += liked ? 1 : -1;
+          }
+        },
+        error: () => {
+          this.alertService.show('error', 'Lỗi', 'Không thể thực hiện. Vui lòng thử lại.');
+        }
+      });
+  }
+
+  trackByPostId(index: number, post: RoomPostResponse): string {
+    return post.id;
   }
 }

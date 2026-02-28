@@ -1,0 +1,67 @@
+<div class="home-container">
+  <!-- Search & Filters -->
+  <section class="search-section">
+    <app-search-filter (search)="onSearch($event)"></app-search-filter>
+  </section>
+
+  <!-- Feed -->
+  <div class="feed-wrapper">
+    <!-- Post Feed (center column) -->
+    <div class="feed-column">
+      <!-- Section Header -->
+      <div class="section-header" *ngIf="totalPosts > 0">
+        <h2 class="section-title">Phòng trọ mới nhất</h2>
+        <span class="post-count">{{ totalPosts }} kết quả</span>
+      </div>
+
+      <!-- Loading Skeleton (initial load) -->
+      <div class="feed-list" *ngIf="isLoading && posts.length === 0">
+        <div class="skeleton-card" *ngFor="let s of skeletonItems">
+          <div class="skeleton-header">
+            <div class="skeleton-avatar shimmer"></div>
+            <div class="skeleton-user-info">
+              <div class="skeleton-name shimmer"></div>
+              <div class="skeleton-meta shimmer"></div>
+            </div>
+          </div>
+          <div class="skeleton-title shimmer"></div>
+          <div class="skeleton-image shimmer"></div>
+          <div class="skeleton-actions shimmer"></div>
+        </div>
+      </div>
+
+      <!-- Posts Feed -->
+      <div class="feed-list" *ngIf="posts.length > 0">
+        <app-post-card
+          *ngFor="let post of posts; trackBy: trackByPostId"
+          [post]="post"
+          (liked)="onLikePost($event)"
+        ></app-post-card>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && posts.length === 0">
+        <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <h3>Không tìm thấy kết quả</h3>
+        <p>Thử thay đổi từ khóa hoặc bộ lọc để tìm phòng trọ phù hợp</p>
+        <button class="btn-reset-search" (click)="resetSearch()">Xem tất cả</button>
+      </div>
+
+      <!-- Infinite scroll: loading more spinner -->
+      <div class="loading-more" *ngIf="isLoadingMore">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- Scroll sentinel (invisible trigger for IntersectionObserver) -->
+      <div #scrollSentinel class="scroll-sentinel"></div>
+
+      <!-- End of feed -->
+      <div class="end-of-feed" *ngIf="!hasMore && posts.length > 0 && !isLoading">
+        <span>Bạn đã xem hết bài đăng</span>
+      </div>
+    </div>
+  </div>
+</div>

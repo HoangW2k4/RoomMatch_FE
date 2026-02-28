@@ -20,16 +20,16 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/search/search.component').then(m => m.SearchComponent)
       },
       {
-        path: 'room/:id',
-        loadComponent: () => import('./modules/room/pages/room-detail/room-detail.component').then(m => m.RoomDetailComponent)
-      },
-      {
         path: 'room/create',
         loadComponent: () => import('./modules/room/pages/room-create/room-create.component').then(m => m.RoomCreateComponent)
       },
       {
         path: 'room/manage',
         loadComponent: () => import('./modules/room/pages/room-manage/room-manage.component').then(m => m.RoomManageComponent)
+      },
+      {
+        path: 'room/:id',
+        loadComponent: () => import('./modules/room/pages/room-detail/room-detail.component').then(m => m.RoomDetailComponent)
       },
       {
         path: 'social',

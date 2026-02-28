@@ -13,3 +13,4 @@ export * from './guards/auth.guard';
 // Models
 export * from './models/enums';
 export * from './models/base.interface';
+export * from './models/post.interface';
