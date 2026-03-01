@@ -101,8 +101,13 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.loadingService.hide();
         this.showAlertModal('success', 'Thành công', 'Đăng nhập thành công!');
         localStorage.setItem('accessToken', response?.data?.accessToken || '');
-        localStorage.setItem('refreshToken', response?.data?.refreshToken || '');
-        localStorage.setItem('userRole', response?.data?.role || '');
+        localStorage.setItem('user', JSON.stringify({
+          role: response?.data?.role || '',
+          name: response?.data?.fullName || '',
+          id: response?.data?.id || '',
+          avatar: response?.data?.avatar || ''
+        }));
+        document.cookie = `refreshToken=${response?.data?.refreshToken || ''}; path=/; SameSite=Strict`;
         // Navigate to home or dashboard
         setTimeout(() => {
           this.closeModal();

@@ -32,7 +32,7 @@ export interface JwtResponse {
   fullName: string;
   phoneNumber: string;
   role: string;
-  avatarUrl?: string;
+  avatar?: string;
 }
 
 @Injectable({

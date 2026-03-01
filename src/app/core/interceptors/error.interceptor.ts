@@ -33,8 +33,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             if (isAuthEndpoint) {
               console.warn('Auth endpoint failed - clearing session');
               localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('userRole');
+              localStorage.removeItem('user');
+              document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
               router.navigate(['/auth/login']);
               alertService.show('error', 'Phiên đăng nhập hết hạn', 'Vui lòng đăng nhập lại để tiếp tục.');
             } else {
@@ -77,7 +77,7 @@ function handle401Error(
     isRefreshing = true;
     refreshTokenSubject.next(null);
 
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = document.cookie.match(/(?:^|; )refreshToken=([^;]*)/)?.at(1) ?? null;
     
     if (!refreshToken) {
       isRefreshing = false;
@@ -152,8 +152,7 @@ function refreshAccessToken(refreshToken: string, httpBackend: HttpBackend): Obs
 
 function clearSessionAndRedirect(router: Router): void {
   localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
-  localStorage.removeItem('userRole');
+  document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
   router.navigate(['/auth/login']);
 }

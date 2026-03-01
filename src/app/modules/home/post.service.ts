@@ -1,3 +1,4 @@
+import { LoadingService } from './../../core/services/loading.service';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
@@ -20,15 +21,14 @@ import {
 })
 export class PostService {
   private readonly basePath = '/post';
+  private LoadingService : LoadingService;
+  
+  constructor(private api: ApiService, private loadingService: LoadingService) {
+    this.LoadingService = loadingService;
+  }
 
-  constructor(private api: ApiService) {}
-
-  // ===== Room Posts =====
-
-  /**
-   * Search room posts with filters and pagination
-   */
   searchPosts(filters: RoomSearchRequest, page = 1, size = 10): Observable<ApiResponse<PaginatedResponse<RoomPostResponse>>> {
+    this.LoadingService.show();
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
@@ -40,7 +40,7 @@ export class PostService {
     if (filters.minPrice != null) params = params.set('minPrice', filters.minPrice.toString());
     if (filters.maxPrice != null) params = params.set('maxPrice', filters.maxPrice.toString());
     if (filters.targetArea != null) params = params.set('targetArea', filters.targetArea.toString());
-
+    this.LoadingService.hide();
     return this.api.get<ApiResponse<PaginatedResponse<RoomPostResponse>>>(`${this.basePath}/search`, { params });
   }
 

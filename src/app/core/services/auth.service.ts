@@ -40,30 +40,34 @@ export class AuthService {
   }
 
   /**
+   * Get cookie value by name
+   */
+  private getCookie(name: string): string | null {
+    const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+
+  /**
    * Check if user has specific role
    */
   hasRole(role: string): boolean {
-    return localStorage.getItem('userRole') === role;
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    return user?.role === role;
   }
 
 
   logout(): void {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
-    localStorage.removeItem('userRole');
+    document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
     this.router.navigate(['/auth/login']);
   }
 
   refreshToken(): Observable<string> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    
+    const refreshToken = this.getCookie('refreshToken');
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
-
-    console.log('🔄 Refreshing access token...');
-    console.log('Refresh Token:', refreshToken.substring(0, 20) + '...');
 
     return this.http.post<ApiResponse<string>>(
       `${environment.apiUrl}/auth/refresh-access`, 
@@ -76,8 +80,6 @@ export class AuthService {
     ).pipe(
       map(apiResponse => {
         const newAccessToken = apiResponse.data!;
-        console.log('✅ Access token refreshed successfully');
-        console.log('New Access Token:', newAccessToken.substring(0, 20) + '...');
         return newAccessToken;
       }),
       tap(accessToken => {
