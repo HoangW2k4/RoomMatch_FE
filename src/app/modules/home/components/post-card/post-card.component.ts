@@ -1,16 +1,29 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { RoomPostResponse } from '../../../../core/models/post.interface';
+import { PostMedia, RoomPostResponse } from '../../../../core/models/post.interface';
+import { GalleryLayout1Component } from './layouts/gallery-layout-1.component';
+import { GalleryLayout2Component } from './layouts/gallery-layout-2.component';
+import { GalleryLayout3Component } from './layouts/gallery-layout-3.component';
+import { GalleryLayout4Component } from './layouts/gallery-layout-4.component';
+import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    GalleryLayout1Component,
+    GalleryLayout2Component,
+    GalleryLayout3Component,
+    GalleryLayout4Component,
+    GalleryLayout5Component,
+  ],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.css']
 })
-export class PostCardComponent {
+export class PostCardComponent implements AfterViewInit, OnDestroy {
   @Input() post!: RoomPostResponse;
   @Input() isLiked = false;
   @Output() liked = new EventEmitter<string>();
@@ -18,11 +31,112 @@ export class PostCardComponent {
   @Output() shared = new EventEmitter<string>();
   @Output() contacted = new EventEmitter<string>();
 
-  get mainImage(): string {
-    if (this.post.medias && this.post.medias.length > 0) {
-      return this.post.medias[0]?.url || 'assets/images/placeholder-room.png';
-    }
-    return 'assets/images/placeholder-room.png';
+  private observer!: IntersectionObserver;
+  private videos: HTMLVideoElement[] = [];
+  private currentVideoIndex = 0;
+  private isVisible = false;
+  private onEndedHandler = () => this.playNextVideo();
+
+  constructor(private el: ElementRef) {}
+
+  ngAfterViewInit(): void {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          this.isVisible = entry.isIntersecting;
+          this.videos = Array.from(
+            (this.el.nativeElement as HTMLElement).querySelectorAll('video')
+          );
+
+          if (this.isVisible) {
+            // Start sequential playback from current index
+            this.playCurrentVideo();
+          } else {
+            // Pause all videos when scrolled away
+            this.pauseAllVideos();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    this.observer.observe(this.el.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+    this.cleanupListeners();
+  }
+
+  private playCurrentVideo(): void {
+    if (this.videos.length === 0) return;
+
+    // Pause all first
+    this.pauseAllVideos();
+
+    const video = this.videos[this.currentVideoIndex];
+    if (!video) return;
+
+    // Remove loop so 'ended' event fires
+    video.loop = false;
+    video.removeEventListener('ended', this.onEndedHandler);
+    video.addEventListener('ended', this.onEndedHandler);
+    video.play().catch(() => {});
+    this.updatePlayIcons();
+  }
+
+  private playNextVideo(): void {
+    if (!this.isVisible || this.videos.length === 0) return;
+
+    // Move to next video, loop back to first when all played
+    this.currentVideoIndex = (this.currentVideoIndex + 1) % this.videos.length;
+    this.playCurrentVideo();
+  }
+
+  private pauseAllVideos(): void {
+    this.videos.forEach((v) => {
+      v.removeEventListener('ended', this.onEndedHandler);
+      v.pause();
+    });
+    this.updatePlayIcons();
+  }
+
+  private updatePlayIcons(): void {
+    this.videos.forEach((video) => {
+      const wrapper = video.closest('.video-wrapper');
+      if (!wrapper) return;
+      if (video.paused) {
+        wrapper.classList.add('paused');
+        wrapper.classList.remove('playing');
+      } else {
+        wrapper.classList.add('playing');
+        wrapper.classList.remove('paused');
+      }
+    });
+  }
+
+  private cleanupListeners(): void {
+    this.videos.forEach((v) => {
+      v.removeEventListener('ended', this.onEndedHandler);
+    });
+  }
+
+  /** Sorted medias: videos first, then images (preserving relative order within each group) */
+  get sortedMedias(): PostMedia[] {
+    if (!this.post.medias || this.post.medias.length === 0) return [];
+    const videos = this.post.medias.filter(m => this.isVideo(m));
+    const images = this.post.medias.filter(m => !this.isVideo(m));
+    return [...videos, ...images];
+  }
+
+  get imageCount(): number {
+    const count = this.sortedMedias.length;
+    if (count === 0) return 1;
+    if (count >= 5) return 5;
+    return count;
+  }
+
+  isVideo(media: PostMedia): boolean {
+    return media?.type?.startsWith('video') ?? false;
   }
 
   get shortAddress(): string {
@@ -54,11 +168,6 @@ export class PostCardComponent {
     event.stopPropagation();
     event.preventDefault();
     this.contacted.emit(this.post.id);
-  }
-
-  onImageError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    img.src = 'assets/images/placeholder-room.png';
   }
 
   onAvatarError(event: Event): void {

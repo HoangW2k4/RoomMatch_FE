@@ -44,37 +44,13 @@
     </div>
   </div>
 
-  <!-- Image Gallery -->
+  <!-- Image Gallery - Facebook Style -->
   <div class="image-gallery" [routerLink]="['/room', post.id]">
-    <div class="main-image">
-      <img
-        [src]="mainImage"
-        title="img"
-        [alt]="post.title"
-        (error)="onImageError($event)"
-      />
-    </div>
-    <div class="side-images" *ngIf="post.medias && post.medias.length > 1">
-      <div class="side-image">
-        <img
-          [src]="post.medias[1]?.url"
-          [alt]="post.title"
-          title="img"
-          (error)="onImageError($event)"
-        />
-      </div>
-      <div class="side-image" *ngIf="post.medias.length > 2">
-        <img
-          [src]="post.medias[2]?.url"
-          [alt]="post.title"
-          title="img"
-          (error)="onImageError($event)"
-        />
-        <div class="more-overlay" *ngIf="post.medias.length > 3">
-          +{{ post.medias.length - 3 }} more
-        </div>
-      </div>
-    </div>
+    <app-gallery-layout-1 *ngIf="imageCount === 1" [medias]="sortedMedias" [alt]="post.title"></app-gallery-layout-1>
+    <app-gallery-layout-2 *ngIf="imageCount === 2" [medias]="sortedMedias" [alt]="post.title"></app-gallery-layout-2>
+    <app-gallery-layout-3 *ngIf="imageCount === 3" [medias]="sortedMedias" [alt]="post.title"></app-gallery-layout-3>
+    <app-gallery-layout-4 *ngIf="imageCount === 4" [medias]="sortedMedias" [alt]="post.title"></app-gallery-layout-4>
+    <app-gallery-layout-5 *ngIf="imageCount >= 5" [medias]="sortedMedias" [alt]="post.title"></app-gallery-layout-5>
   </div>
 
   <!-- Expand Button -->
