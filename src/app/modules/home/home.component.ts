@@ -36,6 +36,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
   private intersectionObserver!: IntersectionObserver;
   private destroy$ = new Subject<void>();
+  private likeInFlightPostIds = new Set<string>();
 
   constructor(
     private modalService: ModalService,
@@ -149,19 +150,39 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    if (this.likeInFlightPostIds.has(postId)) {
+      return;
+    }
+
+    const post = this.posts.find(p => p.id === postId);
+    if (!post) {
+      return;
+    }
+
+    const previousLiked = !!post.likedByCurrentUser;
+    const previousSaveCount = post.statistics?.saveCount ?? 0;
+
+    post.likedByCurrentUser = !previousLiked;
+    if (post.statistics) {
+      post.statistics.saveCount = Math.max(0, previousSaveCount + (post.likedByCurrentUser ? 1 : -1));
+    }
+
+    this.likeInFlightPostIds.add(postId);
+
     this.postService.likePost(postId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (res) => {
-          // Update local statistics
-          const post = this.posts.find(p => p.id === postId);
-          if (post && post.statistics) {
-            // Toggle: API returns message "Liked" or "Unliked"
-            const liked = res.message?.toLowerCase().includes('liked') && !res.message?.toLowerCase().includes('unliked');
-            post.statistics.saveCount += liked ? 1 : -1;
-          }
+        next: () => {
+          this.likeInFlightPostIds.delete(postId);
         },
         error: () => {
+          this.likeInFlightPostIds.delete(postId);
+
+          post.likedByCurrentUser = previousLiked;
+          if (post.statistics) {
+            post.statistics.saveCount = previousSaveCount;
+          }
+
           this.alertService.show('error', 'Lỗi', 'Không thể thực hiện. Vui lòng thử lại.');
         }
       });

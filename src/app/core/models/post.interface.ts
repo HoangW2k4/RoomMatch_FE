@@ -55,6 +55,7 @@ export interface RoomPostResponse {
   medias: PostMedia[];
   statistics: PostStatistics;
   createdAt: string;
+  likedByCurrentUser: boolean;
 }
 
 export interface LandlordInfo {

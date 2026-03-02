@@ -1,0 +1,409 @@
+/* ===== Comment Section Container ===== */
+.comment-section {
+  border-top: 1px solid #e4e6eb;
+  padding: 12px 16px 8px;
+  background: #fff;
+}
+
+/* ===== Header ===== */
+.comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.comment-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1c1e21;
+}
+.sort-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #65676b;
+  cursor: pointer;
+}
+.sort-label:hover {
+  text-decoration: underline;
+}
+
+/* ===== Loading ===== */
+.comment-loading {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+.dot-loader {
+  display: flex;
+  gap: 4px;
+}
+.dot-loader span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #bcc0c4;
+  animation: dotBounce 0.6s infinite alternate;
+}
+.dot-loader span:nth-child(2) { animation-delay: 0.2s; }
+.dot-loader span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce {
+  to { opacity: 0.3; transform: translateY(-4px); }
+}
+
+/* ===== Comments List ===== */
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-bottom: 4px;
+}
+.comments-list::-webkit-scrollbar { width: 4px; }
+.comments-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+
+/* ===== Comment Thread (recursive wrapper) ===== */
+.comment-thread {
+  position: relative;
+}
+
+/* ===== Comment Row (avatar + content) ===== */
+.comment-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+/* ===== Avatar ===== */
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.comment-avatar.small {
+  width: 24px;
+  height: 24px;
+}
+
+/* ===== Comment Content ===== */
+.comment-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== Comment Bubble (Facebook style) ===== */
+.comment-bubble {
+  background: #f0f2f5;
+  border-radius: 18px;
+  padding: 8px 12px;
+  display: inline-block;
+  max-width: 100%;
+}
+.comment-author {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #050505;
+  display: block;
+  line-height: 1.2;
+}
+.comment-text {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: #050505;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.comment-text.deleted {
+  color: #8a8d91;
+  font-style: italic;
+}
+
+/* ===== Comment Meta (time, reply, delete) ===== */
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1px 12px 2px;
+}
+.comment-time {
+  font-size: 0.72rem;
+  color: #65676b;
+}
+.meta-btn {
+  background: none;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #65676b;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+.meta-btn:hover {
+  text-decoration: underline;
+  color: #050505;
+}
+.meta-btn.delete-btn:hover {
+  color: #e74c3c;
+}
+
+/* Nested children wrapper — indented, carries the vertical line */
+/* LEVEL 0 parent: 32px avatar, center = 16px */
+.children-wrapper {
+  position: relative;
+  padding-left: 40px;
+}
+
+/* Vertical line running alongside all children */
+.children-wrapper::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: -26px;
+  bottom: 0;
+  width: 2px;
+  background: #ccd0d5;
+}
+
+/* LEVEL 1+ parent: 24px avatar, center = 12px → shift line left */
+.comment-thread.is-nested > .children-wrapper {
+  padding-left: 36px;
+}
+.comment-thread.is-nested > .children-wrapper::before {
+  left: 11px;
+}
+
+/* Trim vertical line: stop at the last child's connector curve */
+.comment-thread.is-last-child {
+  position: relative;
+}
+
+/* Each nested comment draws its own L-curve from the vertical line */
+.comment-thread.is-nested {
+  position: relative;
+}
+.comment-thread.is-nested::before {
+  content: '';
+  position: absolute;
+  background-color: #fff;
+  z-index: 1000;
+  left: -25px;
+  top: -2px;
+  width: 24px;  /* curve width: 25px - 1px so it touches avatar edge */
+  height: 20px; /* curve height: roughly center of 24px avatar + padding */
+  border-left: 2px solid #ccd0d5;
+  border-bottom: 2px solid #ccd0d5;
+  border-bottom-left-radius: 14px;
+  border-right: none;
+  border-top: none;
+  pointer-events: none;
+}
+
+/* For the last nested child: mask the vertical line below the curve.
+   White cover over the vertical line from below the curve to the bottom. */
+.comment-thread.is-nested.is-last-child::after {
+  content: '';
+  position: absolute;
+  left: -27px;
+  top: 8px;
+  width: 6px;
+  bottom: 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* ===== View Replies Toggle ===== */
+.view-replies-toggle {
+  padding-left: 36px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #65676b;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+.toggle-btn:hover {
+  text-decoration: underline;
+  color: #050505;
+}
+.toggle-btn svg {
+  transition: transform 0.15s;
+}
+
+/* ===== Reply Input Box ===== */
+.reply-input-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0 4px;
+  padding-left: 32px;
+  position: relative;
+}
+
+/* Curve connector for reply input (same as nested comment) */
+.reply-input-box::before {
+  content: '';
+  position: absolute;
+  left: 7px;     /* reach back to vertical line from reply box position */
+  top: 0;
+  width: 24px;
+  height: 18px;
+  border-left: 2px solid #ccd0d5;
+  border-bottom: 2px solid #ccd0d5;
+  border-bottom-left-radius: 14px;
+  border-right: none;
+  border-top: none;
+  pointer-events: none;
+}
+
+/* ===== Bottom Comment Input ===== */
+.comment-input-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e4e6eb;
+  margin-top: 4px;
+}
+
+/* ===== Shared Input Styles ===== */
+.input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.comment-input {
+  width: 100%;
+  border: 1px solid #e4e6eb;
+  border-radius: 20px;
+  padding: 8px 36px 8px 14px;
+  font-size: 0.84rem;
+  font-family: inherit;
+  outline: none;
+  background: #f0f2f5;
+  color: #050505;
+  line-height: 1.4;
+  transition: border-color 0.15s, background 0.15s;
+  box-sizing: border-box;
+}
+.comment-input:focus {
+  border-color: #1877f2;
+  background: #fff;
+}
+.comment-input::placeholder {
+  color: #65676b;
+}
+
+.send-btn {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #1877f2;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, opacity 0.15s;
+}
+.send-btn:hover:not(:disabled) {
+  background: #e7f3ff;
+}
+.send-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.send-btn.small {
+  position: static;
+}
+
+.reply-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+}
+.cancel-reply-btn {
+  background: none;
+  border: none;
+  color: #65676b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.cancel-reply-btn:hover {
+  background: #f0f2f5;
+}
+
+/* ===== Empty State ===== */
+.empty-comments {
+  text-align: center;
+  padding: 20px 0;
+}
+.empty-comments p {
+  color: #65676b;
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+/* ===== Show More Top Level ===== */
+.show-more-top {
+  padding: 4px 0 6px;
+}
+.show-more-top .toggle-btn {
+  font-size: 0.82rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .comment-section {
+    padding: 10px 12px 6px;
+  }
+  .comment-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  .comment-avatar.small {
+    width: 22px;
+    height: 22px;
+  }
+  .children-wrapper {
+    padding-left: 34px;
+  }
+  .children-wrapper::before {
+    left: 13px;
+  }
+  .comment-thread.is-nested > .children-wrapper {
+    padding-left: 30px;
+  }
+  .comment-thread.is-nested > .children-wrapper::before {
+    left: 10px;
+  }
+  .comment-thread.is-nested::before {
+    left: -21px;
+    width: 20px;
+  }
+  .comment-thread.is-nested.is-last-child::after {
+    left: -23px;
+  }
+  .reply-input-box {
+    padding-left: 28px;
+  }
+}

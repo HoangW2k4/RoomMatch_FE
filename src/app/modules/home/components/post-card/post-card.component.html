@@ -14,9 +14,7 @@
       <div class="user-details">
         <div class="user-name-row">
           <span class="user-name">{{ post.landlordInfo?.name || 'Chủ phòng' }}</span>
-          <svg class="verified-badge" width="16" height="16" viewBox="0 0 24 24" fill="#1d9bf0">
-            <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"/>
-          </svg>
+          <img src="/assets/icons/ic_verified.svg" class="verified-badge" width="16" height="16" alt="verified">
         </div>
         <div class="post-meta-info">
           {{ formatDate(post.createdAt) }} · {{ post.address.districtName || post.address.provinceName || '' }}
@@ -56,47 +54,39 @@
   <!-- Expand Button -->
   <div class="expand-row" [routerLink]="['/room', post.id]">
     <button class="expand-btn" title="btn">
-      <svg width="18" height="18" fill="none" stroke="#9ca3af" stroke-width="2.5" viewBox="0 0 24 24">
-        <path d="M6 9l6 6 6-6"/>
-      </svg>
+      <img src="/assets/icons/ic_chevron_down.svg" width="18" height="18" alt="expand">
     </button>
   </div>
 
   <!-- Actions Footer -->
   <div class="post-actions">
     <div class="action-group">
-      <button class="action-btn" [class.liked]="isLiked" (click)="onLike($event)">
-        <svg width="18" height="18" viewBox="0 0 24 24" [attr.fill]="isLiked ? '#e74c3c' : 'none'" [attr.stroke]="isLiked ? '#e74c3c' : '#6b7280'" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        <span>Like</span>
+      <button class="action-btn" [class.liked]="post.likedByCurrentUser" (click)="onLike($event)">
+        <img [src]="post.likedByCurrentUser ? '/assets/icons/ic_heart_liked.svg' : '/assets/icons/ic_heart.svg'" width="18" height="18" alt="like">
+        <span>Thích</span>
         <span class="count">{{ post.statistics.saveCount || 0 }}</span>
       </button>
       <button class="action-btn" (click)="onComment($event)">
-        <svg width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        <span>Comment</span>
+        <img src="/assets/icons/ic_comment.svg" width="18" height="18" alt="comment">
+        <span>Bình luận</span>
         <span class="count">{{ post.statistics.commentCount || 0 }}</span>
       </button>
       <button class="action-btn" (click)="onShare($event)">
-        <svg width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24">
-          <circle cx="18" cy="5" r="3"/>
-          <circle cx="6" cy="12" r="3"/>
-          <circle cx="18" cy="19" r="3"/>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-        </svg>
-        <span>Share</span>
+        <img src="/assets/icons/ic_share.svg" width="18" height="18" alt="share">
+        <span>Chia sẻ</span>
         <span class="count">{{ post.statistics.shareCount || 0 }}</span>
       </button>
     </div>
     <button class="contact-btn" (click)="onContact($event)">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <line x1="22" y1="2" x2="11" y2="13"/>
-        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-      </svg>
+      <img src="/assets/icons/ic_send.svg" width="16" height="16" alt="send">
       <span>Contact</span>
     </button>
   </div>
+
+  <!-- Comment Section -->
+  <app-comment-section
+    #commentSection
+    [postId]="post.id"
+    [visible]="showComments"
+  ></app-comment-section>
 </div>

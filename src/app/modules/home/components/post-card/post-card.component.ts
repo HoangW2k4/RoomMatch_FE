@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PostMedia, RoomPostResponse } from '../../../../core/models/post.interface';
@@ -7,6 +7,7 @@ import { GalleryLayout2Component } from './layouts/gallery-layout-2.component';
 import { GalleryLayout3Component } from './layouts/gallery-layout-3.component';
 import { GalleryLayout4Component } from './layouts/gallery-layout-4.component';
 import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
+import { CommentSectionComponent } from './comment-section/comment-section.component';
 
 @Component({
   selector: 'app-post-card',
@@ -19,17 +20,20 @@ import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
     GalleryLayout3Component,
     GalleryLayout4Component,
     GalleryLayout5Component,
+    CommentSectionComponent,
   ],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.css']
 })
 export class PostCardComponent implements AfterViewInit, OnDestroy {
   @Input() post!: RoomPostResponse;
-  @Input() isLiked = false;
   @Output() liked = new EventEmitter<string>();
   @Output() commented = new EventEmitter<string>();
   @Output() shared = new EventEmitter<string>();
   @Output() contacted = new EventEmitter<string>();
+
+  @ViewChild('commentSection') commentSection!: CommentSectionComponent;
+  showComments = false;
 
   private observer!: IntersectionObserver;
   private videos: HTMLVideoElement[] = [];
@@ -155,6 +159,10 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
   onComment(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
+    this.showComments = !this.showComments;
+    if (this.showComments) {
+      setTimeout(() => this.commentSection?.loadComments());
+    }
     this.commented.emit(this.post.id);
   }
 

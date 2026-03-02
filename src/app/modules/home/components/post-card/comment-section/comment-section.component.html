@@ -1,0 +1,156 @@
+<div class="comment-section" *ngIf="visible">
+  <!-- Header -->
+  <div class="comment-header">
+    <span class="comment-title">{{ totalCommentCount }} Bình luận</span>
+    <span class="sort-label">Phù hợp nhất</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="comment-loading" *ngIf="loading">
+    <div class="dot-loader">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- Comments list -->
+  <div class="comments-list" *ngIf="!loading">
+    <!-- Top-level comments -->
+    <ng-container *ngFor="let comment of visibleComments; let isLast = last">
+      <ng-container
+        *ngTemplateOutlet="commentTpl; context: { $implicit: comment, depth: 0, rootParent: comment, isLast: isLast }"
+      ></ng-container>
+    </ng-container>
+
+    <!-- Show more top-level comments -->
+    <div class="show-more-top" *ngIf="hasMoreTopLevel">
+      <button class="toggle-btn" (click)="showMoreTopLevel()">
+        Xem thêm {{ remainingTopLevelCount }} bình luận...
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-comments" *ngIf="comments.length === 0">
+      <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+    </div>
+  </div>
+
+  <!-- Write new comment (at bottom) -->
+  <div class="comment-input-box" *ngIf="!loading">
+    <img
+      [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'"
+      class="comment-avatar"
+      alt="avatar"
+      (error)="onAvatarError($event)"
+    />
+    <div class="input-wrapper">
+      <input
+        type="text"
+        class="comment-input"
+        [(ngModel)]="newCommentText"
+        placeholder="Viết bình luận..."
+        (keydown)="onKeydown($event, 'comment')"
+      />
+      <button
+        class="send-btn"
+        [disabled]="!newCommentText.trim()"
+        (click)="submitComment()"
+        title="Gửi"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Recursive comment template ===== -->
+<ng-template #commentTpl let-comment let-depth="depth" let-rootParent="rootParent" let-isLast="isLast">
+  <div class="comment-thread" [class.is-nested]="depth > 0" [class.is-last-child]="isLast">
+
+    <div class="comment-row">
+      <img
+        [src]="comment.userAvatarUrl || 'assets/images/avatar_default.jpg'"
+        class="comment-avatar"
+        [class.small]="depth > 0"
+        alt="avatar"
+        (error)="onAvatarError($event)"
+      />
+      <div class="comment-content">
+        <div class="comment-bubble">
+          <span class="comment-author">{{ comment.userFullName }}</span>
+          <p class="comment-text" *ngIf="!comment.isDeleted">{{ comment.content }}</p>
+          <p class="comment-text deleted" *ngIf="comment.isDeleted">Bình luận đã bị xóa</p>
+        </div>
+        <div class="comment-meta">
+          <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+          <button class="meta-btn" *ngIf="!comment.isDeleted" (click)="startReply(comment)">Trả lời</button>
+          <button class="meta-btn delete-btn" *ngIf="isOwner(comment) && !comment.isDeleted" (click)="deleteComment(comment.id)">Xóa</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="reply-input-box" *ngIf="replyingTo?.id === comment.id">
+      <img
+        [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'"
+        class="comment-avatar small"
+        alt="avatar"
+        (error)="onAvatarError($event)"
+      />
+      <div class="input-wrapper">
+        <input
+          type="text"
+          class="comment-input"
+          title="reply"
+          [(ngModel)]="replyText"
+          [placeholder]="'Viết phản hồi...'"
+          (keydown)="onKeydown($event, 'reply')"
+        />
+        <div class="reply-btn-group">
+          <button class="cancel-reply-btn" (click)="cancelReply()">Hủy</button>
+          <button
+            class="send-btn small"
+            [disabled]="!replyText.trim()"
+            (click)="submitReply()"
+            title="Gửi"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- "View N replies..." toggle (for depth >= 2 collapsed) -->
+    <div class="view-replies-toggle" *ngIf="shouldShowExpandBtn(comment, depth)">
+      <button class="toggle-btn" (click)="expandThread(comment.id)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+        Xem {{ countAllChildren(comment) }} phản hồi...
+      </button>
+    </div>
+
+    <!-- "View N replies..." toggle (for manually collapsed via toggleThread) -->
+    <div class="view-replies-toggle" *ngIf="comment.childComments?.length && isThreadCollapsed(comment.id)">
+      <button class="toggle-btn" (click)="toggleThread(comment.id)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+        Xem {{ countAllChildren(comment) }} phản hồi...
+      </button>
+    </div>
+
+    <!-- Child comments (recursive) -->
+    <div class="children-wrapper" *ngIf="shouldShowChildren(comment, depth) && !isThreadCollapsed(comment.id)">
+      <ng-container *ngFor="let child of comment.childComments; let childLast = last">
+        <ng-container
+          *ngTemplateOutlet="commentTpl; context: { $implicit: child, depth: depth + 1, rootParent: depth === 0 ? comment : rootParent, isLast: childLast }"
+        ></ng-container>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>

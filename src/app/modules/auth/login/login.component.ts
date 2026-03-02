@@ -117,7 +117,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.loadingService.hide();
         console.error('Login error:', error);
-        // Backend returns: { status: number, message: string, data: null }
         const message = error.error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.';
         this.showAlertModal('error', 'Đăng nhập thất bại', message);
       }
