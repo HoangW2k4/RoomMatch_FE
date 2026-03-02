@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#293e66" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Pot body -->
+  <path d="M7 10h10l-2 9H9L7 10z"/>
+  <!-- Pot rim -->
+  <rect x="6" y="8" width="12" height="3" rx="1"/>
+  <!-- Handles -->
+  <path d="M6 9 Q3 9 3 11 Q3 13 6 13"/>
+  <path d="M18 9 Q21 9 21 11 Q21 13 18 13"/>
+  <!-- Steam/people icons -->
+  <path d="M10 5 Q10 3 12 4 Q14 5 12 7" stroke-width="1.5"/>
+  <circle cx="12" cy="2" r="1" fill="#293e66" stroke="none"/>
+</svg>
