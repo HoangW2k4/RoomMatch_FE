@@ -1,19 +1,17 @@
-<div class="comment-section" *ngIf="visible">
+<div class="comment-section border-top bg-white p-3" *ngIf="visible">
   <!-- Header -->
-  <div class="comment-header">
-    <span class="comment-title">{{ totalCommentCount }} Bình luận</span>
-    <span class="sort-label">Phù hợp nhất</span>
+  <div class="comment-header d-flex align-items-center justify-content-between mb-2">
+    <span class="comment-title fw-bold">{{ totalCommentCount }} Bình luận</span>
+    <span class="sort-label small fw-semibold text-secondary">Phù hợp nhất</span>
   </div>
 
   <!-- Loading -->
-  <div class="comment-loading" *ngIf="loading">
-    <div class="dot-loader">
-      <span></span><span></span><span></span>
-    </div>
+  <div class="comment-loading d-flex justify-content-center py-3" *ngIf="loading">
+    <div class="spinner-border spinner-border-sm text-secondary" role="status" aria-label="loading comments"></div>
   </div>
 
   <!-- Comments list -->
-  <div class="comments-list" *ngIf="!loading">
+  <div class="comments-list d-flex flex-column overflow-auto" *ngIf="!loading">
     <!-- Top-level comments -->
     <ng-container *ngFor="let comment of visibleComments; let isLast = last">
       <ng-container
@@ -23,35 +21,36 @@
 
     <!-- Show more top-level comments -->
     <div class="show-more-top" *ngIf="hasMoreTopLevel">
-      <button class="toggle-btn" (click)="showMoreTopLevel()">
+      <button class="toggle-btn btn btn-link p-0 text-decoration-none" (click)="showMoreTopLevel()">
         Xem thêm {{ remainingTopLevelCount }} bình luận...
       </button>
     </div>
 
     <!-- Empty state -->
-    <div class="empty-comments" *ngIf="comments.length === 0">
-      <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+    <div class="empty-comments text-center py-3" *ngIf="comments.length === 0">
+      <p class="mb-0 text-secondary">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
     </div>
   </div>
 
   <!-- Write new comment (at bottom) -->
-  <div class="comment-input-box" *ngIf="!loading">
+  <div class="comment-input-box d-flex align-items-center gap-2 pt-2 mt-1 border-top" *ngIf="!loading">
     <img
       [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'"
       class="comment-avatar"
       alt="avatar"
+      title="avatar"
       (error)="onAvatarError($event)"
     />
-    <div class="input-wrapper">
+    <div class="input-wrapper flex-grow-1 position-relative d-flex align-items-center">
       <input
         type="text"
-        class="comment-input"
+        class="comment-input form-control rounded-pill"
         [(ngModel)]="newCommentText"
         placeholder="Viết bình luận..."
         (keydown)="onKeydown($event, 'comment')"
       />
       <button
-        class="send-btn"
+        class="send-btn btn btn-link text-primary p-1"
         [disabled]="!newCommentText.trim()"
         (click)="submitComment()"
         title="Gửi"
@@ -69,48 +68,50 @@
 <ng-template #commentTpl let-comment let-depth="depth" let-rootParent="rootParent" let-isLast="isLast">
   <div class="comment-thread" [class.is-nested]="depth > 0" [class.is-last-child]="isLast">
 
-    <div class="comment-row">
+    <div class="comment-row d-flex align-items-start gap-2 py-1">
       <img
         [src]="comment.userAvatarUrl || 'assets/images/avatar_default.jpg'"
         class="comment-avatar"
         [class.small]="depth > 0"
         alt="avatar"
+        title="avatar"
         (error)="onAvatarError($event)"
       />
-      <div class="comment-content">
-        <div class="comment-bubble">
-          <span class="comment-author">{{ comment.userFullName }}</span>
-          <p class="comment-text" *ngIf="!comment.isDeleted">{{ comment.content }}</p>
-          <p class="comment-text deleted" *ngIf="comment.isDeleted">Bình luận đã bị xóa</p>
+      <div class="comment-content flex-grow-1 min-w-0">
+        <div class="comment-bubble rounded-4 px-3 py-2 bg-body-secondary d-inline-block">
+          <span class="comment-author fw-semibold small d-block">{{ comment.userFullName }}</span>
+          <p class="comment-text mb-0" *ngIf="!comment.isDeleted">{{ comment.content }}</p>
+          <p class="comment-text deleted mb-0 fst-italic" *ngIf="comment.isDeleted">Bình luận đã bị xóa</p>
         </div>
-        <div class="comment-meta">
-          <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
-          <button class="meta-btn" *ngIf="!comment.isDeleted" (click)="startReply(comment)">Trả lời</button>
-          <button class="meta-btn delete-btn" *ngIf="isOwner(comment) && !comment.isDeleted" (click)="deleteComment(comment.id)">Xóa</button>
+        <div class="comment-meta d-flex align-items-center gap-2 px-2 pt-1">
+          <span class="comment-time small text-secondary">{{ formatTime(comment.createdAt) }}</span>
+          <button class="meta-btn btn btn-link btn-sm p-0 text-secondary text-decoration-none" *ngIf="!comment.isDeleted" (click)="startReply(comment)">Trả lời</button>
+          <button class="meta-btn delete-btn btn btn-link btn-sm p-0 text-danger text-decoration-none" *ngIf="isOwner(comment) && !comment.isDeleted" (click)="deleteComment(comment.id)">Xóa</button>
         </div>
       </div>
     </div>
 
-    <div class="reply-input-box" *ngIf="replyingTo?.id === comment.id">
+    <div class="reply-input-box d-flex align-items-center gap-2" *ngIf="replyingTo?.id === comment.id">
       <img
         [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'"
         class="comment-avatar small"
         alt="avatar"
+        title="avatar"
         (error)="onAvatarError($event)"
       />
-      <div class="input-wrapper">
+      <div class="input-wrapper flex-grow-1 position-relative d-flex align-items-center">
         <input
           type="text"
-          class="comment-input"
+          class="comment-input form-control rounded-pill"
           title="reply"
           [(ngModel)]="replyText"
           [placeholder]="'Viết phản hồi...'"
           (keydown)="onKeydown($event, 'reply')"
         />
-        <div class="reply-btn-group">
-          <button class="cancel-reply-btn" (click)="cancelReply()">Hủy</button>
+        <div class="reply-btn-group d-flex align-items-center gap-1 ms-1">
+          <button class="cancel-reply-btn btn btn-sm btn-light border" (click)="cancelReply()">Hủy</button>
           <button
-            class="send-btn small"
+            class="send-btn small btn btn-link text-primary p-1"
             [disabled]="!replyText.trim()"
             (click)="submitReply()"
             title="Gửi"
@@ -126,7 +127,7 @@
 
     <!-- "View N replies..." toggle (for depth >= 2 collapsed) -->
     <div class="view-replies-toggle" *ngIf="shouldShowExpandBtn(comment, depth)">
-      <button class="toggle-btn" (click)="expandThread(comment.id)">
+      <button class="toggle-btn btn btn-link btn-sm p-0 text-decoration-none" (click)="expandThread(comment.id)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
@@ -136,7 +137,7 @@
 
     <!-- "View N replies..." toggle (for manually collapsed via toggleThread) -->
     <div class="view-replies-toggle" *ngIf="comment.childComments?.length && isThreadCollapsed(comment.id)">
-      <button class="toggle-btn" (click)="toggleThread(comment.id)">
+      <button class="toggle-btn btn btn-link btn-sm p-0 text-decoration-none" (click)="toggleThread(comment.id)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>

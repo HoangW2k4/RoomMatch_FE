@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommentResponse, CommentRequest } from '../../../../../core/models/post.interface';
@@ -36,6 +36,15 @@ export class CommentSectionComponent implements OnInit, OnDestroy {
     private postService: PostService,
     private authService: AuthService
   ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const justOpened = changes['visible']?.currentValue === true;
+    const postChanged = !!changes['postId'];
+
+    if ((justOpened || postChanged) && this.visible && this.postId) {
+      this.loadComments();
+    }
+  }
 
   ngOnInit(): void {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
