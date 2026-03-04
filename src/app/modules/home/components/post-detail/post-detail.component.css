@@ -43,27 +43,47 @@
 
 .nav-btn {
   position: absolute;
-  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 55%;
   transform: translateY(-50%);
   width: 32px;
   height: 32px;
   border-radius: 50% !important;
-  font-size: 22px;
   line-height: 1;
   padding: 0;
   border-color: transparent !important;
   color: #6b7280;
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: 0.3s ease;
+  cursor: pointer;
 }
-
 .nav-btn.left {
   left: 10px;
 }
-
 .nav-btn.right {
   right: 10px;
 }
-
+.nav-btn:hover {
+  scale: 1.05;
+  background: rgba(255, 255, 255, 0.5) !important;
+}
+.nav-btn.right img {
+  position: relative;
+  left: -1px;
+}
+.nav-btn.left img {
+  position: relative;
+  left: 1px;
+}
+.nav-btn img{
+  width: 12px;
+  height: 12px;
+}
 .dots {
   position: absolute;
   bottom: 10px;
@@ -73,11 +93,12 @@
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  max-width: 10px;
+  max-height: 10px;
+  padding: 3px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(146, 145, 145, 0.55);
   cursor: pointer;
 }
 
@@ -86,21 +107,21 @@
 }
 
 .title-text {
-  font-size: 1.85rem;
+  font-size: 1.32rem;
   line-height: 1.2;
   color: #162032;
 }
 
 .price {
-  color: #1f7bf1;
-  font-size: 2rem;
+  color: var(--text-money);
+  font-size: 1.32rem;
   font-weight: 700;
   letter-spacing: -0.4px;
 }
 
 .unit {
   color: #94a3b8;
-  font-size: 1.1rem;
+  font-size: 0.82rem;
   margin-left: 2px;
 }
 
@@ -113,8 +134,17 @@
   font-size: 0.9rem !important;
 }
 
-.meta-row a {
-  max-width: 48%;
+.text-address{
+  margin-left: auto;
+  max-width: 52%;
+  flex: 1;
+  min-width: 180px;
+  display: inline-block;
+  /* text-align: right; */
+}
+.text-address:hover {
+  text-decoration: underline;
+  color: var(--primary-color);
 }
 
 .action-row {
@@ -129,6 +159,19 @@
   font-size: 0.8rem;
 }
 
+.action-row .btn .count {
+  font-weight: 700;
+  color: #3b4c63;
+}
+
+.action-row .btn.liked {
+  color: #e74c3c;
+}
+
+.action-row .btn.liked .count {
+  color: #e74c3c;
+}
+
 .detail-comments {
   min-width: 0;
 }
@@ -138,6 +181,27 @@
   border-color: #e8edf3 !important;
   color: #4c5b70 !important;
   font-weight: 600;
+  cursor: default;
+}
+.amenity:hover {
+  background-color: #e8edf3 !important;
+  color: #4c5b70 !important;
+  text-decoration: none;
+}
+.amenity-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  display: inline-block;
+  background-color:#3698fa;
+  -webkit-mask-image: var(--amenity-icon-url);
+  mask-image: var(--amenity-icon-url);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .detail-comments ::ng-deep .comment-section {
@@ -147,14 +211,16 @@
 }
 
 .host-avatar {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
 }
-
+.small{
+  font-size: 12px;
+}
 .right-panel {
-  background: #f9f8f8;
+  background: #f7f8f8;
   overflow-y: auto;
 }
 
@@ -164,7 +230,34 @@
   box-shadow: none;
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.05);
 }
-
+.btn-contact{
+  border-radius: 14px;
+  font-size: 0.88rem;
+  background: #3698fa;
+  color: #fff;
+  border-color: transparent !important;
+}
+.btn-contact:hover {
+  background: #1c64b6;
+  color: #fff;
+  border-color: transparent !important;
+}
+.btn-call {
+  border-radius: 14px;
+  font-size: 0.88rem;
+  background: #e3e8ef;
+  color: #4c5b70;
+  border-color: transparent !important;
+}
+.btn-call:hover {
+  background: #4c5b70;
+  color: #fff;
+  border-color: transparent !important;
+}
+small {
+  font-size: 0.68rem;
+  color: #4c5b70;
+}
 .rating-row {
   color: #738398;
 }
@@ -178,6 +271,18 @@
   border-radius: 10px;
   font-size: 0.88rem;
 }
+
+.call-whatsapp-btn .icon-hover {
+  display: none;
+}
+
+.call-whatsapp-btn:hover .icon-normal {
+  display: none;
+}
+
+.call-whatsapp-btn:hover .icon-hover {
+  display: inline-block;
+}
 .card-body {
   width: 98%;
 }
@@ -190,8 +295,8 @@
 }
 
 .similar-thumb {
-  width: 76px;
-  height: 76px;
+  width: 72px;
+  height: 72px;
   border-radius: 20px;
   object-fit: cover;
 }
@@ -223,18 +328,24 @@
 
 .similar-item p {
   line-height: 1.4;
-  font-size: 0.76rem !important;
+  font-size: 0.7rem !important;
 }
 
 .similar-item strong {
-  font-size: 1rem;
-  color: #1f7bf1 !important;
+  font-size: 0.85rem;
+  color: var(--text-money) !important;
 }
 
 .loading-state {
   min-height: 520px;
 }
-
+.card-body a{
+  color: var(--primary-color);
+}
+.card-body a:hover {
+  text-decoration: underline;
+  color: var(--text-money);
+}
 @media (max-width: 1100px) {
   .detail-layout {
     height: auto;

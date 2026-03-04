@@ -1,7 +1,7 @@
 <app-popup
   [visible]="visible"
-  [maxHeight]="'94vh'"
-  [width]="'70vw'"
+  [maxHeight]="'90vh'"
+  [width]="'67vw'"
   [minHeight]="'640px'"
   [showCloseButton]="true"
   [bodyPadding]="'0'"
@@ -17,7 +17,7 @@
 
     <div class="row g-0 detail-layout" *ngIf="!isLoading && detail as post">
       <section class="col-12 col-xl-8 left-panel">
-        <div class="media-frame" *ngIf="currentMedia as media">
+        <div class="media-frame" *ngIf="currentMedia as media" (wheel)="onMediaWheel($event)">
           <img
             *ngIf="!media.type.startsWith('video')"
             [src]="media.url"
@@ -32,8 +32,12 @@
             autoplay
           ></video>
 
-          <button class="nav-btn left btn btn-light" *ngIf="post.medias.length > 1" (click)="prevMedia()">‹</button>
-          <button class="nav-btn right btn btn-light" *ngIf="post.medias.length > 1" (click)="nextMedia()">›</button>
+          <button class="nav-btn left btn btn-light" *ngIf="post.medias.length > 1" (click)="prevMedia()">
+            <img src="/assets/icons/ic_chevron_left.svg" width="18" height="18" alt="previous">
+          </button>
+          <button class="nav-btn right btn btn-light" *ngIf="post.medias.length > 1" (click)="nextMedia()">
+            <img src="/assets/icons/ic_chevron_right.svg" width="18" height="18" alt="next">
+          </button>
 
           <div class="dots d-flex" *ngIf="post.medias.length > 1">
             <button
@@ -46,54 +50,57 @@
           </div>
         </div>
 
-        <div class="left-content-scroll">
+        <div class="left-content-scroll" #leftContentScroll>
           <div class="post-body p-3">
             <div class="d-flex justify-content-between align-items-start gap-3">
-              <h4 class="mb-0 fw-bold title-text">{{ post.title }}</h4>
+              <h5 class="mb-0 fw-bold title-text">{{ post.title }}</h5>
               <div class="text-end text-nowrap">
-                <span class="price">${{ formatPrice(post.price) }}</span>
-                <span class="unit">/mo</span>
-                <div class="small text-secondary fw-medium">Utilities included</div>
+                <span class="price">{{ formatPrice(post.price) }}</span>
+                <span class="unit">/tháng</span>
               </div>
             </div>
 
-            <div class="meta-row d-flex flex-wrap align-items-center gap-2 mt-2 small text-secondary">
-              <span class="d-inline-flex align-items-center gap-1"><img src="assets/icons/ic_bed.svg" alt="area" width="14" height="14">{{ post.area }} sqft</span>
-              <span class="dot-sep">•</span>
+            <div class="meta-row d-flex flex-wrap align-items-center gap-3 mt-2 small text-secondary">
+              <span class="d-inline-flex align-items-center gap-1"><img src="assets/icons/ic_area.svg" alt="area" width="14" height="14">{{ post.area }} m²</span>
               <span class="text-success fw-semibold d-inline-flex align-items-center gap-1"><img src="assets/icons/ic_success.svg" alt="status" width="14" height="14">Available Now</span>
-              <span class="dot-sep">•</span>
-              <a *ngIf="post.address.addressUrl" class="text-secondary text-truncate" [href]="post.address.addressUrl" target="_blank">{{ shortAddress }}</a>
-              <span *ngIf="!post.address.addressUrl">{{ shortAddress }}</span>
+              <a *ngIf="post.address.addressUrl" class="text-secondary text-address" [href]="post.address.addressUrl" target="_blank">{{ shortAddress }}</a>
+              <span *ngIf="!post.address.addressUrl" class="text-address">{{ shortAddress }}</span>
             </div>
 
             <div class="action-row d-flex flex-wrap justify-content-between align-items-center mt-3 mb-3">
               <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1">
-                  <img src="assets/icons/ic_heart.svg" alt="wishlist" width="15" height="15">
-                  Save to Wishlist
+                <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1" [class.liked]="post.isLikedByCurrentUser" (click)="onLikeDetail()">
+                  <img [src]="post.isLikedByCurrentUser ? '/assets/icons/ic_heart_liked.svg' : '/assets/icons/ic_heart.svg'" alt="wishlist" width="15" height="15">
+                  Thích
+                  <span class="count">{{ post.statistics.saveCount || 0 }}</span>
                 </button>
-                <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1">
+                <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1" (click)="onShareDetail()">
                   <img src="assets/icons/ic_share.svg" alt="share" width="14" height="14">
-                  Share
+                  Chia sẻ
+                  <span class="count">{{ post.statistics.shareCount || 0 }}</span>
                 </button>
               </div>
-              <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1">
+              <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1" (click)="openFeatureAlert('Báo cáo bài đăng', 'Tính năng báo cáo đang được phát triển.')">
                 <img src="assets/icons/ic_info.svg" alt="report" width="14" height="14">
                 Report
               </button>
             </div>
 
             <div class="section mt-3 pt-3 border-top">
-              <h3 class="h5 mb-2">About this room</h3>
+              <h4 class="h5 mb-2">Mô tả chi tiết</h4>
               <p class="text-secondary mb-0">{{ post.description }}</p>
             </div>
 
             <div class="section mt-3" *ngIf="post.amenities.length > 0">
-              <h3 class="h5 mb-2">Amenities</h3>
+              <h6 class="mb-2">Tiện ích</h6>
               <div class="d-flex flex-wrap gap-2">
                 <span class="amenity badge rounded-pill bg-white border text-secondary d-inline-flex align-items-center gap-2 px-3 py-2" *ngFor="let amenity of post.amenities">
-                  <img [src]="getAmenityIcon(amenity)" [alt]="amenity.name" title="amenity-icon" width="14" height="14" />
-                  {{ amenity.name }}
+                  <span
+                    class="amenity-icon"
+                    [style.--amenity-icon-url]="'url(' + getAmenityIcon(amenity) + ')'"
+                    aria-hidden="true"
+                  ></span>
+                  {{ getAmenityDisplayName(amenity) }}
                 </span>
               </div>
             </div>
@@ -112,9 +119,9 @@
       </section>
 
       <aside class="col-12 col-xl-4 right-panel p-2">
-        <div class="card border host-card mb-3 mt-3 p-2">
+        <div class="card border host-card mx-3 mt-2 mb-4 p-2">
           <div class="card-body p-2">
-            <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="d-flex align-items-center gap-2 mb-2">
               <img class="host-avatar" [src]="post.landlordInfo.avatarUrl || 'assets/images/avatar_default.jpg'" alt="avatar" (error)="onImageError($event)"/>
               <div>
                 <h4 class="h6 mb-0">{{ post.landlordInfo.name }}</h4>
@@ -122,27 +129,22 @@
               </div>
             </div>
 
-            <div class="small rating-row mb-2 d-flex align-items-center gap-1">
-              <span class="star">★</span>
-              <span class="fw-semibold">4.9</span>
-              <span class="text-secondary">(24 reviews)</span>
-            </div>
-
-            <button class="btn btn-primary w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
-              <img src="assets/icons/ic_comment.svg" alt="chat" width="16" height="16">
-              Chat on RoomConnect
+            <button class="btn-contact w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" (click)="openFeatureAlert('Liên hệ chủ phòng', 'Tính năng liên hệ trực tiếp đang được phát triển.')">
+              <img src="/assets/icons/ic_send.svg" width="16" height="16" alt="send">
+              <span>Contact</span>
             </button>
-            <button class="btn btn-outline-secondary w-100 mt-2 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
-              <span>☎</span>
+            <button class="btn-call w-100 mt-2 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 call-whatsapp-btn" (click)="openFeatureAlert('Call / WhatsApp', 'Tính năng gọi điện/WhatsApp đang được phát triển.')">
+              <img class="icon-normal" src="/assets/icons/ic_call.svg" width="16" height="16" alt="call">
+              <img class="icon-hover" src="/assets/icons/ic_call_hover.svg" width="16" height="16" alt="whatsapp">
               Call / WhatsApp
             </button>
-            <small class="d-block text-center text-secondary mt-2">Sarah typically responds within 30 minutes.</small>
+            <small class="d-block text-center text-secondary mt-2">{{ post.landlordInfo.name }} sẽ phản hồi sau 30 phút.</small>
           </div>
         </div>
 
-        <div class="card border-0 bg-transparent align-items-center" *ngIf="similarPosts.length > 0">
-          <div class="card-body px-1 pt-4">
-            <div class="d-flex gap-2 similar-item" *ngFor="let item of similarPosts" (click)="onOpenSimilarPost(item)">
+        <div class="card border-0 bg-transparent align-items-center" *ngIf="displayedSimilarPosts.length > 0">
+          <div class="card-body px-1 pt-1 align-items-center">
+            <div class="d-flex gap-2 similar-item mx-2" *ngFor="let item of displayedSimilarPosts" (click)="onOpenSimilarPost(item)">
               <img
                 class="similar-thumb"
                 [src]="item.medias[0]?.url || 'assets/images/avatar_default.jpg'"
@@ -153,13 +155,20 @@
               <div class="similar-content">
                 <h5 class="h6 mb-0 similar-title mt-1">{{ item.title }}</h5>
                 <p class="small text-secondary mb-0">{{ item.area }} sqft · {{ item.address.districtName || item.address.provinceName }}</p>
-                <strong class="text-primary">${{ formatPrice(item.price) }}/mo</strong>
+                <strong class="text-primary">{{ formatPrice(item.price) }}/tháng</strong>
               </div>
             </div>
-            <a class="small fw-semibold d-inline-block mt-2">View all similar listings</a>
+            <a class="small fw-semibold d-inline-block mt-2 w-100 text-center" (click)="close()">View all similar listings</a>
           </div>
         </div>
       </aside>
     </div>
   </div>
 </app-popup>
+
+<app-feature-not-developed 
+  [visible]="showFeatureNotDeveloped"
+  [title]="featureNotDevelopedTitle"
+  [message]="featureNotDevelopedMessage"
+  (close)="closeFeatureAlert()">
+</app-feature-not-developed>
