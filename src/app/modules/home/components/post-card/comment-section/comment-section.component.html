@@ -11,7 +11,12 @@
   </div>
 
   <!-- Comments list -->
-  <div class="comments-list d-flex flex-column overflow-auto" *ngIf="!loading">
+  <div
+    class="comments-list d-flex flex-column"
+    [class.overflow-auto]="useListScroll"
+    [class.no-list-scroll]="!useListScroll"
+    *ngIf="!loading"
+  >
     <!-- Top-level comments -->
     <ng-container *ngFor="let comment of visibleComments; let isLast = last">
       <ng-container

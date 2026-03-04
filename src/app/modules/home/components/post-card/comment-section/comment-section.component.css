@@ -17,6 +17,10 @@
   max-height: 500px;
   padding-bottom: 4px;
 }
+.comments-list.no-list-scroll {
+  max-height: none;
+  overflow: visible !important;
+}
 .comments-list::-webkit-scrollbar { width: 4px; }
 .comments-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
 

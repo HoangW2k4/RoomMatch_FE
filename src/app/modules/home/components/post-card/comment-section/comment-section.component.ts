@@ -16,6 +16,7 @@ import { Subject, takeUntil } from 'rxjs';
 export class CommentSectionComponent implements OnInit, OnDestroy {
   @Input() postId!: string;
   @Input() visible = false;
+  @Input() useListScroll = true;
 
   comments: CommentResponse[] = [];
   newCommentText = '';
