@@ -4,8 +4,14 @@ import {
   Output,
   EventEmitter,
   HostListener,
+  Inject,
+  OnChanges,
+  OnDestroy,
+  Renderer2,
+  SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
   selector: 'app-popup',
@@ -37,7 +43,8 @@ import { CommonModule } from '@angular/common';
 
         <div
           class="popup-body"
-          [style.overflow-y]="scrollableBody ? 'auto' : 'none'"
+          [style.overflow-y]="scrollableBody ? 'auto' : 'hidden'"
+          [style.padding]="bodyPadding"
         >
           <ng-content></ng-content>
         </div>
@@ -58,6 +65,7 @@ import { CommonModule } from '@angular/common';
         align-items: center;
         justify-content: center;
         z-index: 1031;
+        overflow: hidden;
         opacity: 1;
         transition: opacity 0.2s ease;
         animation: fadeIn 0.2s ease forwards;
@@ -69,6 +77,7 @@ import { CommonModule } from '@angular/common';
         max-width: 90vw;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
         transform: scale(0.95);
         opacity: 0;
         animation: popupIn 0.2s ease forwards;
@@ -86,7 +95,8 @@ import { CommonModule } from '@angular/common';
       }
 
       .popup-body {
-        padding: 0 16px;
+        flex: 1;
+        min-height: 0;
       }
 
       .popup-footer {
@@ -107,8 +117,8 @@ import { CommonModule } from '@angular/common';
       .close-btn-floating {
         position: absolute;
         background-color: transparent;
-        top: 1rem;
-        right: 1rem;
+        top: 0.5rem;
+        right: 0.5rem;
         border: none;
         cursor: pointer;
         display: flex;
@@ -140,21 +150,42 @@ import { CommonModule } from '@angular/common';
     `,
   ],
 })
-export class PopupComponent {
+export class PopupComponent implements OnChanges, OnDestroy {
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Input() title?: string;
   @Input() width = '500px';
+  @Input() bodyPadding = '16px';
   @Input() maxHeight = '80vh';
   @Input() minHeight = '100px';
   @Input() closeOnBackdrop = true;
   @Input() showCloseButton = true;
+  @Input() showFooter = false;
   @Output() closed = new EventEmitter<void>();
 
   @Input() scrollableBody = true;
 
+  constructor(
+    @Inject(DOCUMENT) private document: Document,
+    private renderer: Renderer2
+  ) {}
+
   get hasFooter() {
-    return true;
+    return this.showFooter;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['visible']) {
+      if (this.visible) {
+        this.renderer.setStyle(this.document.body, 'overflow', 'hidden');
+      } else {
+        this.renderer.removeStyle(this.document.body, 'overflow');
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.renderer.removeStyle(this.document.body, 'overflow');
   }
 
   @HostListener('document:keydown.escape')

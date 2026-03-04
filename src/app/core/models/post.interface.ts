@@ -79,6 +79,7 @@ export interface RoomPostDetailResponse {
   statistics: PostStatistics;
   status: PostStatus;
   createdAt: string;
+  isLikedByCurrentUser: boolean;
 }
 
 export interface RoomPostRequest {

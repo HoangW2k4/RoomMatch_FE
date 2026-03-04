@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { PostMedia, RoomPostResponse } from '../../../../core/models/post.interface';
 import { GalleryLayout1Component } from './layouts/gallery-layout-1.component';
 import { GalleryLayout2Component } from './layouts/gallery-layout-2.component';
@@ -8,25 +7,27 @@ import { GalleryLayout3Component } from './layouts/gallery-layout-3.component';
 import { GalleryLayout4Component } from './layouts/gallery-layout-4.component';
 import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
 import { CommentSectionComponent } from './comment-section/comment-section.component';
+import { PostDetailComponent } from '../post-detail/post-detail.component';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
     GalleryLayout1Component,
     GalleryLayout2Component,
     GalleryLayout3Component,
     GalleryLayout4Component,
     GalleryLayout5Component,
     CommentSectionComponent,
+    PostDetailComponent,
   ],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.css']
 })
 export class PostCardComponent implements AfterViewInit, OnDestroy {
   @Input() post!: RoomPostResponse;
+  @Input() homePosts: RoomPostResponse[] = [];
   @Output() liked = new EventEmitter<string>();
   @Output() commented = new EventEmitter<string>();
   @Output() shared = new EventEmitter<string>();
@@ -34,6 +35,7 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('commentSection') commentSection!: CommentSectionComponent;
   showComments = false;
+  isPostDetailVisible = false;
 
   private observer!: IntersectionObserver;
   private videos: HTMLVideoElement[] = [];
@@ -150,6 +152,14 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
     return parts.join(', ') || addr.fullAddress || 'Chưa cập nhật';
   }
 
+  get relatedRecentPosts(): RoomPostResponse[] {
+    if (!this.homePosts?.length) return [];
+
+    return this.homePosts
+      .filter(item => item.id !== this.post.id)
+      .slice(0, 3);
+  }
+
   onLike(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
@@ -176,6 +186,16 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
     event.stopPropagation();
     event.preventDefault();
     this.contacted.emit(this.post.id);
+  }
+
+  onOpenDetail(event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.isPostDetailVisible = true;
+  }
+
+  onClosePostDetail(): void {
+    this.isPostDetailVisible = false;
   }
 
   onAvatarError(event: Event): void {
