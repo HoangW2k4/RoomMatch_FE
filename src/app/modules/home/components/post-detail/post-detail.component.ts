@@ -64,6 +64,7 @@ export class PostDetailComponent implements OnChanges {
           this.detail = res?.data ?? null;
           this.selectedMediaIndex = 0;
           this.syncDetailLikeFromFeed(postId);
+          this.syncDetailCommentCountFromFeed(postId);
           setTimeout(() => {
             this.commentSection?.loadComments();
           });
@@ -80,13 +81,13 @@ export class PostDetailComponent implements OnChanges {
   }
 
   prevMedia(): void {
-    if (!this.detail?.medias?.length) return;
-    this.selectedMediaIndex = (this.selectedMediaIndex - 1 + this.detail.medias.length) % this.detail.medias.length;
+    if (!this.sortedMedias.length) return;
+    this.selectedMediaIndex = (this.selectedMediaIndex - 1 + this.sortedMedias.length) % this.sortedMedias.length;
   }
 
   nextMedia(): void {
-    if (!this.detail?.medias?.length) return;
-    this.selectedMediaIndex = (this.selectedMediaIndex + 1) % this.detail.medias.length;
+    if (!this.sortedMedias.length) return;
+    this.selectedMediaIndex = (this.selectedMediaIndex + 1) % this.sortedMedias.length;
   }
 
   selectMedia(index: number): void {
@@ -94,7 +95,16 @@ export class PostDetailComponent implements OnChanges {
   }
 
   get currentMedia() {
-    return this.detail?.medias?.[this.selectedMediaIndex] ?? null;
+    return this.sortedMedias[this.selectedMediaIndex] ?? null;
+  }
+
+  get sortedMedias() {
+    const medias = this.detail?.medias ?? [];
+    if (!medias.length) return [];
+
+    const videos = medias.filter(media => media?.type?.startsWith('video'));
+    const images = medias.filter(media => !media?.type?.startsWith('video'));
+    return [...videos, ...images];
   }
 
   get displayedSimilarPosts(): RoomPostResponse[] {
@@ -202,6 +212,13 @@ export class PostDetailComponent implements OnChanges {
       });
   }
 
+  onDetailCommentCountChange(commentCount: number): void {
+    if (!this.detail?.statistics) return;
+
+    this.detail.statistics.commentCount = commentCount;
+    this.syncFeedCommentCountFromDetail();
+  }
+
   onShareDetail(): void {
     if (!this.detail?.id) return;
 
@@ -256,6 +273,20 @@ export class PostDetailComponent implements OnChanges {
 
     feedPost.likedByCurrentUser = !!this.detail.isLikedByCurrentUser;
     feedPost.statistics.saveCount = this.detail.statistics.saveCount;
+  }
+
+  private syncDetailCommentCountFromFeed(postId: string): void {
+    const feedPost = this.findFeedPost(postId);
+    if (!feedPost?.statistics || !this.detail?.statistics) return;
+
+    this.detail.statistics.commentCount = feedPost.statistics.commentCount ?? this.detail.statistics.commentCount;
+  }
+
+  private syncFeedCommentCountFromDetail(): void {
+    const feedPost = this.findFeedPost(this.detail?.id);
+    if (!feedPost?.statistics || !this.detail?.statistics) return;
+
+    feedPost.statistics.commentCount = this.detail.statistics.commentCount;
   }
 
   getAmenityIcon(amenity: Amenity): string {

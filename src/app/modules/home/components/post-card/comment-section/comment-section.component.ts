@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommentResponse, CommentRequest } from '../../../../../core/models/post.interface';
@@ -17,6 +17,7 @@ export class CommentSectionComponent implements OnInit, OnDestroy {
   @Input() postId!: string;
   @Input() visible = false;
   @Input() useListScroll = true;
+  @Output() commentCountChange = new EventEmitter<number>();
 
   comments: CommentResponse[] = [];
   newCommentText = '';
@@ -67,6 +68,7 @@ export class CommentSectionComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           this.comments = res.data || [];
+          this.commentCountChange.emit(this.totalCommentCount);
           this.loading = false;
         },
         error: () => {
