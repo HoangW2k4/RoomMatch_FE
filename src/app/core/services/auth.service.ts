@@ -31,7 +31,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
 
 
@@ -57,6 +57,19 @@ export class AuthService {
 
 
   logout(): void {
+    this.http.post<ApiResponse<string>>(`${environment.apiUrl}/auth/signout`, {}).subscribe({
+      next: () => {
+        this.clearLocalData();
+      },
+      error: (err) => {
+        console.error('Error during logout API call', err);
+        // Still clear local data even if backend call fails to ensure user is logged out locally
+        this.clearLocalData();
+      }
+    });
+  }
+
+  private clearLocalData(): void {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
@@ -70,7 +83,7 @@ export class AuthService {
     }
 
     return this.http.post<ApiResponse<string>>(
-      `${environment.apiUrl}/auth/refresh-access`, 
+      `${environment.apiUrl}/auth/refresh-access`,
       {},
       {
         headers: {
