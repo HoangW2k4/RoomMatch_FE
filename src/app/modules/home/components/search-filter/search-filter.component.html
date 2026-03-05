@@ -1,89 +1,83 @@
-<div class="sf-card">
+<div class="card border-0 shadow-sm rounded-4 p-3 d-flex flex-column gap-2">
 
   <!-- Compact Search bar -->
-  <div class="sf-search-row">
-    <img [src]="userAvatar" alt="avatar" class="sf-avatar"
+  <div class="d-flex align-items-center gap-2 bg-light rounded-pill px-3 py-2">
+    <img [src]="userAvatar" alt="avatar" class="rounded-circle sf-avatar"
       (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
-    <input type="text" class="sf-search-input" [placeholder]="searchPlaceholder" [(ngModel)]="filters.keyword"
+    <input type="text" class="form-control form-control-sm border-0 bg-transparent shadow-none sf-search-input"
+      [placeholder]="searchPlaceholder" title="Tìm kiếm phòng" [(ngModel)]="filters.keyword"
       (ngModelChange)="onKeywordChange($event)" />
-    <button class="sf-clear-btn" *ngIf="filters.keyword" (click)="clearKeyword()">
-      <img src="assets/icons/close.svg" style="width:13px;height:13px;" alt="x" />
+    <button class="btn btn-sm p-1 rounded-circle d-flex align-items-center" *ngIf="filters.keyword"
+      (click)="clearKeyword()">
+      <img src="assets/icons/close.svg" class="sf-close-icon" alt="x" />
     </button>
-    <button class="sf-filter-icon-btn" (click)="openFilterPopup()" title="Mở bộ lọc">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:17px;height:17px;">
-        <line x1="4" y1="6" x2="20" y2="6" />
-        <line x1="8" y1="12" x2="16" y2="12" />
-        <line x1="11" y1="18" x2="13" y2="18" />
-      </svg>
+    <button class="btn btn-sm p-1 rounded-2 text-secondary d-flex align-items-center sf-filter-icon-btn"
+      (click)="openFilterPopup()" title="Mở bộ lọc">
+      <img src="assets/icons/ic_filter_lines.svg" alt="Bộ lọc" class="sf-icon-sm" />
     </button>
   </div>
 
   <!-- Display pills row (click → open popup) -->
-  <div class="sf-display-row" (click)="openFilterPopup()">
-    <span class="sf-display-pill" [class.sf-display-pill--set]="filters.provinceCode">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        style="width:12px;height:12px;flex-shrink:0;">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-        <circle cx="12" cy="9" r="2.5" />
-      </svg>
+  <div class="d-flex flex-wrap gap-1 sf-clickable" role="button" (click)="openFilterPopup()">
+    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
+      [class.sf-pill--set]="filters.provinceCode">
+      <img src="assets/icons/ic_location_pin.svg" alt="Vị trí" class="sf-icon-xs" />
       {{ getProvinceLabel() }}
     </span>
-    <span class="sf-display-pill" [class.sf-display-pill--set]="filters.districtCode">{{ getDistrictLabel() }}</span>
-    <span class="sf-display-pill" [class.sf-display-pill--set]="filters.wardCode">{{ getWardLabel() }}</span>
-    <span class="sf-display-pill" [class.sf-display-pill--set]="filters.minPrice != null || filters.maxPrice != null">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        style="width:12px;height:12px;flex-shrink:0;">
-        <line x1="12" y1="1" x2="12" y2="23" />
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
+    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
+      [class.sf-pill--set]="filters.districtCode">{{ getDistrictLabel() }}</span>
+    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
+      [class.sf-pill--set]="filters.wardCode">{{ getWardLabel() }}</span>
+    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
+      [class.sf-pill--set]="filters.minPrice != null || filters.maxPrice != null">
+      <img src="assets/icons/ic_price.svg" alt="Giá" class="sf-icon-xs" />
       {{ getPriceLabel() }}
     </span>
   </div>
 
   <!-- Amenity chips preview (click +N → open popup) -->
-  <div class="sf-chips-row">
-    <div *ngFor="let chip of previewChips" class="sf-chip" [class.sf-chip--active]="chip.active"
-      (click)="openFilterPopup()">
-      <img [src]="chip.icon" [alt]="chip.label" class="sf-chip-icon" />
+  <div class="d-flex flex-wrap gap-2">
+    <button *ngFor="let chip of previewChips"
+      class="btn btn-sm rounded-pill border bg-light text-secondary d-inline-flex align-items-center gap-1 sf-chip"
+      [class.sf-chip--active]="chip.active" (click)="openFilterPopup()">
+      <img [src]="chip.icon" [alt]="chip.label" title="{{ chip.label }}" class="sf-chip-icon" />
       {{ chip.label }}
-    </div>
-    <button *ngIf="hiddenChipsCount > 0" class="sf-chip sf-chip-more" (click)="openFilterPopup()">
+    </button>
+    <button *ngIf="hiddenChipsCount > 0"
+      class="btn btn-sm rounded-pill border border-dashed text-muted d-inline-flex align-items-center gap-1"
+      (click)="openFilterPopup()">
       +{{ hiddenChipsCount }}
     </button>
   </div>
 
   <!-- Roommate toggle -->
-  <div class="sf-roommate-row">
-    <div class="sf-roommate-info">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        style="width:18px;height:18px;flex-shrink:0;">
-        <path
-          d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-      </svg>
+  <div class="d-flex align-items-center justify-content-between bg-light border rounded-3 px-3 py-2">
+    <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+      <img src="assets/icons/ic_roommate.svg" alt="Ở ghép" class="sf-icon-md" />
       <div>
-        <div class="sf-roommate-title">Tìm người ở ghép</div>
-        <div class="sf-roommate-sub">Chỉ hiển thị bài đăng đang tìm bạn đồng hành</div>
+        <div class="fw-semibold small">Tìm người ở ghép</div>
+        <div class="text-muted sf-sub-text">Chỉ hiển thị bài đăng đang tìm bạn đồng hành</div>
       </div>
     </div>
-    <button class="sf-toggle" [class.sf-toggle--on]="isRoommateMode" (click)="isRoommateMode = !isRoommateMode">
-      <span class="sf-toggle-knob"></span>
-    </button>
+    <div class="form-check form-switch mb-0 ms-2">
+      <input class="form-check-input" type="checkbox" role="switch" title="Tìm người ở ghép"
+        [checked]="isRoommateMode" (change)="isRoommateMode = !isRoommateMode">
+    </div>
   </div>
 
   <!-- Active filter tags -->
-  <div class="sf-active-tags" *ngIf="activeFilterTags.length > 0">
-    <span *ngFor="let tag of activeFilterTags" class="sf-tag">
+  <div class="d-flex flex-wrap gap-1" *ngIf="activeFilterTags.length > 0">
+    <span *ngFor="let tag of activeFilterTags"
+      class="badge rounded-pill d-inline-flex align-items-center gap-1 sf-tag">
       {{ tag.label }}
-      <button class="sf-tag-remove" (click)="removeFilterTag(tag)">×</button>
+      <button class="btn-close p-0 ms-1 sf-tag-remove" (click)="removeFilterTag(tag)" aria-label="Remove"></button>
     </span>
   </div>
 
   <!-- Search button -->
-  <button class="sf-find-btn" (click)="applyFilters()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:17px;height:17px;">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
+  <button class="btn btn-primary w-100 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 py-2"
+    (click)="applyFilters()">
+    <img src="assets/icons/ic_search_white.svg" alt="Tìm" class="sf-icon-sm" />
     Tìm phòng
   </button>
 </div>
