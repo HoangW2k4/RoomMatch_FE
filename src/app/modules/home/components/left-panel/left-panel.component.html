@@ -1,0 +1,49 @@
+<aside class="left-panel d-none d-xl-flex flex-column gap-3 pb-3">
+  <!-- User Profile -->
+  <div class="d-flex align-items-center gap-3 py-2 px-2" *ngIf="isAuthenticated">
+    <img [src]="user.avatarUrl" [alt]="user.fullName" class="rounded-circle object-fit-cover flex-shrink-0 user-avatar"
+      title="avatar" (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
+    <div class="d-flex flex-column overflow-hidden">
+      <span class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">{{ user.fullName }}</span>
+      <span class="text-secondary" style="font-size: 0.8rem;">{{ user.role }}</span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="nav flex-column gap-1">
+    <a *ngFor="let item of navItems" [routerLink]="item.route" routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+      class="nav-link d-flex align-items-center gap-3 rounded-3 px-3 py-2 nav-item">
+
+      <div class="nav-icon flex-shrink-0" [style.-webkit-mask-image]="'url(assets/icons/' + item.icon + '.svg)'"
+        [style.mask-image]="'url(assets/icons/' + item.icon + '.svg)'">
+      </div>
+
+      <span class="flex-grow-1 fw-bold">{{ item.label }}</span>
+      <span *ngIf="item.badge" class="badge rounded-pill text-white px-2"
+        style="background-color: var(--primary-color);">{{ item.badge }}</span>
+    </a>
+  </nav>
+
+  <hr class="my-2 border-secondary-subtle">
+
+  <!-- Go Premium Card -->
+  <div class="card border-0 rounded-4 p-3 d-flex flex-column gap-2 premium-card">
+    <h4 class="fw-bold fs-6 mb-0 text-white">Go Premium</h4>
+    <p class="mb-0 text-white-50" style="font-size: 0.8rem; line-height: 1.4;">Xác minh tài khoản, xem tin sớm
+      24h và đẩy bài đăng lên top.</p>
+    <button class="btn btn-light btn-sm rounded-pill mt-1 align-self-start fw-bold px-3 py-1"
+      style="color: var(--primary-color) !important;">Nâng cấp
+      ngay</button>
+  </div>
+
+  <!-- Footer -->
+  <div class="d-flex flex-column gap-1 pt-2 px-2">
+    <span class="text-secondary" style="font-size: 0.75rem;">© 2025 RoomMatch Inc.</span>
+    <div class="d-flex align-items-center gap-1">
+      <a href="#" class="text-secondary text-decoration-none" style="font-size: 0.75rem;">Chính sách</a>
+      <span class="text-secondary" style="font-size: 0.75rem;">·</span>
+      <a href="#" class="text-secondary text-decoration-none" style="font-size: 0.75rem;">Điều khoản</a>
+    </div>
+  </div>
+</aside>

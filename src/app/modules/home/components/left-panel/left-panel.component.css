@@ -1,0 +1,62 @@
+/* ===== Left Panel Container ===== */
+.left-panel {
+  width: 260px;
+  min-width: 260px;
+}
+
+/* ===== User Avatar ===== */
+.user-avatar {
+  width: 52px;
+  height: 52px;
+}
+
+/* ===== Navigation ===== */
+.nav-item {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary) !important;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background-color: var(--bg-light) !important;
+  color: var(--text-main) !important;
+}
+
+.nav-item.active {
+  background-color: #EBF3FE !important;
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.nav-icon {
+  width: 22px;
+  height: 22px;
+  background-color: var(--text-secondary);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transition: background-color 0.15s ease;
+}
+
+.nav-item:hover .nav-icon {
+  background-color: var(--text-main);
+}
+
+.nav-item.active .nav-icon {
+  background-color: var(--primary-color);
+}
+
+/* ===== Premium Card ===== */
+.premium-card {
+  background-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(49, 121, 199, 0.2);
+}
+
+/* ===== Footer Links ===== */
+.d-flex a.text-secondary:hover {
+  color: #495057 !important;
+  text-decoration: underline !important;
+}
