@@ -30,8 +30,8 @@ import { DOCUMENT } from '@angular/common';
         [style.minHeight]="minHeight"
         (click)="$event.stopPropagation()"
       >
-        <button class="close-btn-floating" *ngIf="showCloseButton && !title" (click)="close()">
-            <img src="assets/icons/ic_close.svg" alt="Close" width="20" height="20">
+        <button class="close-btn" (click)="close()">
+          <img src="assets/icons/ic_close.svg" alt = "Close" class="icon-close">
         </button>
         
         <div class="popup-header" *ngIf="title">
@@ -108,25 +108,29 @@ import { DOCUMENT } from '@angular/common';
       }
 
       .close-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-      }
-
-      .close-btn-floating {
         position: absolute;
-        background-color: transparent;
-        top: 0.5rem;
-        right: 0.5rem;
+        top: 1rem;
+        right: 1rem;
+        width: 35px;
+        height: 35px;
+        background: rgba(255, 255, 255, 0.9);
         border: none;
+        border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
         z-index: 10;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
+      .close-btn .icon-close{
+          transition: all 0.3s ease;
+      }
+      .close-btn:hover .icon-close{
+        transform: rotate(90deg);
+      }
+
 
       @keyframes fadeIn {
         from {
