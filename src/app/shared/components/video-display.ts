@@ -16,7 +16,7 @@ import { CommonModule } from '@angular/common';
         (error)="onVideoError($event)"
       ></video>
       <div class="video-play-icon">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <img src="assets/icons/play.svg" alt="Play" />
       </div>
     </div>
   `,

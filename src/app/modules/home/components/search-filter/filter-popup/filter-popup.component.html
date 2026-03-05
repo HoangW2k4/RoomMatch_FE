@@ -1,0 +1,182 @@
+<app-popup [visible]="visible" [title]="'Bộ lọc tìm kiếm'" width="600px" maxHeight="88vh" bodyPadding="0"
+    [scrollableBody]="true" [showFooter]="true" (closed)="onPopupClosed()">
+
+    <div class="fp-body">
+
+        <!-- Keyword -->
+        <div class="fp-section">
+            <label class="fp-label">Từ khóa</label>
+            <div class="fp-input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="fp-input-icon">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input type="text" class="fp-input" placeholder="Nhập tên đường, dự án hoặc từ khóa..."
+                    [(ngModel)]="draft.keyword">
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="fp-section">
+            <label class="fp-label">Vị trí</label>
+            <div class="fp-location-grid">
+                <div class="fp-col">
+                    <span class="fp-col-label">TỈNH/THÀNH PHỐ</span>
+                    <div class="fp-select-wrap">
+                        <select class="fp-select" [(ngModel)]="draft.provinceCode"
+                            (ngModelChange)="onProvinceChange($event)">
+                            <option value="" disabled selected>Chọn Tỉnh/Thành phố</option>
+                            <option *ngFor="let p of provinces" [value]="p.code">{{ p.name }}</option>
+                        </select>
+                        <svg class="fp-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="fp-col">
+                    <span class="fp-col-label">QUẬN/HUYỆN</span>
+                    <div class="fp-select-wrap">
+                        <select class="fp-select" [(ngModel)]="draft.districtCode" [disabled]="!draft.provinceCode"
+                            (ngModelChange)="onDistrictChange($event)">
+                            <option value="" disabled selected>Chọn Quận/Huyện</option>
+                            <option *ngFor="let d of modalDistricts" [value]="d.code">{{ d.name }}</option>
+                        </select>
+                        <svg class="fp-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="fp-col">
+                    <span class="fp-col-label">PHƯỜNG/XÃ</span>
+                    <div class="fp-select-wrap">
+                        <select class="fp-select" [(ngModel)]="draft.wardCode" [disabled]="!draft.districtCode">
+                            <option value="" disabled selected>Chọn Phường/Xã</option>
+                            <option *ngFor="let w of modalWards" [value]="w.code">{{ w.name }}</option>
+                        </select>
+                        <svg class="fp-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Range -->
+        <div class="fp-section">
+            <label class="fp-label">Khoảng giá (VNĐ)</label>
+            <div class="fp-price-row">
+                <div class="fp-input-wrap fp-price-input">
+                    <input type="text" inputmode="numeric" class="fp-input" placeholder="0" [value]="draftMinPriceStr"
+                        (input)="onPriceInput('min', $event)" />
+                    <span class="fp-price-unit">₫</span>
+                </div>
+                <span class="fp-price-sep">—</span>
+                <div class="fp-input-wrap fp-price-input">
+                    <input type="text" inputmode="numeric" class="fp-input" placeholder="Không giới hạn"
+                        [value]="draftMaxPriceStr" (input)="onPriceInput('max', $event)" />
+                    <span class="fp-price-unit">₫</span>
+                </div>
+            </div>
+            <div class="fp-quick-prices">
+                <button *ngFor="let r of PRICE_RANGES" class="fp-quick-btn"
+                    [class.fp-quick-btn--active]="isPriceActive(r)" (click)="setPriceRange(r)">
+                    {{ r.label }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Area -->
+        <div class="fp-section">
+            <label class="fp-label">Diện tích (m²)</label>
+            <div class="fp-price-row">
+                <div class="fp-input-wrap fp-price-input">
+                    <input type="number" class="fp-input" placeholder="Từ" [(ngModel)]="draft.minArea" min="0" />
+                </div>
+                <span class="fp-price-sep">—</span>
+                <div class="fp-input-wrap fp-price-input">
+                    <input type="number" class="fp-input" placeholder="Đến" [(ngModel)]="draft.maxArea" min="0" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Amenities -->
+        <div class="fp-section">
+            <label class="fp-label">Tiện ích</label>
+            <div class="fp-chips-row">
+                <button *ngFor="let chip of draftAmenities" class="fp-chip" [class.fp-chip--active]="chip.active"
+                    (click)="chip.active = !chip.active">
+                    <img [src]="chip.icon" [alt]="chip.label" class="fp-chip-icon" />
+                    {{ chip.label }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Roommate toggle -->
+        <div class="fp-section fp-roommate-toggle-row">
+            <div class="fp-roommate-toggle-info">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="width:18px;height:18px;flex-shrink:0;">
+                    <path
+                        d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                </svg>
+                <div>
+                    <div class="fp-roommate-title">Tìm người ở ghép</div>
+                    <div class="fp-roommate-sub">Chỉ hiện thị bài đăng đang tìm bạn đồng hành</div>
+                </div>
+            </div>
+            <button class="fp-toggle" [class.fp-toggle--on]="isRoommateMode" (click)="toggleRoommate()">
+                <span class="fp-toggle-knob"></span>
+            </button>
+        </div>
+
+        <!-- Roommate detail (conditional) -->
+        <div class="fp-section fp-roommate-detail" *ngIf="isRoommateMode">
+            <!-- Gender -->
+            <div class="fp-roommate-field">
+                <span class="fp-col-label">GIỚI TÍNH MONG MUỐN</span>
+                <div class="fp-gender-row">
+                    <button *ngFor="let g of GENDERS" class="fp-gender-btn"
+                        [class.fp-gender-btn--active]="draft.gender === g.value"
+                        (click)="draft.gender = (draft.gender === g.value ? undefined : g.value)">
+                        {{ g.label }}
+                    </button>
+                </div>
+            </div>
+            <!-- Age range -->
+            <div class="fp-roommate-field">
+                <span class="fp-col-label">ĐỘ TUỔI</span>
+                <div class="fp-price-row">
+                    <div class="fp-input-wrap fp-price-input">
+                        <input type="number" class="fp-input" placeholder="Từ" [(ngModel)]="draft.minAge" min="0"
+                            max="99" />
+                        <span class="fp-price-unit">tuổi</span>
+                    </div>
+                    <span class="fp-price-sep">—</span>
+                    <div class="fp-input-wrap fp-price-input">
+                        <input type="number" class="fp-input" placeholder="Đến" [(ngModel)]="draft.maxAge" min="0"
+                            max="99" />
+                        <span class="fp-price-unit">tuổi</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /fp-body -->
+
+    <!-- Footer slot -->
+    <div popup-footer class="fp-footer">
+        <button class="fp-btn-reset" (click)="resetDraft()">Xóa tất cả bộ lọc</button>
+        <button class="fp-btn-apply" (click)="applyDraft()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                style="width:15px;height:15px;">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            Áp dụng &amp; Tìm kiếm
+        </button>
+    </div>
+
+</app-popup>

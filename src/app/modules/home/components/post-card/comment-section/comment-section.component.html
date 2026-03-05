@@ -11,17 +11,12 @@
   </div>
 
   <!-- Comments list -->
-  <div
-    class="comments-list d-flex flex-column"
-    [class.overflow-auto]="useListScroll"
-    [class.no-list-scroll]="!useListScroll"
-    *ngIf="!loading"
-  >
+  <div class="comments-list d-flex flex-column" [class.overflow-auto]="useListScroll"
+    [class.no-list-scroll]="!useListScroll" *ngIf="!loading">
     <!-- Top-level comments -->
     <ng-container *ngFor="let comment of visibleComments; let isLast = last">
       <ng-container
-        *ngTemplateOutlet="commentTpl; context: { $implicit: comment, depth: 0, rootParent: comment, isLast: isLast }"
-      ></ng-container>
+        *ngTemplateOutlet="commentTpl; context: { $implicit: comment, depth: 0, rootParent: comment, isLast: isLast }"></ng-container>
     </ng-container>
 
     <!-- Show more top-level comments -->
@@ -39,31 +34,14 @@
 
   <!-- Write new comment (at bottom) -->
   <div class="comment-input-box d-flex align-items-center gap-2 pt-2 mt-1 border-top" *ngIf="!loading">
-    <img
-      [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'"
-      class="comment-avatar"
-      alt="avatar"
-      title="avatar"
-      (error)="onAvatarError($event)"
-    />
+    <img [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'" class="comment-avatar" alt="avatar"
+      title="avatar" (error)="onAvatarError($event)" />
     <div class="input-wrapper flex-grow-1 position-relative d-flex align-items-center">
-      <input
-        type="text"
-        class="comment-input form-control rounded-pill"
-        [(ngModel)]="newCommentText"
-        placeholder="Viết bình luận..."
-        (keydown)="onKeydown($event, 'comment')"
-      />
-      <button
-        class="send-btn btn btn-link text-primary p-1"
-        [disabled]="!newCommentText.trim()"
-        (click)="submitComment()"
-        title="Gửi"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-        </svg>
+      <input type="text" class="comment-input form-control rounded-pill" [(ngModel)]="newCommentText"
+        placeholder="Viết bình luận..." (keydown)="onKeydown($event, 'comment')" />
+      <button class="send-btn btn btn-link text-primary p-1" [disabled]="!newCommentText.trim()"
+        (click)="submitComment()" title="Gửi">
+        <img src="assets/icons/send.svg" style="width: 16px; height: 16px;" alt="Send" />
       </button>
     </div>
   </div>
@@ -74,14 +52,8 @@
   <div class="comment-thread" [class.is-nested]="depth > 0" [class.is-last-child]="isLast">
 
     <div class="comment-row d-flex align-items-start gap-2 py-1">
-      <img
-        [src]="comment.userAvatarUrl || 'assets/images/avatar_default.jpg'"
-        class="comment-avatar"
-        [class.small]="depth > 0"
-        alt="avatar"
-        title="avatar"
-        (error)="onAvatarError($event)"
-      />
+      <img [src]="comment.userAvatarUrl || 'assets/images/avatar_default.jpg'" class="comment-avatar"
+        [class.small]="depth > 0" alt="avatar" title="avatar" (error)="onAvatarError($event)" />
       <div class="comment-content flex-grow-1 min-w-0">
         <div class="comment-bubble rounded-4 px-3 py-2 bg-body-secondary d-inline-block">
           <span class="comment-author fw-semibold small d-block">{{ comment.userFullName }}</span>
@@ -90,41 +62,25 @@
         </div>
         <div class="comment-meta d-flex align-items-center gap-2 px-2 pt-1">
           <span class="comment-time small text-secondary">{{ formatTime(comment.createdAt) }}</span>
-          <button class="meta-btn btn btn-link btn-sm p-0 text-secondary text-decoration-none" *ngIf="!comment.isDeleted" (click)="startReply(comment)">Trả lời</button>
-          <button class="meta-btn delete-btn btn btn-link btn-sm p-0 text-danger text-decoration-none" *ngIf="isOwner(comment) && !comment.isDeleted" (click)="deleteComment(comment.id)">Xóa</button>
+          <button class="meta-btn btn btn-link btn-sm p-0 text-secondary text-decoration-none"
+            *ngIf="!comment.isDeleted" (click)="startReply(comment)">Trả lời</button>
+          <button class="meta-btn delete-btn btn btn-link btn-sm p-0 text-danger text-decoration-none"
+            *ngIf="isOwner(comment) && !comment.isDeleted" (click)="deleteComment(comment.id)">Xóa</button>
         </div>
       </div>
     </div>
 
     <div class="reply-input-box d-flex align-items-center gap-2" *ngIf="replyingTo?.id === comment.id">
-      <img
-        [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'"
-        class="comment-avatar small"
-        alt="avatar"
-        title="avatar"
-        (error)="onAvatarError($event)"
-      />
+      <img [src]="currentUserAvatar || 'assets/images/avatar_default.jpg'" class="comment-avatar small" alt="avatar"
+        title="avatar" (error)="onAvatarError($event)" />
       <div class="input-wrapper flex-grow-1 position-relative d-flex align-items-center">
-        <input
-          type="text"
-          class="comment-input form-control rounded-pill"
-          title="reply"
-          [(ngModel)]="replyText"
-          [placeholder]="'Viết phản hồi...'"
-          (keydown)="onKeydown($event, 'reply')"
-        />
+        <input type="text" class="comment-input form-control rounded-pill" title="reply" [(ngModel)]="replyText"
+          [placeholder]="'Viết phản hồi...'" (keydown)="onKeydown($event, 'reply')" />
         <div class="reply-btn-group d-flex align-items-center gap-1 ms-1">
           <button class="cancel-reply-btn btn btn-sm btn-light border" (click)="cancelReply()">Hủy</button>
-          <button
-            class="send-btn small btn btn-link text-primary p-1"
-            [disabled]="!replyText.trim()"
-            (click)="submitReply()"
-            title="Gửi"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
+          <button class="send-btn small btn btn-link text-primary p-1" [disabled]="!replyText.trim()"
+            (click)="submitReply()" title="Gửi">
+            <img src="assets/icons/send.svg" style="width: 14px; height: 14px;" alt="Send" />
           </button>
         </div>
       </div>
@@ -133,9 +89,7 @@
     <!-- "View N replies..." toggle (for depth >= 2 collapsed) -->
     <div class="view-replies-toggle" *ngIf="shouldShowExpandBtn(comment, depth)">
       <button class="toggle-btn btn btn-link btn-sm p-0 text-decoration-none" (click)="expandThread(comment.id)">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
+        <img src="assets/icons/chevron-right.svg" style="width: 12px; height: 12px;" alt="Expand" />
         Xem {{ countAllChildren(comment) }} phản hồi...
       </button>
     </div>
@@ -143,9 +97,7 @@
     <!-- "View N replies..." toggle (for manually collapsed via toggleThread) -->
     <div class="view-replies-toggle" *ngIf="comment.childComments?.length && isThreadCollapsed(comment.id)">
       <button class="toggle-btn btn btn-link btn-sm p-0 text-decoration-none" (click)="toggleThread(comment.id)">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
+        <img src="assets/icons/chevron-right.svg" style="width: 12px; height: 12px;" alt="Expand" />
         Xem {{ countAllChildren(comment) }} phản hồi...
       </button>
     </div>
@@ -154,8 +106,7 @@
     <div class="children-wrapper" *ngIf="shouldShowChildren(comment, depth) && !isThreadCollapsed(comment.id)">
       <ng-container *ngFor="let child of comment.childComments; let childLast = last">
         <ng-container
-          *ngTemplateOutlet="commentTpl; context: { $implicit: child, depth: depth + 1, rootParent: depth === 0 ? comment : rootParent, isLast: childLast }"
-        ></ng-container>
+          *ngTemplateOutlet="commentTpl; context: { $implicit: child, depth: depth + 1, rootParent: depth === 0 ? comment : rootParent, isLast: childLast }"></ng-container>
       </ng-container>
     </div>
   </div>

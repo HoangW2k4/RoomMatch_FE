@@ -13,11 +13,12 @@ import { PaginatedResponse, ApiResponse } from '../../core/models/base.interface
 
 import { PostCardComponent } from './components/post-card/post-card.component';
 import { SearchFilterComponent } from './components/search-filter/search-filter.component';
+import { LeftPanelComponent } from './components/left-panel/left-panel.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, PostCardComponent, SearchFilterComponent],
+  imports: [CommonModule, RouterModule, PostCardComponent, SearchFilterComponent, LeftPanelComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })

@@ -1,7 +1,31 @@
 .home-container {
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px 60px;
+  padding: 10px 24px 60px;
+}
+
+.home-layout {
+  display: flex;
+  gap: 32px;
+  position: relative;
+  align-items: flex-start;
+}
+
+.home-sidebar {
+  flex-shrink: 0;
+  position: sticky;
+  top: 70px;
+  height: fit-content;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.home-sidebar::-webkit-scrollbar {
+  width: 0; /* Chrome/Safari */
+}
+
+.home-main {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ===== Search Section ===== */
@@ -193,6 +217,15 @@
 }
 
 /* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  .home-layout {
+    gap: 0;
+  }
+  .home-main {
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .home-container {
     padding: 0 12px 40px;
