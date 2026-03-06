@@ -1,0 +1,91 @@
+<aside class="right-panel d-none d-xl-flex flex-column gap-3">
+
+  <!-- Map View -->
+  <div class="card border-0 rounded-4 shadow-sm overflow-hidden">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="fw-bold mb-0">Bản đồ</h6>
+        <a href="#" class="text-primary text-decoration-none small fw-semibold">Toàn màn hình</a>
+      </div>
+      <div class="map-placeholder rounded-3 position-relative d-flex align-items-center justify-content-center">
+        <button class="btn btn-light btn-sm rounded-pill shadow-sm d-flex align-items-center gap-1 map-search-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <span class="small">Tìm khu vực này</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suggested Rooms -->
+  <div class="card border-0 rounded-4 shadow-sm">
+    <div class="card-body p-3">
+      <h6 class="fw-bold mb-3">Phòng gợi ý</h6>
+
+      <div class="d-flex flex-column gap-3" *ngIf="suggestedPosts.length > 0">
+        <a *ngFor="let post of suggestedPosts"
+          class="d-flex align-items-start gap-2 text-decoration-none room-suggestion"
+          (click)="onOpenDetail(post.id)">
+          <img [src]="getFirstImage(post)" [alt]="post.title" title="{{ post.title }}"
+            class="rounded-3 flex-shrink-0 object-fit-cover room-thumb"
+            (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
+          <div class="d-flex flex-column overflow-hidden">
+            <span class="fw-semibold text-dark small text-truncate">{{ post.title }}</span>
+            <span class="text-muted text-xs">{{ getLocation(post) }}</span>
+            <span class="text-primary fw-bold small">{{ formatPrice(post.price) }}</span>
+          </div>
+        </a>
+      </div>
+
+      <div *ngIf="suggestedPosts.length === 0" class="text-muted small text-center py-2">
+        Chưa có gợi ý
+      </div>
+
+      <div class="text-center mt-3">
+        <a routerLink="/search" class="text-primary text-decoration-none small fw-semibold">Xem tất cả gợi ý</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="card border-0 rounded-4 shadow-sm">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Thông báo</h6>
+        <span class="badge bg-danger rounded-pill text-xxs">Mới</span>
+      </div>
+
+      <div class="d-flex flex-column gap-3">
+        <div *ngFor="let noti of notifications" class="d-flex align-items-start gap-2">
+          <!-- Avatar or Icon -->
+          <ng-container *ngIf="!noti.isIcon; else iconTpl">
+            <img [src]="noti.avatarUrl" alt="avatar" title="avatar"
+              class="rounded-circle flex-shrink-0 object-fit-cover noti-avatar"
+              (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
+          </ng-container>
+          <ng-template #iconTpl>
+            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0 noti-icon-circle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                class="text-primary">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+          </ng-template>
+          <div class="d-flex flex-column overflow-hidden">
+            <span class="text-dark text-sm">{{ noti.message }}</span>
+            <span class="text-muted text-xxs">{{ noti.time }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="text-center">
+    <span class="text-muted text-xxs">Tiếng Việt · © 2025</span>
+  </div>
+
+</aside>

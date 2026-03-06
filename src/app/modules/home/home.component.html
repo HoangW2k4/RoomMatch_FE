@@ -39,8 +39,9 @@
 
           <!-- Posts Feed -->
           <div class="feed-list" *ngIf="posts.length > 0">
-            <app-post-card *ngFor="let post of posts; trackBy: trackByPostId" [post]="post" [homePosts]="posts"
-              (liked)="onLikePost($event)"></app-post-card>
+            <app-post-card *ngFor="let post of posts; trackBy: trackByPostId" [post]="post"
+              (liked)="onLikePost($event)"
+              (openDetail)="onOpenDetail($event)"></app-post-card>
           </div>
 
           <!-- Empty State -->
@@ -68,5 +69,17 @@
       </div>
 
     </div>
+
+    <!-- Right Panel -->
+    <app-right-panel class="home-right-sidebar" [posts]="posts"
+      (openDetail)="onOpenDetail($event)"></app-right-panel>
   </div>
+
+  <!-- Post Detail Popup (single instance at home level) -->
+  <app-post-detail
+    [visible]="isPostDetailVisible"
+    [postId]="selectedPostId"
+    [homePosts]="posts"
+    (closed)="onCloseDetail()"
+  ></app-post-detail>
 </div>

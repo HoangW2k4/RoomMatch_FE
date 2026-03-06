@@ -49,22 +49,17 @@ export interface AppliedFilters {
     styleUrls: ['./filter-popup.component.css']
 })
 export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
-    /** Two-way binding for popup open/close */
     @Input() visible = false;
     @Output() visibleChange = new EventEmitter<boolean>();
 
-    /** Two-way binding for roommate toggle (synced with parent) */
     @Input() isRoommateMode = false;
     @Output() isRoommateModeChange = new EventEmitter<boolean>();
 
-    /** Emitted when user clicks "Áp dụng" */
     @Output() apply = new EventEmitter<AppliedFilters>();
 
-    /** Initial values to prefill the draft */
     @Input() initialFilters: AppliedFilters = {};
     @Input() allAmenityChips: AmenityChip[] = [];
 
-    // Location data
     provinces: Province[] = [];
     modalDistricts: District[] = [];
     modalWards: Ward[] = [];

@@ -14,11 +14,13 @@ import { PaginatedResponse, ApiResponse } from '../../core/models/base.interface
 import { PostCardComponent } from './components/post-card/post-card.component';
 import { SearchFilterComponent } from './components/search-filter/search-filter.component';
 import { LeftPanelComponent } from './components/left-panel/left-panel.component';
+import { RightPanelComponent } from './components/right-panel/right-panel.component';
+import { PostDetailComponent } from './components/post-detail/post-detail.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, PostCardComponent, SearchFilterComponent, LeftPanelComponent],
+  imports: [CommonModule, RouterModule, PostCardComponent, SearchFilterComponent, LeftPanelComponent, RightPanelComponent, PostDetailComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
@@ -33,6 +35,10 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   currentFilters: RoomSearchRequest = {};
 
   skeletonItems = Array(3).fill(0);
+
+  // Post detail popup state
+  isPostDetailVisible = false;
+  selectedPostId: string | null = null;
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
   private intersectionObserver!: IntersectionObserver;
@@ -191,5 +197,17 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   trackByPostId(index: number, post: RoomPostResponse): string {
     return post.id;
+  }
+
+  // ===== Post Detail =====
+
+  onOpenDetail(postId: string): void {
+    this.selectedPostId = postId;
+    this.isPostDetailVisible = true;
+  }
+
+  onCloseDetail(): void {
+    this.isPostDetailVisible = false;
+    this.selectedPostId = null;
   }
 }

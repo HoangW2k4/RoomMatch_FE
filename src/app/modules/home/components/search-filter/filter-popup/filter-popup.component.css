@@ -1,12 +1,9 @@
-/* ===== Icon sizes ===== */
 .fp-input-icon { width: 15px; height: 15px; flex-shrink: 0; color: #9ca3af; }
 .fp-icon-sm { width: 15px; height: 15px; }
 .fp-icon-md { width: 18px; height: 18px; flex-shrink: 0; }
 
-/* ===== Sub text ===== */
 .fp-sub-text { font-size: 0.78rem; }
 
-/* ===== Quick price chips ===== */
 .fp-quick-btn {
     padding: 5px 12px;
     border: 1.5px solid var(--border-color, #e5e7eb);
@@ -27,7 +24,6 @@
     color: #fff !important;
 }
 
-/* ===== Amenity chips ===== */
 .fp-chip {
     font-size: 0.82rem;
     font-weight: 500;

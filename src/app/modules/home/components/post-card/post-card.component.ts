@@ -7,7 +7,6 @@ import { GalleryLayout3Component } from './layouts/gallery-layout-3.component';
 import { GalleryLayout4Component } from './layouts/gallery-layout-4.component';
 import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
 import { CommentSectionComponent } from './comment-section/comment-section.component';
-import { PostDetailComponent } from '../post-detail/post-detail.component';
 
 @Component({
   selector: 'app-post-card',
@@ -20,22 +19,20 @@ import { PostDetailComponent } from '../post-detail/post-detail.component';
     GalleryLayout4Component,
     GalleryLayout5Component,
     CommentSectionComponent,
-    PostDetailComponent,
   ],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.css']
 })
 export class PostCardComponent implements AfterViewInit, OnDestroy {
   @Input() post!: RoomPostResponse;
-  @Input() homePosts: RoomPostResponse[] = [];
   @Output() liked = new EventEmitter<string>();
   @Output() commented = new EventEmitter<string>();
   @Output() shared = new EventEmitter<string>();
   @Output() contacted = new EventEmitter<string>();
+  @Output() openDetail = new EventEmitter<string>();
 
   @ViewChild('commentSection') commentSection!: CommentSectionComponent;
   showComments = false;
-  isPostDetailVisible = false;
 
   private observer!: IntersectionObserver;
   private videos: HTMLVideoElement[] = [];
@@ -152,14 +149,6 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
     return parts.join(', ') || addr.fullAddress || 'Chưa cập nhật';
   }
 
-  get relatedRecentPosts(): RoomPostResponse[] {
-    if (!this.homePosts?.length) return [];
-
-    return this.homePosts
-      .filter(item => item.id !== this.post.id)
-      .slice(0, 3);
-  }
-
   onLike(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
@@ -191,11 +180,7 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
   onOpenDetail(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-    this.isPostDetailVisible = true;
-  }
-
-  onClosePostDetail(): void {
-    this.isPostDetailVisible = false;
+    this.openDetail.emit(this.post.id);
   }
 
   onAvatarError(event: Event): void {
