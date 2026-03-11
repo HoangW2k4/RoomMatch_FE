@@ -50,7 +50,8 @@
   </div>
 
   <!-- Roommate toggle -->
-  <div class="d-flex align-items-center justify-content-between bg-light border rounded-3 px-3 py-2">
+  <div class="d-flex align-items-center justify-content-between bg-light border rounded-3 px-3 py-2 sf-clickable"
+    role="button" (click)="isRoommateMode = !isRoommateMode">
     <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
       <img src="assets/icons/ic_roommate.svg" alt="Ở ghép" class="sf-icon-md" />
       <div>
@@ -60,7 +61,7 @@
     </div>
     <div class="form-check form-switch mb-0 ms-2">
       <input class="form-check-input" type="checkbox" role="switch" title="Tìm người ở ghép"
-        [checked]="isRoommateMode" (change)="isRoommateMode = !isRoommateMode">
+        [checked]="isRoommateMode" (click)="$event.stopPropagation()">
     </div>
   </div>
 

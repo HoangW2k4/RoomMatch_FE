@@ -66,7 +66,7 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
   // ======= Chip build =======
   private buildAmenityChips(): AmenityChip[] {
     return [
-      { label: 'Điều hoà', code: 'AC', icon: 'assets/icons/ic_amenity_ac.svg', active: false },
+      { label: 'Điều hoà', code: 'ac', icon: 'assets/icons/ic_air_condition.svg', active: false },
       { label: 'Tủ lạnh', code: 'refrigerator', icon: 'assets/icons/ic_amenity_refrigerator.svg', active: false },
       { label: 'Bếp riêng', code: 'kitchen', icon: 'assets/icons/ic_kitchen.svg', active: false },
       { label: 'Chỗ để xe', code: 'parking', icon: 'assets/icons/ic_amenity_parking.svg', active: false },
@@ -76,6 +76,13 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
       { label: 'Ban công', code: 'balcony', icon: 'assets/icons/ic_amenity_balcony.svg', active: false },
       { label: 'Khu phơi đồ', code: 'drying_area', icon: 'assets/icons/ic_amenity_drying_area.svg', active: false },
       { label: 'Tủ quần áo', code: 'wardrobe', icon: 'assets/icons/ic_amenity_wardrobe.svg', active: false },
+      { label: 'Phòng Gym', code: 'gym', icon: 'assets/icons/ic_gym.svg', active: false },
+      { label: 'Thang máy', code: 'elevator', icon: 'assets/icons/ic_elevator.svg', active: false },
+      { label: 'Báo cháy / Nội thất', code: 'fire_alarm', icon: 'assets/icons/ic_amenity_fire_alarm.svg', active: false },
+      { label: 'Giường ngủ', code: 'bed', icon: 'assets/icons/ic_bed.svg', active: false },
+      { label: 'Camera an ninh', code: 'camera', icon: 'assets/icons/ic_camera.svg', active: false },
+      { label: 'Cho phép thú cưng', code: 'pet', icon: 'assets/icons/ic_pet.svg', active: false },
+      { label: 'Bình nóng lạnh', code: 'heater', icon: 'assets/icons/ic_heater.svg', active: false }
     ];
   }
 

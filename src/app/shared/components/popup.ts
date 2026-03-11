@@ -29,16 +29,17 @@ import { DOCUMENT } from '@angular/common';
         [style.maxHeight]="maxHeight"
         [style.minHeight]="minHeight"
         (click)="$event.stopPropagation()"
-      >
+      > 
         <button class="close-btn" (click)="close()">
           <img src="assets/icons/ic_close.svg" alt = "Close" class="icon-close">
         </button>
-        
         <div class="popup-header" *ngIf="title">
           <span class="popup-title xlarge-semibold">{{
             title 
           }}</span>
-          <button class="close-btn" (click)="close()">×</button>
+          <button class="close-btn" (click)="close()">
+            <img src="assets/icons/ic_close.svg" alt = "Close" class="icon-close">
+          </button>
         </div>
 
         <div

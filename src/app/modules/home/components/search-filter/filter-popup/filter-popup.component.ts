@@ -1,5 +1,5 @@
 import {
-    Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges
+    Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import {
 } from '../../../../../core/models/post.interface';
 import { ApiService } from '../../../../../core/services/api.service';
 import { PopupComponent } from '../../../../../shared/components/popup';
+import { DropdownFieldComponent } from '../../../../../shared/components/dropdown-field/dropdown-field.component';
 
 // --- shared interfaces, re-exported for parent use ---
 export interface AmenityChip { label: string; code: string; icon: string; active: boolean; }
@@ -44,7 +45,7 @@ export interface AppliedFilters {
 @Component({
     selector: 'app-filter-popup',
     standalone: true,
-    imports: [CommonModule, FormsModule, PopupComponent],
+    imports: [CommonModule, FormsModule, PopupComponent, DropdownFieldComponent],
     templateUrl: './filter-popup.component.html',
     styleUrls: ['./filter-popup.component.css']
 })
@@ -64,10 +65,18 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
     modalDistricts: District[] = [];
     modalWards: Ward[] = [];
 
+    selectedProvince: Province | null = null;
+    selectedDistrict: District | null = null;
+    selectedWard: Ward | null = null;
+
     draft: FilterDraft = {};
     draftAmenities: AmenityChip[] = [];
     draftMinPriceStr = '';
     draftMaxPriceStr = '';
+
+    // Dropdown helpers
+    locationDisplay = (item: Province | District | Ward) => item.name;
+    locationCompare = (a: Province | District | Ward, b: Province | District | Ward) => a.code === b.code;
 
     private destroy$ = new Subject<void>();
 
@@ -100,8 +109,8 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     // Called whenever visible changes from parent (@Input)
-    ngOnChanges(): void {
-        if (this.visible) this.initDraft();
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['visible'] && this.visible) this.initDraft();
     }
 
     private initDraft(): void {
@@ -120,6 +129,10 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         this.draftMaxPriceStr = this.formatVND(this.draft.maxPrice);
         // Clone amenity active states from parent chips
         this.draftAmenities = this.allAmenityChips.map(c => ({ ...c }));
+        // Resolve selected location objects from codes
+        this.selectedProvince = this.provinces.find(p => p.code === this.draft.provinceCode) ?? null;
+        this.selectedDistrict = null;
+        this.selectedWard = null;
         // Preload districts/wards if province/district already chosen
         this.modalDistricts = [];
         this.modalWards = [];
@@ -133,33 +146,52 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         });
     }
 
-    onProvinceChange(code: string): void {
-        this.draft.districtCode = '';
-        this.draft.wardCode = '';
+    onProvinceChange(province: Province | Province[]): void {
+        const p = Array.isArray(province) ? province[0] : province;
+        this.selectedProvince = p ?? null;
+        this.draft.provinceCode = p?.code;
+        this.draft.districtCode = undefined;
+        this.draft.wardCode = undefined;
+        this.selectedDistrict = null;
+        this.selectedWard = null;
         this.modalDistricts = [];
         this.modalWards = [];
-        if (code) this.loadDistricts(code);
+        if (p?.code) this.loadDistricts(p.code);
+    }
+
+    onWardChange(ward: Ward | Ward[]): void {
+        const w = Array.isArray(ward) ? ward[0] : ward;
+        this.selectedWard = w ?? null;
+        this.draft.wardCode = w?.code;
     }
 
     private loadDistricts(code: string): void {
         this.api.get<District[]>('/location/districts', { params: { provinceCode: code } }).subscribe({
             next: (d: District[]) => {
                 this.modalDistricts = d;
+                this.selectedDistrict = d.find(x => x.code === this.draft.districtCode) ?? null;
                 if (this.draft.districtCode) this.loadWards(this.draft.districtCode);
             },
             error: () => { }
         });
     }
 
-    onDistrictChange(code: string): void {
-        this.draft.wardCode = '';
+    onDistrictChange(district: District | District[]): void {
+        const d = Array.isArray(district) ? district[0] : district;
+        this.selectedDistrict = d ?? null;
+        this.draft.districtCode = d?.code;
+        this.draft.wardCode = undefined;
+        this.selectedWard = null;
         this.modalWards = [];
-        if (code) this.loadWards(code);
+        if (d?.code) this.loadWards(d.code);
     }
 
     private loadWards(code: string): void {
         this.api.get<Ward[]>('/location/wards', { params: { districtCode: code } }).subscribe({
-            next: (d: Ward[]) => { this.modalWards = d; },
+            next: (d: Ward[]) => {
+                this.modalWards = d;
+                this.selectedWard = d.find(x => x.code === this.draft.wardCode) ?? null;
+            },
             error: () => { }
         });
     }
@@ -185,6 +217,17 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
             this.draftMaxPriceStr = parsed != null ? this.formatVND(parsed) : '';
         }
         el.value = field === 'min' ? this.draftMinPriceStr : this.draftMaxPriceStr;
+    }
+
+    onPriceChange(field: 'min' | 'max', value: string): void {
+        const parsed = this.parseVND(value);
+        if (field === 'min') {
+            this.draft.minPrice = parsed;
+            this.draftMinPriceStr = parsed != null ? this.formatVND(parsed) : '';
+        } else {
+            this.draft.maxPrice = parsed;
+            this.draftMaxPriceStr = parsed != null ? this.formatVND(parsed) : '';
+        }
     }
 
     // ---- Price range chips ----

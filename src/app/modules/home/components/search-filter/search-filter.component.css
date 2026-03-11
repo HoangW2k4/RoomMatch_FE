@@ -83,6 +83,11 @@
   color: var(--primary-color, #3179c7) !important;
 }
 
+.sf-chip:hover .sf-chip-icon {
+  filter: brightness(0) saturate(100%) invert(39%) sepia(52%) saturate(1066%) hue-rotate(186deg) brightness(92%) contrast(88%);
+  opacity: 1;
+}
+
 .sf-chip--active {
   background: rgba(49, 121, 199, 0.10) !important;
   border-color: var(--primary-color, #3179c7) !important;
@@ -95,10 +100,12 @@
   height: 15px;
   object-fit: contain;
   opacity: 0.7;
+  transition: filter 0.18s ease, opacity 0.18s ease;
 }
 
 .sf-chip--active .sf-chip-icon {
   opacity: 1;
+  filter: brightness(0) saturate(100%) invert(39%) sepia(52%) saturate(1066%) hue-rotate(186deg) brightness(92%) contrast(88%);
 }
 
 /* ===== Active filter tags ===== */

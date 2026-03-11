@@ -3,6 +3,36 @@
 .fp-icon-md { width: 18px; height: 18px; flex-shrink: 0; }
 
 .fp-sub-text { font-size: 0.78rem; }
+.input-group{
+    height: 40px !important;
+}
+/* Compact dropdown for filter popup */
+::ng-deep .fp-dropdown-sm .dropdown-field {
+    padding: 5px 8px;
+    border-radius: 6px;
+}
+::ng-deep .fp-dropdown-sm .appearance-base {
+    font-size: 0.8rem;
+}
+::ng-deep .fp-dropdown-sm .dropdown-panel {
+    margin-top: 4px;
+}
+::ng-deep .fp-dropdown-sm .dropdown-item {
+    padding: 5px 8px;
+    margin: 0 6px 4px 6px;
+    width: calc(100% - 12px);
+}
+::ng-deep .fp-dropdown-sm .item-main {
+    font-size: 0.8rem;
+}
+::ng-deep .fp-dropdown-sm .search-input {
+    font-size: 0.8rem;
+}
+::ng-deep .fp-dropdown-sm .search-input-container {
+    padding: 5px 8px;
+    margin: 6px;
+    width: calc(100% - 12px);
+}
 
 .fp-quick-btn {
     padding: 5px 12px;
@@ -35,6 +65,11 @@
     color: var(--primary-color, #3179c7) !important;
 }
 
+.fp-chip:hover .fp-chip-icon {
+    filter: brightness(0) saturate(100%) invert(39%) sepia(52%) saturate(1066%) hue-rotate(186deg) brightness(92%) contrast(88%);
+    opacity: 1;
+}
+
 .fp-chip--active {
     background: rgba(49, 121, 199, 0.10) !important;
     border-color: var(--primary-color, #3179c7) !important;
@@ -47,10 +82,12 @@
     height: 15px;
     object-fit: contain;
     opacity: 0.7;
+    transition: filter 0.16s, opacity 0.16s;
 }
 
 .fp-chip--active .fp-chip-icon {
     opacity: 1;
+    filter: brightness(0) saturate(100%) invert(39%) sepia(52%) saturate(1066%) hue-rotate(186deg) brightness(92%) contrast(88%);
 }
 
 /* ===== Roommate detail box ===== */

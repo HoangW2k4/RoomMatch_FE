@@ -1,0 +1,122 @@
+<div
+  class="dropdown-wrapper position-relative"
+  [class.disabled]="disabled()"
+  [class.readonly]="readonly()"
+>
+  <div
+    class="dropdown-field d-flex align-items-center" [class.error]="!error()" [class.required]="showRequiredError() && filteredItems().length"
+    (click)="onToggleOpen()"
+    tabindex="0"
+  >
+    <div
+      class="dropdown-placeholder w-100 d-flex justify-content-between align-items-center"
+    >
+      @if(!showPlaceholder()){
+        <p class="appearance-base mb-0" [class.color-8C9093]="!selectedLabel()">
+        {{ selectedLabel() || placeholder() }}
+      </p>
+      }
+      @else {
+        <p class="appearance-base mb-0" [class.color-8C9093]="!selectedLabel()">
+          {{ selectedLabel() || placeholder() }}
+        </p>
+      }
+      <img
+        src="assets/icons/ic_arrow_down_black.svg"
+        class="dropdown-arrow"
+        [class.rotate]="isOpen()"
+        alt="Dropdown arrow"
+      />
+    </div>
+  </div>
+
+  @if (isOpen() && !readonly()) {
+  <div class="dropdown-panel" (click)="$event.stopPropagation()">
+    <div class="dropdown-list" [style.max-height.px]="panelMaxHeight()">
+      @if (searchable()) {
+      <div class="search-input-container">
+        <div class="search-icon-container">
+          <div class="w-16 h-16">
+            <img
+              src="assets/icons/ic_search.svg"
+              width="16"
+              height="16"
+              alt="SearchIcon"
+            />
+          </div>
+        </div>
+        <input
+          class="search-input"
+          [placeholder]="searchPlaceholder()"
+          title="[searchPlaceholder()]"
+          [attr.aria-label]="searchPlaceholder()"
+          name="dropdown-search"
+          [value]="searchTerm()"
+          (input)="searchTerm.set($any($event.target).value)"
+        />
+        <div class="search-right-component"></div>
+      </div>
+      }
+
+      <div class="dropdown-scroll-area">
+        @if (multiple() && filteredItems().length > 0) {
+        <button
+          type="button"
+          class="dropdown-item d-flex align-items-center select-all"
+          (click)="toggleSelectAll()"
+        >
+          <input
+            type="checkbox"
+            title="selectAll"
+            class="form-check-input me-2"
+            [checked]="isAllSelected()"
+            readonly
+          />
+          <span class="item-main flex-grow-1">
+            Chọn tất cả
+          </span>
+        </button>
+        }
+
+        @for (item of filteredItems(); track $index) {
+        <div
+          class="dropdown-item"
+          [class.selected]="isSelected(item)"
+          (click)="onSelect(item)"
+        >
+          @if (multiple()) {
+          <input
+            type="checkbox"
+            title="checkbox"
+            class="form-check-input me-2"
+            [checked]="isSelected(item)"
+            (click)="onCheckboxClick(item, $event)"
+            readonly
+          />
+          }
+          @let mainFn = displayWith();
+          @let subFn = secondaryWith();
+          @let mainText = mainFn(item);
+          <span class="item-main">
+            <span
+              #itemMainText
+              class="item-main__text"
+              [attr.data-text]="mainText"
+              [attr.data-scrollable]="false"
+            >
+              {{ mainText }}
+            </span>
+          </span>
+          @if (secondaryWith()) {
+          <span class="item-sub">{{ subFn!(item) }}</span>
+          }
+        </div>
+        } @if (!filteredItems().length) {
+        <div class="dropdown-empty">Không có dữ liệu</div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+  <div class="required" *ngIf="showRequiredError() && filteredItems().length">{{ requiredMessage() || 'Trường này là bắt buộc' }}</div>
+</div>
