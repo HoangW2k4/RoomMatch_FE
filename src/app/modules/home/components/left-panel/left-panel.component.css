@@ -1,7 +1,7 @@
 /* ===== Left Panel Container ===== */
 .left-panel {
-  width: 260px;
-  min-width: 260px;
+  width: 100%;
+  min-width: 0;
 }
 
 /* ===== User Avatar ===== */

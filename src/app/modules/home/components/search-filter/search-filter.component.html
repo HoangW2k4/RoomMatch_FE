@@ -1,9 +1,8 @@
 <div class="card border-0 shadow-sm rounded-4 p-3 d-flex flex-column gap-2">
 
   <!-- Compact Search bar -->
-  <div class="d-flex align-items-center gap-2 bg-light rounded-pill px-3 py-2">
-    <img [src]="userAvatar" alt="avatar" class="rounded-circle sf-avatar"
-      (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
+  <div class="search-bar d-flex align-items-center gap-2 rounded-pill px-3 py-2">
+    <img src="assets/icons/ic_search.svg" alt="avatar" class="sf-search-icon">
     <input type="text" class="form-control form-control-sm border-0 bg-transparent shadow-none sf-search-input"
       [placeholder]="searchPlaceholder" title="Tìm kiếm phòng" [(ngModel)]="filters.keyword"
       (ngModelChange)="onKeywordChange($event)" />
@@ -13,12 +12,12 @@
     </button>
     <button class="btn btn-sm p-1 rounded-2 text-secondary d-flex align-items-center sf-filter-icon-btn"
       (click)="openFilterPopup()" title="Mở bộ lọc">
-      <img src="assets/icons/ic_filter_lines.svg" alt="Bộ lọc" class="sf-icon-sm" />
+      <img src="assets/icons/filter.svg" alt="Bộ lọc" class="sf-icon-sm" />
     </button>
   </div>
 
   <!-- Display pills row (click → open popup) -->
-  <div class="d-flex flex-wrap gap-1 sf-clickable" role="button" (click)="openFilterPopup()">
+  <div class="d-flex flex-wrap gap-1 sf-clickable w-100" role="button" (click)="openFilterPopup()">
     <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
       [class.sf-pill--set]="filters.provinceCode">
       <img src="assets/icons/ic_location_pin.svg" alt="Vị trí" class="sf-icon-xs" />
@@ -36,9 +35,9 @@
   </div>
 
   <!-- Amenity chips preview (click +N → open popup) -->
-  <div class="d-flex flex-wrap gap-2">
+  <div class="d-flex flex-wrap gap-2 w-100 sf-clickable" role="button" (click)="openFilterPopup()">
     <button *ngFor="let chip of previewChips"
-      class="btn btn-sm rounded-pill border bg-light text-secondary d-inline-flex align-items-center gap-1 sf-chip"
+      class="btn btn-sm rounded-pill border text-secondary d-inline-flex align-items-center gap-1 sf-chip"
       [class.sf-chip--active]="chip.active" (click)="openFilterPopup()">
       <img [src]="chip.icon" [alt]="chip.label" title="{{ chip.label }}" class="sf-chip-icon" />
       {{ chip.label }}

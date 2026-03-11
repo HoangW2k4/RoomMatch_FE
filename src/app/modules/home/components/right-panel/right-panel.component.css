@@ -1,21 +1,7 @@
 /* ===== Right Panel ===== */
 .right-panel {
-  width: 280px;
-  padding: 12px 0px;
-  min-width: 280px;
-}
-
-/* ===== Map Placeholder ===== */
-.map-placeholder {
-  height: 140px;
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 40%, #dcedc8 100%);
-  border: 1px solid #e5e7eb;
-}
-
-.map-search-btn {
-  font-size: 0.78rem;
-  color: #1f2937;
-  border: 1px solid #e5e7eb !important;
+  width: 100%;
+  min-width: 0;
 }
 
 /* ===== Room Suggestion ===== */
@@ -45,7 +31,11 @@
   font-size: 0.82rem;
   line-height: 1.4;
 }
-
+.text-money {
+  font-size: 0.82rem;
+  color: var(--text-money) !important;
+  line-height: 1.4; 
+}
 /* ===== Notification ===== */
 .noti-avatar {
   width: 36px;
@@ -55,4 +45,10 @@
 .noti-icon-circle {
   width: 36px;
   height: 36px;
+}
+.room-suggestion {
+  background-color: var(--bg-light);
+  padding: 6px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
 }

@@ -7,11 +7,19 @@
 }
 
 /* ===== Icon sizes ===== */
-.sf-close-icon { width: 13px; height: 13px; }
 .sf-icon-xs { width: 12px; height: 12px; flex-shrink: 0; }
 .sf-icon-sm { width: 17px; height: 17px; }
 .sf-icon-md { width: 18px; height: 18px; flex-shrink: 0; }
 
+.search-bar {
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background-color: rgba(49, 121, 199, 0.09);
+  transition: background-color 0.15s ease;
+}
+.search-bar:hover {
+  background-color: rgba(49, 121, 199, 0.15) !important;
+}
 /* ===== Sub text ===== */
 .sf-sub-text { font-size: 0.74rem; }
 
@@ -19,7 +27,11 @@
 .sf-search-input::placeholder {
   color: var(--text-muted, #6b7280);
 }
-
+.sf-search-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
 /* ===== Filter icon button ===== */
 .sf-filter-icon-btn:hover {
   background: var(--primary-light, #dbeafe) !important;
@@ -30,7 +42,13 @@
 .sf-clickable {
   cursor: pointer;
 }
-
+.rounded-pill{
+  background-color: rgba(49, 121, 199, 0.05);
+}
+.rounded-pill:hover{
+  color: #3179c7!important;
+  background-color: rgba(49, 121, 199, 0.1);
+}
 /* ===== Display pills ===== */
 .sf-pill {
   padding: 5px 11px;
