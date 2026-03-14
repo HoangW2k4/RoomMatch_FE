@@ -5,6 +5,9 @@
 ::ng-deep app-input-field .input-field-container {
     margin-bottom: 0;
 }
+::ng-deep app-input-field .input-wrapper {
+    border-width: 1.5px !important;
+}
 ::ng-deep app-input-field .flex-input {
     padding: 8px 12px;
     font-size: 0.85rem;
@@ -18,6 +21,7 @@
 ::ng-deep .fp-dropdown-sm .dropdown-field {
     padding: 5px 8px;
     border-radius: 6px;
+    border-width: 1.5px !important;
 }
 ::ng-deep .fp-dropdown-sm .appearance-base {
     font-size: 0.8rem;
@@ -40,6 +44,7 @@
     padding: 5px 8px;
     margin: 6px;
     width: calc(100% - 12px);
+    border-width: 1.5px !important;
 }
 
 .fp-quick-btn {
@@ -107,28 +112,40 @@
     border-color: rgba(49, 121, 199, 0.18) !important;
 }
 
-/* ===== Gender buttons ===== */
-.fp-gender-btn {
-    border: 1.5px solid var(--border-color, #e5e7eb);
-    border-radius: 10px;
-    background: #fff;
-    font-size: 0.85rem;
-    color: var(--text-secondary, #4b5563);
-    font-weight: 500;
-    transition: all 0.16s;
+.fp-roommate-grid {
+    display: grid;
+    grid-template-columns: minmax(170px, 0.8fr) minmax(260px, 1.2fr);
+    gap: 14px;
+    align-items: start;
 }
 
-.fp-gender-btn:hover {
-    border-color: var(--primary-color, #3179c7);
-    color: var(--primary-color, #3179c7);
+.fp-gender-col {
+    min-width: 0;
 }
 
-.fp-gender-btn--active {
-    background: var(--primary-color, #3179c7) !important;
-    border-color: var(--primary-color, #3179c7) !important;
-    color: #fff !important;
+.fp-age-col {
+    min-width: 0;
 }
 
+/* ===== Gender dropdown ===== */
+::ng-deep .fp-gender-dropdown .dropdown-field {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border-width: 1.5px;
+}
+
+::ng-deep .fp-gender-dropdown .appearance-base {
+    font-size: 0.82rem;
+}
+
+@media (max-width: 768px) {
+    .fp-roommate-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.cursor-pointer {
+    cursor: pointer;
+}
 /* ===== Hide number input spinners ===== */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -138,4 +155,18 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
+}
+.clean-btn {    
+    padding: 0;
+    border: none;
+    background: none;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color, #3179c7) !important;
+    transition: all 0.16s;
+}
+.clean-btn:hover {
+    text-decoration: underline;
+    color: var(--danger-color, #dc3545) !important;
 }

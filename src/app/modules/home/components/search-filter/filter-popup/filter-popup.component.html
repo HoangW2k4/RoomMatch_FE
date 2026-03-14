@@ -130,7 +130,8 @@
         </div>
 
         <!-- Roommate toggle -->
-        <div class="d-flex align-items-center justify-content-between bg-light border rounded-3 px-3 py-2">
+        <div class="d-flex align-items-center justify-content-between bg-light border rounded-3 px-3 py-2 cursor-pointer"
+            (click)="toggleRoommate()">
             <div class="d-flex align-items-center gap-2 flex-grow-1">
                 <img src="assets/icons/ic_roommate.svg" alt="Ở ghép" class="fp-icon-md" />
                 <div>
@@ -141,47 +142,52 @@
             </div>
             <div class="form-check form-switch mb-0 ms-2">
                 <input class="form-check-input" type="checkbox" role="switch" title="Tìm người ở ghép" [checked]="isRoommateMode"
-                    (change)="toggleRoommate()">
+                    (click)="$event.stopPropagation(); toggleRoommate()">
             </div>
         </div>
 
         <!-- Roommate detail (conditional) -->
         <div class="d-flex flex-column gap-3 border rounded-3 p-3 fp-roommate-detail" *ngIf="isRoommateMode">
-            <!-- Gender -->
-            <div class="d-flex flex-column gap-2">
-                <span class="form-text text-uppercase small fw-semibold">GIỚI TÍNH MONG MUỐN</span>
-                <div class="d-flex gap-2">
-                    <button *ngFor="let g of GENDERS"
-                        class="btn btn-sm flex-grow-1 fp-gender-btn"
-                        [class.fp-gender-btn--active]="draft.gender === g.value"
-                        (click)="draft.gender = (draft.gender === g.value ? undefined : g.value)">
-                        {{ g.label }}
-                    </button>
+            <div class="fp-roommate-grid">
+                <!-- Gender -->
+                <div class="d-flex flex-column gap-2 fp-gender-col">
+                    <span class="form-text text-uppercase small fw-semibold">GIỚI TÍNH</span>
+                    <app-dropdown-field
+                        class="d-block fp-dropdown-sm fp-gender-dropdown"
+                        [items]="GENDERS"
+                        [value]="selectedGender"
+                        [displayWith]="genderDisplay"
+                        [compareWith]="genderCompare"
+                        [placeholder]="'Chọn giới tính'"
+                        [direction]="'up'"
+                        (valueChange)="onGenderChange($event)"
+                    ></app-dropdown-field>
                 </div>
-            </div>
-            <!-- Age range -->
-            <div class="d-flex flex-column gap-2">
-                <span class="form-text text-uppercase small fw-semibold">ĐỘ TUỔI</span>
-                <div class="d-flex align-items-center gap-2">
-                    <app-input-field class="flex-grow-1"
-                        [control]="minAgeControl"
-                        type="number"
-                        placeholder="Từ"
-                        afterInput="tuổi"
-                        [min]="0"
-                        [max]="99"
-                        (onChange)="onMinAgeChange($event)"
-                    ></app-input-field>
-                    <span class="text-muted small flex-shrink-0">—</span>
-                    <app-input-field class="flex-grow-1"
-                        [control]="maxAgeControl"
-                        type="number"
-                        placeholder="Đến"
-                        afterInput="tuổi"
-                        [min]="0"
-                        [max]="99"
-                        (onChange)="onMaxAgeChange($event)"
-                    ></app-input-field>
+
+                <!-- Age range -->
+                <div class="d-flex flex-column gap-2 fp-age-col">
+                    <span class="form-text text-uppercase small fw-semibold">ĐỘ TUỔI</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <app-input-field class="flex-grow-1"
+                            [control]="minAgeControl"
+                            type="number"
+                            placeholder="Từ"
+                            afterInput="tuổi"
+                            [min]="0"
+                            [max]="99"
+                            (onChange)="onMinAgeChange($event)"
+                        ></app-input-field>
+                        <span class="text-muted small flex-shrink-0">—</span>
+                        <app-input-field class="flex-grow-1"
+                            [control]="maxAgeControl"
+                            type="number"
+                            placeholder="Đến"
+                            afterInput="tuổi"
+                            [min]="0"
+                            [max]="99"
+                            (onChange)="onMaxAgeChange($event)"
+                        ></app-input-field>
+                    </div>
                 </div>
             </div>
         </div>
@@ -190,7 +196,7 @@
 
     <!-- Footer slot -->
     <div popup-footer class="d-flex align-items-center justify-content-between w-100 gap-3">
-        <button class="btn btn-link text-secondary text-decoration-underline small" (click)="resetDraft()">Xóa tất cả
+        <button class="btn btn-link text-secondary clean-btn small" (click)="resetDraft()">Xóa tất cả
             bộ lọc</button>
         <button class="btn btn-primary d-flex align-items-center gap-2 fw-bold" (click)="applyDraft()">
             <img src="assets/icons/ic_search_white.svg" alt="Tìm" class="fp-icon-sm" />

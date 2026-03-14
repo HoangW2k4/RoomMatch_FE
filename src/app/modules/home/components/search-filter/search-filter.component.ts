@@ -11,8 +11,6 @@ import {
   AmenityChip, AppliedFilters
 } from './filter-popup/filter-popup.component';
 
-interface FilterTag { key: string; label: string; }
-
 @Component({
   selector: 'app-search-filter',
   standalone: true,
@@ -28,7 +26,11 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
   isRoommateMode = false;
 
   showFilterPopup = false;
-  activeFilterTags: FilterTag[] = [];
+
+  // Resolved location names (returned from popup on apply)
+  provinceName = '';
+  districtName = '';
+  wardName = '';
 
   private keywordSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -88,6 +90,8 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
 
   get previewChips(): AmenityChip[] { return this.amenityChips.slice(0, 3); }
   get hiddenChipsCount(): number { return this.amenityChips.length - 3; }
+  get activeAmenityChips(): AmenityChip[] { return this.amenityChips.filter(c => c.active); }
+  get inactiveAmenityCount(): number { return this.amenityChips.filter(c => !c.active).length; }
 
   // ======= User avatar =======
   private loadUserAvatar(): void {
@@ -111,15 +115,15 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
   // ======= Display label helpers =======
   getProvinceLabel(): string {
     if (!this.filters.provinceCode) return 'Tỉnh';
-    return this.provinces.find(x => x.code === this.filters.provinceCode)?.name ?? 'Tỉnh';
+    return this.provinceName || this.provinces.find(x => x.code === this.filters.provinceCode)?.name || 'Tỉnh';
   }
   getDistrictLabel(): string {
     if (!this.filters.districtCode) return 'Quận / Huyện';
-    return this.districts.find(x => x.code === this.filters.districtCode)?.name ?? 'Quận / Huyện';
+    return this.districtName || 'Quận / Huyện';
   }
   getWardLabel(): string {
     if (!this.filters.wardCode) return 'Phường / Xã';
-    return this.wards.find(x => x.code === this.filters.wardCode)?.name ?? 'Phường / Xã';
+    return this.wardName || 'Phường / Xã';
   }
   getPriceLabel(): string {
     if (this.filters.minPrice == null && this.filters.maxPrice == null) return 'Khoảng giá';
@@ -141,72 +145,58 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
       minPrice: result.minPrice,
       maxPrice: result.maxPrice,
     };
+    // Store resolved names from popup
+    this.provinceName = result.provinceName ?? '';
+    this.districtName = result.districtName ?? '';
+    this.wardName = result.wardName ?? '';
     this.isRoommateMode = result.isRoommateMode ?? false;
     // Sync amenity active states
     const activeCodes = new Set(result.amenityCodes ?? []);
     this.amenityChips = this.buildAmenityChips().map(c => ({ ...c, active: activeCodes.has(c.code) }));
-    // Build tags
-    this.buildActiveFilterTags();
     // Emit search
     this.emitSearch();
   }
 
-  private buildActiveFilterTags(): void {
-    const tags: FilterTag[] = [];
-    if (this.filters.provinceCode) {
-      const p = this.provinces.find(x => x.code === this.filters.provinceCode);
-      if (p) tags.push({ key: 'province', label: p.name });
-    }
-    if (this.filters.districtCode) {
-      tags.push({ key: 'district', label: this.getDistrictLabel() });
-    }
-    if (this.filters.wardCode) {
-      tags.push({ key: 'ward', label: this.getWardLabel() });
-    }
-    if (this.filters.minPrice != null || this.filters.maxPrice != null) {
-      tags.push({ key: 'price', label: this.getPriceLabel() });
-    }
-    this.amenityChips.filter(c => c.active).forEach(c =>
-      tags.push({ key: 'amenity_' + c.code, label: c.label })
-    );
-    if (this.isRoommateMode) tags.push({ key: 'roommate', label: 'Ở ghép' });
-    this.activeFilterTags = tags;
+
+
+  // ======= Remove filter helpers =======
+  removeProvince(event: Event): void {
+    event.stopPropagation();
+    this.filters.provinceCode = undefined;
+    this.filters.districtCode = undefined;
+    this.filters.wardCode = undefined;
+    this.provinceName = '';
+    this.districtName = '';
+    this.wardName = '';
+    this.emitSearch();
   }
 
-  removeFilterTag(tag: FilterTag): void {
-    switch (tag.key) {
-      case 'province':
-        this.filters.provinceCode = undefined;
-        this.filters.districtCode = undefined;
-        this.filters.wardCode = undefined;
-        this.activeFilterTags = this.activeFilterTags.filter(t => !['province', 'district', 'ward'].includes(t.key));
-        break;
-      case 'district':
-        this.filters.districtCode = undefined;
-        this.filters.wardCode = undefined;
-        this.activeFilterTags = this.activeFilterTags.filter(t => !['district', 'ward'].includes(t.key));
-        break;
-      case 'ward':
-        this.filters.wardCode = undefined;
-        this.activeFilterTags = this.activeFilterTags.filter(t => t.key !== 'ward');
-        break;
-      case 'price':
-        this.filters.minPrice = undefined;
-        this.filters.maxPrice = undefined;
-        this.activeFilterTags = this.activeFilterTags.filter(t => t.key !== 'price');
-        break;
-      case 'roommate':
-        this.isRoommateMode = false;
-        this.activeFilterTags = this.activeFilterTags.filter(t => t.key !== 'roommate');
-        break;
-      default:
-        if (tag.key.startsWith('amenity_')) {
-          const code = tag.key.replace('amenity_', '');
-          const chip = this.amenityChips.find(c => c.code === code);
-          if (chip) chip.active = false;
-          this.activeFilterTags = this.activeFilterTags.filter(t => t.key !== tag.key);
-        }
-    }
+  removeDistrict(event: Event): void {
+    event.stopPropagation();
+    this.filters.districtCode = undefined;
+    this.filters.wardCode = undefined;
+    this.districtName = '';
+    this.wardName = '';
+    this.emitSearch();
+  }
+
+  removeWard(event: Event): void {
+    event.stopPropagation();
+    this.filters.wardCode = undefined;
+    this.wardName = '';
+    this.emitSearch();
+  }
+
+  removePrice(event: Event): void {
+    event.stopPropagation();
+    this.filters.minPrice = undefined;
+    this.filters.maxPrice = undefined;
+    this.emitSearch();
+  }
+
+  removeAmenity(event: Event, chip: AmenityChip): void {
+    event.stopPropagation();
+    chip.active = false;
     this.emitSearch();
   }
 

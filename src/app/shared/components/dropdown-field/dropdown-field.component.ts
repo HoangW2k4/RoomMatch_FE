@@ -41,6 +41,7 @@ export class DropdownFieldComponent<T>
   value = input<T | T[] | null>(null);
   searchable = input<boolean>(true);
   panelMaxHeight = input<number>(256);
+  direction = input<'up' | 'down'>('down');
   multiple = input<boolean>(false);
   required = input<boolean>(false);
   requiredMessage = input<string>();
@@ -108,6 +109,10 @@ export class DropdownFieldComponent<T>
 
   showRequiredError = computed<boolean>(() => {
     return this.required() && this.isEmpty() && this.touched();
+  });
+
+  panelDirection = computed<'up' | 'down'>(() => {
+    return this.direction();
   });
 
   private onDocumentClick = (ev: Event) => {

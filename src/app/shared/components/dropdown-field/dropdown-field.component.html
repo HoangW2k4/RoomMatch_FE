@@ -31,7 +31,12 @@
   </div>
 
   @if (isOpen() && !readonly()) {
-  <div class="dropdown-panel" (click)="$event.stopPropagation()">
+  <div
+    class="dropdown-panel"
+    [class.panel-up]="panelDirection() === 'up'"
+    [class.panel-down]="panelDirection() === 'down'"
+    (click)="$event.stopPropagation()"
+  >
     <div class="dropdown-list" [style.max-height.px]="panelMaxHeight()">
       @if (searchable()) {
       <div class="search-input-container">

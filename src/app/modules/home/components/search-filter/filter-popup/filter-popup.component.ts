@@ -15,6 +15,7 @@ import { InputFieldComponent } from '../../../../../shared/components/input-fiel
 // --- shared interfaces, re-exported for parent use ---
 export interface AmenityChip { label: string; code: string; icon: string; active: boolean; }
 export interface PriceRange { label: string; min: number; max: number | undefined; }
+export interface GenderOption { value: string; label: string; }
 export interface FilterDraft {
     keyword?: string;
     provinceCode?: string;
@@ -32,8 +33,11 @@ export interface FilterDraft {
 export interface AppliedFilters {
     keyword?: string;
     provinceCode?: string;
+    provinceName?: string;
     districtCode?: string;
+    districtName?: string;
     wardCode?: string;
+    wardName?: string;
     minPrice?: number;
     maxPrice?: number;
     isRoommateMode?: boolean;
@@ -84,10 +88,13 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
     // Dropdown helpers
     locationDisplay = (item: Province | District | Ward) => item.name;
     locationCompare = (a: Province | District | Ward, b: Province | District | Ward) => a.code === b.code;
+    genderDisplay = (item: GenderOption) => item.label;
+    genderCompare = (a: GenderOption, b: GenderOption) => a.value === b.value;
+    selectedGender: GenderOption | null = null;
 
     private destroy$ = new Subject<void>();
 
-    readonly GENDERS = [
+    readonly GENDERS: GenderOption[] = [
         { value: 'MALE', label: 'Nam' },
         { value: 'FEMALE', label: 'Nữ' },
         { value: 'OTHER', label: 'Khác' },
@@ -139,6 +146,7 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         this.minAgeControl.setValue(this.draft.minAge ?? '');
         this.maxAgeControl.setValue(this.draft.maxAge ?? '');
         this.keywordControl.setValue(this.draft.keyword ?? '');
+        this.selectedGender = this.GENDERS.find(g => g.value === this.draft.gender) ?? null;
         // Clone amenity active states from parent chips
         this.draftAmenities = this.allAmenityChips.map(c => ({ ...c }));
         // Resolve selected location objects from codes
@@ -196,6 +204,12 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         this.selectedWard = null;
         this.modalWards = [];
         if (d?.code) this.loadWards(d.code);
+    }
+
+    onGenderChange(gender: GenderOption | GenderOption[]): void {
+        const selected = Array.isArray(gender) ? gender[0] : gender;
+        this.selectedGender = selected ?? null;
+        this.draft.gender = selected?.value;
     }
 
     private loadWards(code: string): void {
@@ -258,6 +272,7 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
     // ---- Reset ----
     resetDraft(): void {
         this.draft = {};
+        this.selectedGender = null;
         this.keywordControl.setValue('');
         this.minPriceControl.setValue('');
         this.maxPriceControl.setValue('');
@@ -277,8 +292,11 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         const result: AppliedFilters = {
             keyword: this.draft.keyword,
             provinceCode: this.draft.provinceCode,
+            provinceName: this.selectedProvince?.name,
             districtCode: this.draft.districtCode,
+            districtName: this.selectedDistrict?.name,
             wardCode: this.draft.wardCode,
+            wardName: this.selectedWard?.name,
             minPrice: this.draft.minPrice,
             maxPrice: this.draft.maxPrice,
             isRoommateMode: this.isRoommateMode,

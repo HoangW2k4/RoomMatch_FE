@@ -16,42 +16,83 @@
     </button>
   </div>
 
-  <!-- Display pills row (click → open popup) -->
-  <div class="d-flex flex-wrap gap-1 sf-clickable w-100" role="button" (click)="openFilterPopup()">
-    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
-      [class.sf-pill--set]="filters.provinceCode">
+  <!-- Display pills row (location + price) -->
+  <div class="d-flex flex-wrap gap-1 w-100 sf-clickable" (click)="openFilterPopup()">
+    <!-- Province -->
+    <div class="sf-pill d-inline-flex align-items-center gap-1" [class.sf-pill--set]="filters.provinceCode">
       <img src="assets/icons/ic_location_pin.svg" alt="Vị trí" class="sf-icon-xs" />
-      {{ getProvinceLabel() }}
-    </span>
-    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
-      [class.sf-pill--set]="filters.districtCode">{{ getDistrictLabel() }}</span>
-    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
-      [class.sf-pill--set]="filters.wardCode">{{ getWardLabel() }}</span>
-    <span class="badge rounded-pill border bg-white text-secondary fw-normal small sf-pill"
+      <span class="sf-pill-text">{{ getProvinceLabel() }}</span>
+      <button *ngIf="filters.provinceCode" class="sf-pill-remove" aria-label="Xóa tỉnh"
+        (click)="removeProvince($event)">
+        <img src="assets/icons/close.svg" class="sf-pill-remove-icon" alt="×" />
+      </button>
+    </div>
+    <!-- District -->
+    <div class="sf-pill d-inline-flex align-items-center gap-1" [class.sf-pill--set]="filters.districtCode">
+      <span class="sf-pill-text">{{ getDistrictLabel() }}</span>
+      <button *ngIf="filters.districtCode" class="sf-pill-remove" aria-label="Xóa quận/huyện"
+        (click)="removeDistrict($event)">
+        <img src="assets/icons/close.svg" class="sf-pill-remove-icon" alt="×" />
+      </button>
+    </div>
+    <!-- Ward -->
+    <div class="sf-pill d-inline-flex align-items-center gap-1" [class.sf-pill--set]="filters.wardCode">
+      <span class="sf-pill-text">{{ getWardLabel() }}</span>
+      <button *ngIf="filters.wardCode" class="sf-pill-remove" aria-label="Xóa phường/xã"
+        (click)="removeWard($event)">
+        <img src="assets/icons/close.svg" class="sf-pill-remove-icon" alt="×" />
+      </button>
+    </div>
+    <!-- Price -->
+    <div class="sf-pill d-inline-flex align-items-center gap-1"
       [class.sf-pill--set]="filters.minPrice != null || filters.maxPrice != null">
       <img src="assets/icons/ic_price.svg" alt="Giá" class="sf-icon-xs" />
-      {{ getPriceLabel() }}
-    </span>
+      <span class="sf-pill-text">{{ getPriceLabel() }}</span>
+      <button *ngIf="filters.minPrice != null || filters.maxPrice != null" class="sf-pill-remove" aria-label="Xóa giá"
+        (click)="removePrice($event)">
+        <img src="assets/icons/close.svg" class="sf-pill-remove-icon" alt="×" />
+      </button>
+    </div>
   </div>
 
-  <!-- Amenity chips preview (click +N → open popup) -->
-  <div class="d-flex flex-wrap gap-2 w-100 sf-clickable" role="button" (click)="openFilterPopup()">
-    <button *ngFor="let chip of previewChips"
-      class="btn btn-sm rounded-pill border text-secondary d-inline-flex align-items-center gap-1 sf-chip"
-      [class.sf-chip--active]="chip.active" (click)="openFilterPopup()">
-      <img [src]="chip.icon" [alt]="chip.label" title="{{ chip.label }}" class="sf-chip-icon" />
-      {{ chip.label }}
-    </button>
-    <button *ngIf="hiddenChipsCount > 0"
-      class="btn btn-sm rounded-pill border border-dashed text-muted d-inline-flex align-items-center gap-1"
-      (click)="openFilterPopup()">
-      +{{ hiddenChipsCount }}
-    </button>
+  <!-- Amenity chips: show selected ones with X, or first-3 preview when none selected -->
+  <div class="d-flex flex-wrap gap-2 w-100">
+    <ng-container *ngIf="activeAmenityChips.length > 0; else previewAmenities">
+      <div *ngFor="let chip of activeAmenityChips"
+        class="sf-chip sf-chip--active d-inline-flex align-items-center gap-1 rounded-pill border px-2 py-1 sf-clickable"
+        (click)="openFilterPopup()">
+        <img [src]="chip.icon" [alt]="chip.label" title="{{chip.label}}" class="sf-chip-icon" />
+        <span>{{ chip.label }}</span>
+        <button class="sf-chip-remove" [attr.aria-label]="'Xóa ' + chip.label"
+          (click)="removeAmenity($event, chip)">
+          <img src="assets/icons/close.svg" class="sf-chip-remove-icon" alt="×" />
+        </button>
+      </div>
+      <button *ngIf="inactiveAmenityCount > 0"
+        class="btn btn-sm rounded-pill border border-dashed text-muted d-inline-flex align-items-center gap-1"
+        (click)="openFilterPopup()">
+        +{{ inactiveAmenityCount }}
+      </button>
+    </ng-container>
+
+    <ng-template #previewAmenities>
+      <button *ngFor="let chip of previewChips"
+        class="btn btn-sm rounded-pill border text-secondary d-inline-flex align-items-center gap-1 sf-chip"
+        [class.sf-chip--active]="chip.active" (click)="openFilterPopup()">
+        <img [src]="chip.icon" [alt]="chip.label" title="{{chip.label}}" class="sf-chip-icon" />
+        {{ chip.label }}
+      </button>
+      <button *ngIf="hiddenChipsCount > 0"
+        class="btn btn-sm rounded-pill border border-dashed text-muted d-inline-flex align-items-center gap-1"
+        (click)="openFilterPopup()">
+        +{{ hiddenChipsCount }}
+      </button>
+    </ng-template>
   </div>
 
   <!-- Roommate toggle -->
   <div class="d-flex align-items-center justify-content-between bg-light border rounded-3 px-3 py-2 sf-clickable"
-    role="button" (click)="isRoommateMode = !isRoommateMode">
+    (click)="isRoommateMode = !isRoommateMode">
     <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
       <img src="assets/icons/ic_roommate.svg" alt="Ở ghép" class="sf-icon-md" />
       <div>
@@ -63,15 +104,6 @@
       <input class="form-check-input" type="checkbox" role="switch" title="Tìm người ở ghép"
         [checked]="isRoommateMode" (click)="$event.stopPropagation()">
     </div>
-  </div>
-
-  <!-- Active filter tags -->
-  <div class="d-flex flex-wrap gap-1" *ngIf="activeFilterTags.length > 0">
-    <span *ngFor="let tag of activeFilterTags"
-      class="badge rounded-pill d-inline-flex align-items-center gap-1 sf-tag">
-      {{ tag.label }}
-      <button class="btn-close p-0 ms-1 sf-tag-remove" (click)="removeFilterTag(tag)" aria-label="Remove"></button>
-    </span>
   </div>
 
   <!-- Search button -->
