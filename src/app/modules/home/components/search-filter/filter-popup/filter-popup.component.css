@@ -2,6 +2,14 @@
 .fp-icon-sm { width: 15px; height: 15px; }
 .fp-icon-md { width: 18px; height: 18px; flex-shrink: 0; }
 
+::ng-deep app-input-field .input-field-container {
+    margin-bottom: 0;
+}
+::ng-deep app-input-field .flex-input {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
 .fp-sub-text { font-size: 0.78rem; }
 .input-group{
     height: 40px !important;
@@ -53,7 +61,9 @@
     border-color: var(--primary-color, #3179c7) !important;
     color: #fff !important;
 }
-
+.amenity-chip{
+    background-color: transparent !important;
+}
 .fp-chip {
     font-size: 0.82rem;
     font-weight: 500;
@@ -76,6 +86,7 @@
     color: var(--primary-color, #3179c7) !important;
     font-weight: 600;
 }
+
 
 .fp-chip-icon {
     width: 15px;

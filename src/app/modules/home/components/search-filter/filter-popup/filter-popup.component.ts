@@ -2,7 +2,7 @@ import {
     Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import {
     Province, District, Ward
@@ -10,6 +10,7 @@ import {
 import { ApiService } from '../../../../../core/services/api.service';
 import { PopupComponent } from '../../../../../shared/components/popup';
 import { DropdownFieldComponent } from '../../../../../shared/components/dropdown-field/dropdown-field.component';
+import { InputFieldComponent } from '../../../../../shared/components/input-field.component';
 
 // --- shared interfaces, re-exported for parent use ---
 export interface AmenityChip { label: string; code: string; icon: string; active: boolean; }
@@ -45,7 +46,7 @@ export interface AppliedFilters {
 @Component({
     selector: 'app-filter-popup',
     standalone: true,
-    imports: [CommonModule, FormsModule, PopupComponent, DropdownFieldComponent],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, PopupComponent, DropdownFieldComponent, InputFieldComponent],
     templateUrl: './filter-popup.component.html',
     styleUrls: ['./filter-popup.component.css']
 })
@@ -71,8 +72,14 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
 
     draft: FilterDraft = {};
     draftAmenities: AmenityChip[] = [];
-    draftMinPriceStr = '';
-    draftMaxPriceStr = '';
+
+    minPriceControl = new FormControl<any>('');
+    maxPriceControl = new FormControl<any>('');
+    minAreaControl = new FormControl<any>('');
+    maxAreaControl = new FormControl<any>('');
+    minAgeControl = new FormControl<any>('');
+    maxAgeControl = new FormControl<any>('');
+    keywordControl = new FormControl<any>('');
 
     // Dropdown helpers
     locationDisplay = (item: Province | District | Ward) => item.name;
@@ -125,8 +132,13 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
             minAge: this.initialFilters.minAge,
             maxAge: this.initialFilters.maxAge,
         };
-        this.draftMinPriceStr = this.formatVND(this.draft.minPrice);
-        this.draftMaxPriceStr = this.formatVND(this.draft.maxPrice);
+        this.minPriceControl.setValue(this.draft.minPrice ?? '');
+        this.maxPriceControl.setValue(this.draft.maxPrice ?? '');
+        this.minAreaControl.setValue(this.draft.minArea ?? '');
+        this.maxAreaControl.setValue(this.draft.maxArea ?? '');
+        this.minAgeControl.setValue(this.draft.minAge ?? '');
+        this.maxAgeControl.setValue(this.draft.maxAge ?? '');
+        this.keywordControl.setValue(this.draft.keyword ?? '');
         // Clone amenity active states from parent chips
         this.draftAmenities = this.allAmenityChips.map(c => ({ ...c }));
         // Resolve selected location objects from codes
@@ -196,38 +208,27 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         });
     }
 
-    // ---- Price formatting ----
-    formatVND(n: number | undefined): string {
-        if (n == null) return '';
-        return n.toLocaleString('en-US');
+    // ---- Input field change handlers ----
+    onKeywordChange(val: any): void {
+        this.draft.keyword = val ? String(val) : undefined;
     }
-    private parseVND(s: string): number | undefined {
-        const raw = s.replace(/,/g, '').trim();
-        const n = Number(raw);
-        return isNaN(n) || raw === '' ? undefined : n;
+    onMinPriceChange(val: any): void {
+        this.draft.minPrice = val ? Number(String(val).replace(/[^0-9.]/g, '')) : undefined;
     }
-    onPriceInput(field: 'min' | 'max', event: Event): void {
-        const el = event.target as HTMLInputElement;
-        const parsed = this.parseVND(el.value);
-        if (field === 'min') {
-            this.draft.minPrice = parsed;
-            this.draftMinPriceStr = parsed != null ? this.formatVND(parsed) : '';
-        } else {
-            this.draft.maxPrice = parsed;
-            this.draftMaxPriceStr = parsed != null ? this.formatVND(parsed) : '';
-        }
-        el.value = field === 'min' ? this.draftMinPriceStr : this.draftMaxPriceStr;
+    onMaxPriceChange(val: any): void {
+        this.draft.maxPrice = val ? Number(String(val).replace(/[^0-9.]/g, '')) : undefined;
     }
-
-    onPriceChange(field: 'min' | 'max', value: string): void {
-        const parsed = this.parseVND(value);
-        if (field === 'min') {
-            this.draft.minPrice = parsed;
-            this.draftMinPriceStr = parsed != null ? this.formatVND(parsed) : '';
-        } else {
-            this.draft.maxPrice = parsed;
-            this.draftMaxPriceStr = parsed != null ? this.formatVND(parsed) : '';
-        }
+    onMinAreaChange(val: any): void {
+        this.draft.minArea = val ? Number(val) : undefined;
+    }
+    onMaxAreaChange(val: any): void {
+        this.draft.maxArea = val ? Number(val) : undefined;
+    }
+    onMinAgeChange(val: any): void {
+        this.draft.minAge = val ? Number(val) : undefined;
+    }
+    onMaxAgeChange(val: any): void {
+        this.draft.maxAge = val ? Number(val) : undefined;
     }
 
     // ---- Price range chips ----
@@ -238,13 +239,13 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         if (this.isPriceActive(r)) {
             this.draft.minPrice = undefined;
             this.draft.maxPrice = undefined;
-            this.draftMinPriceStr = '';
-            this.draftMaxPriceStr = '';
+            this.minPriceControl.setValue('');
+            this.maxPriceControl.setValue('');
         } else {
             this.draft.minPrice = r.min;
             this.draft.maxPrice = r.max;
-            this.draftMinPriceStr = this.formatVND(r.min);
-            this.draftMaxPriceStr = r.max != null ? this.formatVND(r.max) : '';
+            this.minPriceControl.setValue(r.min ?? '');
+            this.maxPriceControl.setValue(r.max ?? '');
         }
     }
 
@@ -257,8 +258,13 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
     // ---- Reset ----
     resetDraft(): void {
         this.draft = {};
-        this.draftMinPriceStr = '';
-        this.draftMaxPriceStr = '';
+        this.keywordControl.setValue('');
+        this.minPriceControl.setValue('');
+        this.maxPriceControl.setValue('');
+        this.minAreaControl.setValue('');
+        this.maxAreaControl.setValue('');
+        this.minAgeControl.setValue('');
+        this.maxAgeControl.setValue('');
         this.modalDistricts = [];
         this.modalWards = [];
         this.draftAmenities.forEach(c => c.active = false);

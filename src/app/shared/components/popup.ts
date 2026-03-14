@@ -132,7 +132,10 @@ import { DOCUMENT } from '@angular/common';
         transform: rotate(90deg);
       }
 
-
+      .popup-footer{
+        border-top: 1px solid #eee;
+        box-shadow: 0 -2px 2px rgba(0, 0, 0, 0.1);
+      }
       @keyframes fadeIn {
         from {
           opacity: 0;

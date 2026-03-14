@@ -1,16 +1,15 @@
-<app-popup [visible]="visible" [title]="'Bộ lọc tìm kiếm'" width="600px" maxHeight="88vh" bodyPadding="0"
+<app-popup [visible]="visible" [title]="'Bộ lọc tìm kiếm'" width="660px" maxHeight="88vh" bodyPadding="0"
     [scrollableBody]="true" [showFooter]="true" (closed)="onPopupClosed()">
 
     <div class="px-4 pt-2 pb-1 d-flex flex-column gap-3">
         <div class="d-flex flex-column gap-2">
             <label class="form-label fw-bold mb-0 small">Từ khóa</label>
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0">
-                    <img src="assets/icons/ic_search.svg" alt="Tìm" class="fp-input-icon" />
-                </span>
-                <input type="text" class="form-control border-start-0"
-                    placeholder="Nhập tên đường, dự án hoặc từ khóa..." [(ngModel)]="draft.keyword">
-            </div>
+            <app-input-field
+                [control]="keywordControl"
+                type="text"
+                placeholder="Nhập tên đường, dự án hoặc từ khóa..."
+                (onChange)="onKeywordChange($event)"
+            ></app-input-field>
         </div>
 
         <!-- Location -->
@@ -68,17 +67,21 @@
         <div class="d-flex flex-column gap-2">
             <label class="form-label fw-bold mb-0 small">Khoảng giá (VNĐ)</label>
             <div class="d-flex align-items-center gap-2">
-                <div class="input-group input-group-sm flex-grow-1">
-                    <input type="text" inputmode="numeric" class="form-control" placeholder="0"
-                        [(ngModel)]="draftMinPriceStr" (ngModelChange)="onPriceChange('min', $event)" />
-                    <span class="input-group-text text-muted small">₫</span>
-                </div>
+                <app-input-field class="flex-grow-1"
+                    [control]="minPriceControl"
+                    type="currency"
+                    placeholder="0"
+                    afterInput="₫"
+                    (onChange)="onMinPriceChange($event)"
+                ></app-input-field>
                 <span class="text-muted small flex-shrink-0">—</span>
-                <div class="input-group input-group-sm flex-grow-1">
-                    <input type="text" inputmode="numeric" class="form-control" placeholder="Không giới hạn"
-                        [(ngModel)]="draftMaxPriceStr" (ngModelChange)="onPriceChange('max', $event)" />
-                    <span class="input-group-text text-muted small">₫</span>
-                </div>
+                <app-input-field class="flex-grow-1"
+                    [control]="maxPriceControl"
+                    type="currency"
+                    placeholder="Không giới hạn"
+                    afterInput="₫"
+                    (onChange)="onMaxPriceChange($event)"
+                ></app-input-field>
             </div>
             <div class="d-flex flex-wrap gap-2 mt-1">
                 <button *ngFor="let r of PRICE_RANGES"
@@ -93,11 +96,23 @@
         <div class="d-flex flex-column gap-2">
             <label class="form-label fw-bold mb-0 small">Diện tích (m²)</label>
             <div class="d-flex align-items-center gap-2">
-                <input type="number" class="form-control form-control-sm flex-grow-1" placeholder="Từ"
-                    [(ngModel)]="draft.minArea" min="0" />
+                <app-input-field class="flex-grow-1"
+                    [control]="minAreaControl"
+                    type="number"
+                    placeholder="Từ"
+                    afterInput="m²"
+                    [min]="0"
+                    (onChange)="onMinAreaChange($event)"
+                ></app-input-field>
                 <span class="text-muted small flex-shrink-0">—</span>
-                <input type="number" class="form-control form-control-sm flex-grow-1" placeholder="Đến"
-                    [(ngModel)]="draft.maxArea" min="0" />
+                <app-input-field class="flex-grow-1"
+                    [control]="maxAreaControl"
+                    type="number"
+                    placeholder="Đến"
+                    afterInput="m²"
+                    [min]="0"
+                    (onChange)="onMaxAreaChange($event)"
+                ></app-input-field>
             </div>
         </div>
 
@@ -106,7 +121,7 @@
             <label class="form-label fw-bold mb-0 small">Tiện ích</label>
             <div class="d-flex flex-wrap gap-2">
                 <button *ngFor="let chip of draftAmenities"
-                    class="btn btn-sm rounded-pill border bg-light text-secondary d-inline-flex align-items-center gap-1 fp-chip"
+                    class="btn btn-sm rounded-pill border bg-light text-secondary d-inline-flex align-items-center gap-1 fp-chip amenity-chip"
                     [class.fp-chip--active]="chip.active" (click)="chip.active = !chip.active">
                     <img [src]="chip.icon" [alt]="chip.label" title="{{ chip.label }}" class="fp-chip-icon" />
                     {{ chip.label }}
@@ -148,17 +163,25 @@
             <div class="d-flex flex-column gap-2">
                 <span class="form-text text-uppercase small fw-semibold">ĐỘ TUỔI</span>
                 <div class="d-flex align-items-center gap-2">
-                    <div class="input-group input-group-sm flex-grow-1">
-                        <input type="number" class="form-control" placeholder="Từ" [(ngModel)]="draft.minAge" min="0"
-                            max="99" />
-                        <span class="input-group-text text-muted small">tuổi</span>
-                    </div>
+                    <app-input-field class="flex-grow-1"
+                        [control]="minAgeControl"
+                        type="number"
+                        placeholder="Từ"
+                        afterInput="tuổi"
+                        [min]="0"
+                        [max]="99"
+                        (onChange)="onMinAgeChange($event)"
+                    ></app-input-field>
                     <span class="text-muted small flex-shrink-0">—</span>
-                    <div class="input-group input-group-sm flex-grow-1">
-                        <input type="number" class="form-control" placeholder="Đến" [(ngModel)]="draft.maxAge" min="0"
-                            max="99" />
-                        <span class="input-group-text text-muted small">tuổi</span>
-                    </div>
+                    <app-input-field class="flex-grow-1"
+                        [control]="maxAgeControl"
+                        type="number"
+                        placeholder="Đến"
+                        afterInput="tuổi"
+                        [min]="0"
+                        [max]="99"
+                        (onChange)="onMaxAgeChange($event)"
+                    ></app-input-field>
                 </div>
             </div>
         </div>
