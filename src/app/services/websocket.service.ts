@@ -1,114 +1,253 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject, timer } from 'rxjs';
-import { retryWhen, tap, delayWhen } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { environment } from '../../environments/environment';
+
+type ChatMessageType = 'TEXT' | 'IMAGE' | 'POST_SHARE';
+
+interface ChatPostAttachment {
+  postId: string;
+  title: string;
+  thumbnailUrl?: string | null;
+}
+
+interface ChatRequest {
+  recipientId: string;
+  content: string;
+  type: ChatMessageType;
+  postAttachment: ChatPostAttachment | null;
+}
+
+interface ChatResponse {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  type: ChatMessageType;
+  content: string;
+  postInfo: {
+    postId: string;
+    title: string;
+    posterName?: string;
+    media?: {
+      url: string;
+      type: string;
+    };
+    thumbnailUrl?: string | null;
+  } | null;
+  sentAt: string;
+  read: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebsocketService {
-  private socket: WebSocket | null = null;
-  private messageSubject = new Subject<any>();
+  private stompClient: Client | null = null;
   private isConnected = false;
+  private manuallyDisconnected = false;
+
+  private connectionSubject = new BehaviorSubject<boolean>(false);
+  private destinationSubjects = new Map<string, Subject<unknown>>();
+  private stompSubscriptions = new Map<string, StompSubscription>();
+
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() { }
+  constructor() {}
 
   /**
-   * Kết nối tới WebSocket server
+   * Kết nối tới WebSocket server theo STOMP + SockJS
    */
-  connect(url: string = environment.websocketUrl): void {
+  connect(accessToken: string, url: string = environment.websocketUrl): void {
     if (this.isConnected) {
-      console.log('WebSocket đã kết nối');
       return;
     }
 
+    if (!accessToken) {
+      console.error('Thiếu access token để kết nối WebSocket/STOMP');
+      return;
+    }
+
+    this.manuallyDisconnected = false;
+
     try {
-      this.socket = new WebSocket(url);
+      this.stompClient = new Client({
+        brokerURL: this.resolveBrokerUrl(url),
+        connectHeaders: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        reconnectDelay: 0,
+        debug: () => undefined,
+        onConnect: () => {
+          if (this.reconnectTimerId !== null) {
+            clearTimeout(this.reconnectTimerId);
+            this.reconnectTimerId = null;
+          }
 
-      this.socket.onopen = () => {
-        console.log('WebSocket đã kết nối thành công');
-        this.isConnected = true;
-        this.reconnectAttempts = 0;
-      };
+          this.isConnected = true;
+          this.reconnectAttempts = 0;
+          this.connectionSubject.next(true);
 
-      this.socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          this.messageSubject.next(data);
-        } catch (error) {
-          console.error('Lỗi parse message:', error);
-          this.messageSubject.next(event.data);
+          this.destinationSubjects.forEach((_, destination) => {
+            this.attachSubscription(destination);
+          });
+        },
+        onWebSocketClose: () => {
+          this.isConnected = false;
+          this.connectionSubject.next(false);
+          this.detachAllSubscriptions();
+
+          if (!this.manuallyDisconnected) {
+            this.attemptReconnect(accessToken, url);
+          }
+        },
+        onStompError: (frame) => {
+          console.error('STOMP lỗi:', frame.headers['message'], frame.body);
+        },
+        onWebSocketError: (error) => {
+          console.error('WebSocket lỗi:', error);
         }
-      };
+      });
 
-      this.socket.onerror = (error) => {
-        console.error('WebSocket lỗi:', error);
-      };
-
-      this.socket.onclose = () => {
-        console.log('WebSocket đã đóng kết nối');
-        this.isConnected = false;
-        this.socket = null;
-        this.attemptReconnect(url);
-      };
+      this.stompClient.activate();
     } catch (error) {
       console.error('Lỗi khi kết nối WebSocket:', error);
+      this.attemptReconnect(accessToken, url);
     }
+  }
+
+  private resolveBrokerUrl(rawUrl: string): string {
+    const normalized = rawUrl.replace(/\/$/, '');
+    const hasSocketPath = normalized.endsWith('/ws-rent-app') || normalized.endsWith('/ws-pure');
+
+    if (hasSocketPath) {
+      return normalized
+        .replace(/^https?:\/\//i, (match) => (match === 'https://' ? 'wss://' : 'ws://'));
+    }
+
+    const wsBase = normalized
+      .replace(/^https?:\/\//i, (match) => (match === 'https://' ? 'wss://' : 'ws://'));
+
+    return `${wsBase}/ws-pure`;
+  }
+
+  private attachSubscription(destination: string): void {
+    if (!this.stompClient || !this.isConnected || this.stompSubscriptions.has(destination)) {
+      return;
+    }
+
+    const subject = this.destinationSubjects.get(destination);
+    if (!subject) {
+      return;
+    }
+
+    const subscription = this.stompClient.subscribe(destination, (frame: IMessage) => {
+      try {
+        subject.next(JSON.parse(frame.body));
+      } catch {
+        subject.next(frame.body);
+      }
+    });
+
+    this.stompSubscriptions.set(destination, subscription);
+  }
+
+  private detachAllSubscriptions(): void {
+    this.stompSubscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.stompSubscriptions.clear();
+  }
+
+  subscribeDestination<T>(destination: string): Observable<T> {
+    let subject = this.destinationSubjects.get(destination);
+    if (!subject) {
+      subject = new Subject<unknown>();
+      this.destinationSubjects.set(destination, subject);
+    }
+
+    this.attachSubscription(destination);
+    return subject.asObservable() as Observable<T>;
+  }
+
+  subscribeToUserMessages(currentUserId: string): Observable<ChatResponse> {
+    return this.subscribeDestination<ChatResponse>(`/queue/messages/${currentUserId}`);
+  }
+
+  subscribeToNotifications(currentUserId: string): Observable<unknown> {
+    return this.subscribeDestination<unknown>(`/topic/notifications/${currentUserId}`);
+  }
+
+  get connection$(): Observable<boolean> {
+    return this.connectionSubject.asObservable();
   }
 
   /**
    * Thử kết nối lại
    */
-  private attemptReconnect(url: string): void {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-      console.log(`Thử kết nối lại sau ${delay}ms (lần ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      
-      setTimeout(() => {
-        this.connect(url);
-      }, delay);
-    } else {
+  private attemptReconnect(accessToken: string, url: string): void {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('Đã vượt quá số lần thử kết nối lại');
+      return;
     }
+
+    this.reconnectAttempts++;
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+    console.log(`Thử kết nối lại sau ${delay}ms (lần ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
+    this.reconnectTimerId = setTimeout(() => {
+      if (!this.manuallyDisconnected) {
+        this.connect(accessToken, url);
+      }
+    }, delay);
   }
 
   /**
-   * Gửi message tới server
+   * Gửi message STOMP tới destination
    */
-  send(message: any): void {
-    if (this.socket && this.isConnected && this.socket.readyState === WebSocket.OPEN) {
-      const data = typeof message === 'string' ? message : JSON.stringify(message);
-      this.socket.send(data);
-    } else {
+  send(destination: string, message: unknown): boolean {
+    if (!this.stompClient || !this.isConnected) {
       console.error('WebSocket chưa kết nối hoặc không sẵn sàng');
+      return false;
     }
+
+    const body = typeof message === 'string' ? message : JSON.stringify(message);
+    this.stompClient.publish({ destination, body });
+    return true;
   }
 
   /**
-   * Lắng nghe messages từ server
+   * Gửi message chat theo backend contract
    */
-  onMessage(): Observable<any> {
-    return this.messageSubject.asObservable();
+  sendChatMessage(payload: ChatRequest): boolean {
+    return this.send('/app/chat.send', payload);
   }
 
   /**
    * Ngắt kết nối WebSocket
    */
   disconnect(): void {
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
-      this.isConnected = false;
+    this.manuallyDisconnected = true;
+
+    if (this.reconnectTimerId !== null) {
+      clearTimeout(this.reconnectTimerId);
+      this.reconnectTimerId = null;
     }
+
+    this.detachAllSubscriptions();
+
+    if (this.stompClient) {
+      this.stompClient.deactivate();
+      this.stompClient = null;
+    }
+
+    this.isConnected = false;
+    this.connectionSubject.next(false);
   }
 
   /**
    * Kiểm tra trạng thái kết nối
    */
   isConnectedToServer(): boolean {
-    return this.isConnected && this.socket !== null && this.socket.readyState === WebSocket.OPEN;
+    return this.isConnected;
   }
 }

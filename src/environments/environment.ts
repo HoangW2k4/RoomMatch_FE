@@ -11,5 +11,5 @@ export const environment = {
     appId: "YOUR_APP_ID",
     measurementId: "YOUR_MEASUREMENT_ID"
   },
-  websocketUrl: "ws://localhost:8080"
+  websocketUrl: "ws://localhost:8080/ws-pure"
 };

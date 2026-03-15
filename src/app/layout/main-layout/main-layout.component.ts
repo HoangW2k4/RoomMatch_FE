@@ -5,11 +5,12 @@ import { NavbarComponent } from '../navbar/navbar.component';
 import { FooterComponent } from '../footer/footer.component';
 import { LoginComponent } from '../../modules/auth/login/login.component';
 import { ModalService } from '../../services/modal.service';
+import { ChatPopupComponent } from '../../shared/components/chat-popup/chat-popup.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent, FooterComponent, LoginComponent],
+  imports: [CommonModule, RouterModule, NavbarComponent, FooterComponent, LoginComponent, ChatPopupComponent],
   template: `
     <div class="main-layout">
       <app-navbar></app-navbar>
@@ -20,6 +21,9 @@ import { ModalService } from '../../services/modal.service';
       
       <!-- Global Login Modal -->
       <app-login *ngIf="showLoginModal$ | async" (close)="closeLoginModal()"></app-login>
+
+      <!-- Global Chat Popup -->
+      <app-chat-popup></app-chat-popup>
     </div>
   `,
   styles: [`
