@@ -7,7 +7,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { ModalService } from '../../services/modal.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ChatService } from '../../modules/chat/chat.service';
-import { ChatConversation } from '../../modules/chat/chat.interface';
+import { ChatConversation, ChatConversationParticipant } from '../../modules/chat/chat.interface';
 import { ChatUiService } from '../../services/chat-ui.service';
 
 interface ConversationPreview {
@@ -480,13 +480,27 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private toConversationPreview(item: ChatConversation): ConversationPreview {
-    const partnerId = item.recipientId ?? this.getPartnerId(item.participants);
+    const partner = this.getPartnerFromParticipants(item.participants);
+    const partnerId = partner?.userId ?? '';
+
+    const partnerName = partner?.fullName
+      ?? item.partnerName
+      ?? item.recipientName
+      ?? item.senderName
+      ?? this.buildPartnerName(partnerId);
+
+    const partnerAvatar = partner?.avatarUrl
+      ?? item.partnerAvatar
+      ?? item.recipientAvatarUrl
+      ?? item.recipientAvatar
+      ?? item.senderAvatarUrl
+      ?? 'assets/images/avatar_default.jpg';
 
     return {
       id: item.id,
       partnerId,
-      partnerName: item.recipientName ?? item.partnerName ?? this.buildPartnerName(partnerId),
-      partnerAvatar: item.recipientAvatar ?? item.partnerAvatar ?? 'assets/images/avatar_default.jpg',
+      partnerName,
+      partnerAvatar,
       previewText: item.lastMessage?.content ?? 'Chưa có tin nhắn',
       updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
       unread: !!item.lastMessage && item.lastMessage.senderId !== this.currentUserId && !item.lastMessage.read
@@ -511,13 +525,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getPartnerId(participants: string[] | undefined): string {
+  private getPartnerFromParticipants(participants: ChatConversationParticipant[] | undefined): ChatConversationParticipant | null {
     if (!participants?.length) {
-      return '';
+      return null;
     }
 
-    const partnerId = participants.find((id) => id !== this.currentUserId);
-    return partnerId ?? participants[0] ?? '';
+    if (!this.currentUserId) {
+      return participants[0] ?? null;
+    }
+
+    return participants.find((participant) => participant.userId !== this.currentUserId) ?? participants[0] ?? null;
   }
 
   private buildPartnerName(partnerId: string): string {

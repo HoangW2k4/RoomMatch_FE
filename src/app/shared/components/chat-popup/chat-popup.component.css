@@ -250,6 +250,15 @@
   letter-spacing: 0.06em;
 }
 
+.cw-empty-state {
+  margin: auto 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.84rem;
+  padding: 12px;
+  line-height: 1.5;
+}
+
 /* Message rows */
 .cw-row {
   display: flex;

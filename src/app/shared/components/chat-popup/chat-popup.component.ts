@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ChatService } from '../../../modules/chat/chat.service';
-import { ChatResponse } from '../../../modules/chat/chat.interface';
+import { ChatConversationParticipant, ChatResponse } from '../../../modules/chat/chat.interface';
 import { WebsocketService } from '../../../services/websocket.service';
 import { ChatUiService, OpenConversationPayload } from '../../../services/chat-ui.service';
 
@@ -235,14 +235,28 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       .subscribe({
         next: (data) => {
           this.conversations = data.map((item) => {
-            const partnerId = item.recipientId ?? this.getPartnerId(item.participants);
+            const partner = this.getPartnerFromParticipants(item.participants);
+            const partnerId = partner?.userId ?? '';
             const unread = item.lastMessage && item.lastMessage.senderId !== this.currentUserId && !item.lastMessage.read ? 1 : 0;
+
+            const partnerName = partner?.fullName
+              ?? item.partnerName
+              ?? item.recipientName
+              ?? item.senderName
+              ?? this.buildPartnerName(partnerId);
+
+            const partnerAvatar = partner?.avatarUrl
+              ?? item.partnerAvatar
+              ?? item.recipientAvatarUrl
+              ?? item.recipientAvatar
+              ?? item.senderAvatarUrl
+              ?? 'assets/images/avatar_default.jpg';
 
             return {
               id: item.id,
               partnerId,
-              partnerName: item.recipientName ?? item.partnerName ?? this.buildPartnerName(partnerId),
-              partnerAvatar: item.recipientAvatar ?? item.partnerAvatar ?? 'assets/images/avatar_default.jpg',
+              partnerName,
+              partnerAvatar,
               isOnline: false,
               isOpen: false,
               inputText: '',
@@ -317,6 +331,10 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       conv.partnerName = message.senderName;
     }
 
+    if (message.senderId !== this.currentUserId && message.senderAvatarUrl) {
+      conv.partnerAvatar = message.senderAvatarUrl;
+    }
+
     conv.messages.push({
       id: message.id,
       text: message.content,
@@ -362,13 +380,16 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
-  private getPartnerId(participants: string[] | undefined): string {
+  private getPartnerFromParticipants(participants: ChatConversationParticipant[] | undefined): ChatConversationParticipant | null {
     if (!participants || participants.length === 0) {
-      return '';
+      return null;
     }
 
-    const partnerId = participants.find((id) => id !== this.currentUserId);
-    return partnerId ?? participants[0] ?? '';
+    if (!this.currentUserId) {
+      return participants[0] ?? null;
+    }
+
+    return participants.find((participant) => participant.userId !== this.currentUserId) ?? participants[0] ?? null;
   }
 
   private buildPartnerName(partnerId: string): string {
@@ -377,6 +398,45 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private buildTempMessageId(): string {
     return `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  shouldShowDateSeparator(conv: Conversation, messageIndex: number): boolean {
+    if (messageIndex === 0) {
+      return true;
+    }
+
+    const current = conv.messages[messageIndex];
+    const previous = conv.messages[messageIndex - 1];
+
+    return !this.isSameCalendarDay(current.time, previous.time);
+  }
+
+  getMessageDateLabel(messageDate: Date): string {
+    const now = new Date();
+
+    if (this.isSameCalendarDay(messageDate, now)) {
+      return 'Hôm nay';
+    }
+
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (this.isSameCalendarDay(messageDate, yesterday)) {
+      return 'Hôm qua';
+    }
+
+    return messageDate.toLocaleDateString('vi-VN');
+  }
+
+  private isSameCalendarDay(a: Date, b: Date): boolean {
+    return (
+      a.getDate() === b.getDate() &&
+      a.getMonth() === b.getMonth() &&
+      a.getFullYear() === b.getFullYear()
+    );
+  }
+
+  getGreetingMessage(conv: Conversation): string {
+    return `Hãy gửi lời chào tới ${conv.partnerName} để bắt đầu cuộc trò chuyện.`;
   }
 
   private listenOpenConversationRequest(): void {

@@ -31,6 +31,7 @@ export interface ChatResponse {
   conversationId: string;
   senderId: string;
   senderName?: string;
+  senderAvatarUrl?: string;
   type: ChatMessageType;
   content: string;
   postInfo: ChatPostInfo | null;
@@ -45,11 +46,20 @@ export interface ChatConversationLastMessage {
   read: boolean;
 }
 
+export interface ChatConversationParticipant {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string | null;
+}
+
 export interface ChatConversation {
   id: string;
-  participants: string[];
+  participants: ChatConversationParticipant[];
   recipientId?: string;
   recipientName?: string;
+  recipientAvatarUrl?: string;
+  senderName?: string;
+  senderAvatarUrl?: string;
   recipientAvatar?: string;
   lastMessage?: ChatConversationLastMessage;
   updatedAt?: string;

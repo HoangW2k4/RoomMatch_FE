@@ -45,9 +45,15 @@
 
     <!-- Messages area -->
     <div class="cw-messages" #msgContainer>
-      <div class="cw-date-sep"><span>Hôm nay</span></div>
+      <div class="cw-empty-state" *ngIf="conv.messages.length === 0">
+        {{ getGreetingMessage(conv) }}
+      </div>
 
       <ng-container *ngFor="let msg of conv.messages; let i = index">
+        <div class="cw-date-sep" *ngIf="shouldShowDateSeparator(conv, i)">
+          <span>{{ getMessageDateLabel(msg.time) }}</span>
+        </div>
+
         <!-- Received -->
         <div *ngIf="!msg.isSent" class="cw-row cw-row--received">
           <img [src]="conv.partnerAvatar" class="cw-msg-avatar" [alt]="conv.partnerName" title="{{conv.partnerName}}" />

@@ -23,6 +23,7 @@ interface ChatResponse {
   conversationId: string;
   senderId: string;
   senderName?: string;
+  senderAvatarUrl?: string;
   type: ChatMessageType;
   content: string;
   postInfo: {
