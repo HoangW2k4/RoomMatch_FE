@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 
 export interface OpenConversationPayload {
-  conversationId: string;
+  conversationId?: string;
   partnerId: string;
   partnerName: string;
   partnerAvatar: string;

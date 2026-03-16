@@ -33,6 +33,16 @@ export class ChatService {
       .pipe(map((response) => response.data?.content ?? []));
   }
 
+  getConversationId(recipientId: string): Observable<string | null> {
+    return this.apiService
+      .get<ApiResponse<string>>('/chat/get-conversation-id', {
+        params: {
+          recipientId
+        }
+      })
+      .pipe(map((response) => response.data ?? null));
+  }
+
   markRead(conversationId: string): Observable<void> {
     return this.apiService.get<void>('/chat/mark-read', {
       params: {

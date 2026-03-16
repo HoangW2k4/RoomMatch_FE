@@ -7,6 +7,7 @@ import { GalleryLayout3Component } from './layouts/gallery-layout-3.component';
 import { GalleryLayout4Component } from './layouts/gallery-layout-4.component';
 import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
 import { CommentSectionComponent } from './comment-section/comment-section.component';
+import { ChatUiService } from '../../../../services/chat-ui.service';
 
 @Component({
   selector: 'app-post-card',
@@ -40,7 +41,10 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
   private isVisible = false;
   private onEndedHandler = () => this.playNextVideo();
 
-  constructor(private el: ElementRef) {}
+  constructor(
+    private el: ElementRef,
+    private chatUiService: ChatUiService
+  ) {}
 
   ngAfterViewInit(): void {
     this.observer = new IntersectionObserver(
@@ -174,6 +178,18 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
   onContact(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
+
+    const partnerId = this.post.landlordInfo?.id || this.post.landlordId;
+    if (!partnerId) {
+      return;
+    }
+
+    this.chatUiService.requestOpenConversation({
+      partnerId,
+      partnerName: this.post.landlordInfo?.name || 'Chủ phòng',
+      partnerAvatar: this.post.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg'
+    });
+
     this.contacted.emit(this.post.id);
   }
 

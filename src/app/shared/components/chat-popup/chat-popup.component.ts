@@ -35,6 +35,7 @@ export interface Conversation {
   inputText: string;
   unreadCount: number;
   historyLoaded: boolean;
+  isTemporary?: boolean;
 }
 
 @Component({
@@ -48,6 +49,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   conversations: Conversation[] = [];
   private destroy$ = new Subject<void>();
   private currentUserId: string | null = null;
+  private readonly conversationIdResolveMaxAttempts = 6;
+  private readonly conversationIdResolveDelayMs = 600;
 
   get openConversations(): Conversation[] {
     return this.conversations.filter(c => c.isOpen);
@@ -103,8 +106,12 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   openChat(conv: Conversation): void {
     conv.isOpen = true;
     conv.unreadCount = 0;
-    this.loadMessagesForConversation(conv);
-    this.markConversationRead(conv.id);
+
+    if (!conv.isTemporary) {
+      this.loadMessagesForConversation(conv);
+      this.markConversationRead(conv.id);
+    }
+
     this.shouldScroll = true;
   }
 
@@ -129,6 +136,19 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
     const text = conv.inputText.trim();
     if (!text || !conv.partnerId || !this.currentUserId) return;
 
+    if (conv.isTemporary) {
+      const sent = this.sendRealtimeMessage(conv, text);
+      if (sent) {
+        this.resolveConversationIdAfterFirstSend(conv);
+      }
+
+      return;
+    }
+
+    this.sendRealtimeMessage(conv, text);
+  }
+
+  private sendRealtimeMessage(conv: Conversation, text: string): boolean {
     const sent = this.websocketService.sendChatMessage({
       recipientId: conv.partnerId,
       content: text,
@@ -137,7 +157,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
 
     if (!sent) {
-      return;
+      return false;
     }
 
     conv.messages.push({
@@ -147,8 +167,50 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       time: new Date(),
       read: true
     });
+
     conv.inputText = '';
     this.shouldScroll = true;
+    return true;
+  }
+
+  private resolveConversationIdAfterFirstSend(conv: Conversation, attempt: number = 1): void {
+    if (!conv.isTemporary) {
+      return;
+    }
+
+    this.chatService
+      .getConversationId(conv.partnerId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (conversationId) => {
+          if (conversationId) {
+            conv.id = conversationId;
+            conv.isTemporary = false;
+            conv.historyLoaded = false;
+
+            if (conv.isOpen) {
+              this.markConversationRead(conversationId);
+            }
+            return;
+          }
+
+          if (attempt < this.conversationIdResolveMaxAttempts) {
+            setTimeout(() => {
+              this.resolveConversationIdAfterFirstSend(conv, attempt + 1);
+            }, this.conversationIdResolveDelayMs);
+          }
+        },
+        error: (error) => {
+          if (attempt < this.conversationIdResolveMaxAttempts) {
+            setTimeout(() => {
+              this.resolveConversationIdAfterFirstSend(conv, attempt + 1);
+            }, this.conversationIdResolveDelayMs);
+            return;
+          }
+
+          console.error('Không thể lấy conversationId sau khi gửi tin nhắn đầu tiên', error);
+        }
+      });
   }
 
   private connectRealtime(): void {
@@ -173,14 +235,14 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       .subscribe({
         next: (data) => {
           this.conversations = data.map((item) => {
-            const partnerId = this.getPartnerId(item.participants);
+            const partnerId = item.recipientId ?? this.getPartnerId(item.participants);
             const unread = item.lastMessage && item.lastMessage.senderId !== this.currentUserId && !item.lastMessage.read ? 1 : 0;
 
             return {
               id: item.id,
               partnerId,
-              partnerName: item.partnerName ?? this.buildPartnerName(partnerId),
-              partnerAvatar: item.partnerAvatar ?? 'assets/images/avatar_default.jpg',
+              partnerName: item.recipientName ?? item.partnerName ?? this.buildPartnerName(partnerId),
+              partnerAvatar: item.recipientAvatar ?? item.partnerAvatar ?? 'assets/images/avatar_default.jpg',
               isOnline: false,
               isOpen: false,
               inputText: '',
@@ -227,11 +289,19 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
     let conv = this.conversations.find((item) => item.id === message.conversationId);
 
     if (!conv) {
+      conv = this.conversations.find((item) => item.partnerId === message.senderId);
+      if (conv) {
+        conv.id = message.conversationId;
+        conv.isTemporary = false;
+      }
+    }
+
+    if (!conv) {
       const partnerId = message.senderId;
       conv = {
         id: message.conversationId,
         partnerId,
-        partnerName: this.buildPartnerName(partnerId),
+        partnerName: message.senderName ?? this.buildPartnerName(partnerId),
         partnerAvatar: 'assets/images/avatar_default.jpg',
         isOnline: false,
         isOpen: false,
@@ -241,6 +311,10 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
         messages: []
       };
       this.conversations = [conv, ...this.conversations];
+    }
+
+    if (message.senderId !== this.currentUserId && message.senderName) {
+      conv.partnerName = message.senderName;
     }
 
     conv.messages.push({
@@ -298,11 +372,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private buildPartnerName(partnerId: string): string {
-    if (!partnerId) {
-      return 'Người dùng';
-    }
-
-    return `User ${partnerId.slice(0, 6)}`;
+    return 'Người dùng';
   }
 
   private buildTempMessageId(): string {
@@ -318,11 +388,20 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private openConversationFromHeader(payload: OpenConversationPayload): void {
-    let conv = this.conversations.find((item) => item.id === payload.conversationId);
+    let conv: Conversation | undefined;
+
+    if (payload.conversationId) {
+      conv = this.conversations.find((item) => item.id === payload.conversationId);
+    }
 
     if (!conv) {
+      conv = this.conversations.find((item) => item.partnerId === payload.partnerId);
+    }
+
+    if (!conv) {
+      const temporaryId = payload.conversationId ?? `temp-${payload.partnerId}`;
       conv = {
-        id: payload.conversationId,
+        id: temporaryId,
         partnerId: payload.partnerId,
         partnerName: payload.partnerName,
         partnerAvatar: payload.partnerAvatar || 'assets/images/avatar_default.jpg',
@@ -330,8 +409,9 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
         isOpen: false,
         inputText: '',
         unreadCount: 0,
-        historyLoaded: false,
-        messages: []
+        historyLoaded: !payload.conversationId,
+        messages: [],
+        isTemporary: !payload.conversationId
       };
 
       this.conversations = [conv, ...this.conversations];
@@ -340,6 +420,12 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
     conv.partnerName = payload.partnerName || conv.partnerName;
     conv.partnerAvatar = payload.partnerAvatar || conv.partnerAvatar;
     conv.partnerId = payload.partnerId || conv.partnerId;
+
+    if (payload.conversationId) {
+      conv.id = payload.conversationId;
+      conv.isTemporary = false;
+      conv.historyLoaded = false;
+    }
 
     this.openChat(conv);
   }

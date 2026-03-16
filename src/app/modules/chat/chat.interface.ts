@@ -30,6 +30,7 @@ export interface ChatResponse {
   id: string;
   conversationId: string;
   senderId: string;
+  senderName?: string;
   type: ChatMessageType;
   content: string;
   postInfo: ChatPostInfo | null;
@@ -47,6 +48,9 @@ export interface ChatConversationLastMessage {
 export interface ChatConversation {
   id: string;
   participants: string[];
+  recipientId?: string;
+  recipientName?: string;
+  recipientAvatar?: string;
   lastMessage?: ChatConversationLastMessage;
   updatedAt?: string;
   partnerName?: string;

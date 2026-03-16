@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { environment } from '../../environments/environment';
@@ -22,6 +22,7 @@ interface ChatResponse {
   id: string;
   conversationId: string;
   senderId: string;
+  senderName?: string;
   type: ChatMessageType;
   content: string;
   postInfo: {
@@ -54,7 +55,7 @@ export class WebsocketService {
   private maxReconnectAttempts = 5;
   private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() {}
+  constructor(private ngZone: NgZone) {}
 
   /**
    * Kết nối tới WebSocket server theo STOMP + SockJS
@@ -143,11 +144,13 @@ export class WebsocketService {
     }
 
     const subscription = this.stompClient.subscribe(destination, (frame: IMessage) => {
-      try {
-        subject.next(JSON.parse(frame.body));
-      } catch {
-        subject.next(frame.body);
-      }
+      this.ngZone.run(() => {
+        try {
+          subject.next(JSON.parse(frame.body));
+        } catch {
+          subject.next(frame.body);
+        }
+      });
     });
 
     this.stompSubscriptions.set(destination, subscription);

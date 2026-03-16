@@ -480,13 +480,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private toConversationPreview(item: ChatConversation): ConversationPreview {
-    const partnerId = this.getPartnerId(item.participants);
+    const partnerId = item.recipientId ?? this.getPartnerId(item.participants);
 
     return {
       id: item.id,
       partnerId,
-      partnerName: item.partnerName ?? this.buildPartnerName(partnerId),
-      partnerAvatar: item.partnerAvatar ?? 'assets/images/avatar_default.jpg',
+      partnerName: item.recipientName ?? item.partnerName ?? this.buildPartnerName(partnerId),
+      partnerAvatar: item.recipientAvatar ?? item.partnerAvatar ?? 'assets/images/avatar_default.jpg',
       previewText: item.lastMessage?.content ?? 'Chưa có tin nhắn',
       updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
       unread: !!item.lastMessage && item.lastMessage.senderId !== this.currentUserId && !item.lastMessage.read
@@ -521,11 +521,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private buildPartnerName(partnerId: string): string {
-    if (!partnerId) {
-      return 'Người dùng';
-    }
-
-    return `User ${partnerId.slice(0, 6)}`;
+    return 'Người dùng';
   }
 
   private updateMessageCount(): void {
