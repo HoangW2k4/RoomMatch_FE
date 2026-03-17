@@ -1,35 +1,30 @@
-<div class="chat-root">
+<div class="d-flex align-items-end gap-3 position-fixed bottom-0 end-0 me-4 mb-0 z-3" style="z-index: 900;">
 
-  <!-- Open chat windows -->
-  <div *ngFor="let conv of openConversations" class="chat-window">
+  <div *ngFor="let conv of openConversations" class="chat-window d-flex flex-column bg-white rounded-top-3 overflow-hidden">
 
-    <!-- Header -->
-    <div class="cw-header">
-      <div class="cw-header-left">
-        <div class="cw-avatar-wrap">
-          <img [src]="conv.partnerAvatar" class="cw-avatar" [alt]="conv.partnerName" title="{{conv.partnerName}}" />
-          <span class="cw-status-dot" *ngIf="conv.isOnline"></span>
+    <div class="cw-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white flex-shrink-0">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <div class="position-relative flex-shrink-0">
+          <img [src]="conv.partnerAvatar" class="cw-avatar rounded-circle object-fit-cover" [alt]="conv.partnerName" title="{{conv.partnerName}}" />
+          <span class="cw-status-dot position-absolute rounded-circle" *ngIf="conv.isOnline"></span>
         </div>
-        <div class="cw-user-info">
-          <span class="cw-name">{{ conv.partnerName }}</span>
-          <span class="cw-online-status" *ngIf="conv.isOnline">Active now</span>
+        <div class="d-flex flex-column min-w-0">
+          <span class="cw-name fw-bold text-truncate">{{ conv.partnerName }}</span>
+          <span class="cw-online-status fw-medium" *ngIf="conv.isOnline">Active now</span>
         </div>
       </div>
-      <div class="cw-header-actions" (click)="$event.stopPropagation()">
-        <!-- Video call -->
-        <button class="cw-icon-btn" title="Gọi video">
+      <div class="d-flex align-items-center gap-1 flex-shrink-0" (click)="$event.stopPropagation()">
+        <button class="cw-icon-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center justify-content-center" title="Gọi video">
           <svg viewBox="0 0 24 24" fill="currentColor" width="19" height="19">
             <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
           </svg>
         </button>
-        <!-- Minimize -->
-        <button class="cw-icon-btn" title="Ẩn" (click)="hideChat(conv)">
+        <button class="cw-icon-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center justify-content-center" title="Ẩn" (click)="hideChat(conv)">
           <svg viewBox="0 0 24 24" fill="currentColor" width="19" height="19">
             <path d="M19 13H5v-2h14v2z" />
           </svg>
         </button>
-        <!-- Close -->
-        <button class="cw-icon-btn cw-close-btn" title="Đóng" (click)="closeChat(conv, $event)">
+        <button class="cw-icon-btn cw-close-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center justify-content-center" title="Đóng" (click)="closeChat(conv, $event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
@@ -38,89 +33,90 @@
       </div>
     </div>
 
-    <!-- Reply context -->
-    <div class="cw-reply-context" *ngIf="conv.replyToPost">
-      Đang trả lời <a class="cw-post-link" href="#" (click)="$event.preventDefault()">{{ conv.replyToPost }}</a>
+    <div class="px-3 py-1 bg-light border-bottom text-muted flex-shrink-0" style="font-size: 0.75rem;" *ngIf="conv.replyToPost">
+      Đang trả lời <a class="cw-post-link text-decoration-none fw-semibold" href="#" (click)="$event.preventDefault()">{{ conv.replyToPost }}</a>
     </div>
 
-    <!-- Messages area -->
-    <div class="cw-messages" #msgContainer>
-      <div class="cw-empty-state" *ngIf="conv.messages.length === 0">
+    <div class="cw-messages flex-grow-1 overflow-auto p-2 d-flex flex-column gap-1 bg-white" #msgContainer>
+      <div class="m-auto text-center text-muted p-2" style="font-size: 0.84rem;" *ngIf="conv.messages.length === 0">
         {{ getGreetingMessage(conv) }}
       </div>
 
       <ng-container *ngFor="let msg of conv.messages; let i = index">
-        <div class="cw-date-sep" *ngIf="shouldShowDateSeparator(conv, i)">
-          <span>{{ getMessageDateLabel(msg.time) }}</span>
+        <div class="text-center my-1" *ngIf="shouldShowDateSeparator(conv, i)">
+          <span class="text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.06em;">{{ getMessageDateLabel(msg.time) }}</span>
         </div>
 
-        <!-- Received -->
-        <div *ngIf="!msg.isSent" class="cw-row cw-row--received">
-          <img [src]="conv.partnerAvatar" class="cw-msg-avatar" [alt]="conv.partnerName" title="{{conv.partnerName}}" />
-          <div class="cw-bubble cw-bubble--received">{{ msg.text }}</div>
+        <div *ngIf="!msg.isSent" class="d-flex align-items-end justify-content-start gap-2 mw-100">
+          <img [src]="conv.partnerAvatar" class="cw-msg-avatar rounded-circle object-fit-cover flex-shrink-0 mb-1" [alt]="conv.partnerName" title="{{conv.partnerName}}" />
+          <div class="cw-bubble cw-bubble--received px-3 py-2 text-break">{{ msg.text }}</div>
         </div>
-        <!-- Sent -->
-        <div *ngIf="msg.isSent" class="cw-row cw-row--sent">
-          <div class="cw-bubble cw-bubble--sent">{{ msg.text }}</div>
+        <div *ngIf="msg.isSent" class="d-flex align-items-end justify-content-end gap-2 mw-100">
+          <div class="cw-bubble cw-bubble--sent px-3 py-2 text-break text-white">{{ msg.text }}</div>
         </div>
       </ng-container>
     </div>
 
-    <!-- Input area -->
-    <div class="cw-input-area">
-      <button class="cw-tool-btn" title="Thêm">
+    <div class="d-flex align-items-center gap-1 p-2 border-top bg-white flex-shrink-0">
+      <button class="cw-tool-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" title="Thêm">
         <svg viewBox="0 0 24 24" fill="currentColor" width="21" height="21">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
         </svg>
       </button>
-      <button class="cw-tool-btn" title="Hình ảnh">
+      <button class="cw-tool-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" title="Hình ảnh">
         <svg viewBox="0 0 24 24" fill="currentColor" width="21" height="21">
           <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
         </svg>
       </button>
-      <button class="cw-tool-btn" title="Sticker">
+      <button class="cw-tool-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" title="Sticker">
         <svg viewBox="0 0 24 24" fill="currentColor" width="21" height="21">
-          <path
-            d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z" />
+          <path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19h.5v3c4.86-2.34 8-7 8-11.5C20 5.81 16.19 2 11.5 2zm1 14.5h-2v-2h2v2zm0-4h-2c0-3.25 3-3 3-5 0-1.1-.9-2-2-2s-2 .9-2 2h-2c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-3 2.75-3 5z" />
         </svg>
       </button>
-      <button class="cw-tool-btn cw-gif-btn" title="GIF">GIF</button>
+      <button class="cw-gif-btn bg-transparent flex-shrink-0 d-flex align-items-center justify-content-center fw-bold rounded-2" title="GIF">GIF</button>
 
-      <div class="cw-input-wrap">
-        <input type="text" class="cw-input" placeholder="Aa" [(ngModel)]="conv.inputText"
+      <div class="flex-grow-1 d-flex align-items-center bg-light rounded-pill px-2 min-w-0">
+        <input type="text" class="cw-input flex-grow-1 border-0 bg-transparent shadow-none px-1 py-1 min-w-0" placeholder="Aa" [(ngModel)]="conv.inputText"
           (keyup.enter)="sendMessage(conv)" />
-        <button class="cw-emoji-btn" title="Biểu tượng cảm xúc">
+        <button class="cw-emoji-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center flex-shrink-0" title="Biểu tượng cảm xúc">
           <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-            <path
-              d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
+            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
           </svg>
         </button>
       </div>
 
-      <!-- Thumbs up / Send -->
-      <button class="cw-send-btn" title="Gửi" (click)="sendMessage(conv)" [class.cw-send-btn--active]="conv.inputText">
-        <!-- Send arrow (when text) -->
+      <button class="cw-send-btn border-0 bg-transparent p-1 rounded-circle d-flex align-items-center flex-shrink-0" title="Gửi" (click)="sendMessage(conv)" [class.cw-send-btn--active]="conv.inputText">
         <svg *ngIf="conv.inputText" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
         </svg>
-        <!-- Thumbs up (when empty) -->
         <svg *ngIf="!conv.inputText" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-          <path
-            d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
+          <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" />
         </svg>
       </button>
     </div>
 
   </div>
 
-  <!-- FAB: partner avatar toggles chat -->
-  <div class="chat-fab-col" *ngIf="firstConversation as conv">
-    <button class="fab-user-avatar-wrap" title="Mở/đóng hội thoại" (click)="toggleChat(conv)">
-      <img [src]="conv.partnerAvatar" class="fab-user-avatar" [alt]="conv.partnerName" title="{{conv.partnerName}}" />
-      <span class="fab-online-dot" *ngIf="conv.isOnline"></span>
-      <span class="fab-badge" *ngIf="!conv.isOpen && conv.unreadCount > 0">
+  <div class="d-flex flex-column align-items-center pb-3 gap-3 justify-content-center" *ngIf="bubbleConversations.length > 0">
+    <button
+      *ngFor="let conv of bubbleConversations; let i = index"
+      class="chat-bubble border-0 bg-white p-0 rounded-circle shadow d-flex align-items-center justify-content-center"
+      [class.chat-bubble--stacked]="i > 0"
+      title="{{ conv.partnerName }}"
+      (click)="toggleChat(conv)">
+      <img [src]="conv.partnerAvatar" class="chat-bubble-avatar rounded-circle object-fit-cover" [alt]="conv.partnerName"
+        (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')" />
+      <span class="chat-bubble-tooltip position-absolute bg-white rounded-3 px-3 py-2 text-start">
+        <span class="d-block fw-bold text-dark text-truncate" style="font-size: 0.82rem;">{{ conv.partnerName }}</span>
+        <span class="d-block text-secondary text-truncate" style="font-size: 0.8rem;">{{ conv.lastMessageText || 'Chưa có tin nhắn' }}</span>
+      </span>
+      <span class="chat-bubble-badge position-absolute d-flex align-items-center justify-content-center text-white fw-bold" *ngIf="!conv.isOpen && conv.unreadCount > 0">
         {{ conv.unreadCount }}
       </span>
+    </button>
+
+    <button class="chat-bubble chat-bubble--launcher border-0 bg-white p-0 rounded-circle shadow d-flex align-items-center justify-content-center" title="Mở danh sách hội thoại" (click)="openConversationPanel($event)">
+      <img src="./assets/icons/ic_message.svg" alt="Tin nhắn">
     </button>
   </div>
 

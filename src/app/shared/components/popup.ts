@@ -65,7 +65,7 @@ import { DOCUMENT } from '@angular/common';
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 1031;
+        z-index: 1131;
         overflow: hidden;
         opacity: 1;
         transition: opacity 0.2s ease;

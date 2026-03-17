@@ -36,6 +36,8 @@ export interface Conversation {
   unreadCount: number;
   historyLoaded: boolean;
   isTemporary?: boolean;
+  lastMessageText?: string;
+  updatedAt?: Date | null;
 }
 
 @Component({
@@ -60,8 +62,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
     return this.openConversations.length > 0;
   }
 
-  get firstConversation(): Conversation | null {
-    return this.conversations.length > 0 ? this.conversations[0] : null;
+  get bubbleConversations(): Conversation[] {
+    return this.conversations.slice(0, 3);
   }
 
   @ViewChildren('msgContainer') msgContainers!: QueryList<ElementRef>;
@@ -168,6 +170,9 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       read: true
     });
 
+    conv.lastMessageText = text;
+    conv.updatedAt = new Date();
+
     conv.inputText = '';
     this.shouldScroll = true;
     return true;
@@ -262,7 +267,9 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
               inputText: '',
               unreadCount: unread,
               historyLoaded: false,
-              messages: []
+              messages: [],
+              lastMessageText: item.lastMessage?.content ?? '',
+              updatedAt: item.updatedAt ? new Date(item.updatedAt) : null
             };
           });
         },
@@ -342,6 +349,9 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       time: new Date(message.sentAt),
       read: message.read
     });
+
+    conv.lastMessageText = message.content;
+    conv.updatedAt = new Date(message.sentAt);
 
     if (conv.isOpen) {
       this.markConversationRead(conv.id);
@@ -488,5 +498,10 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
 
     this.openChat(conv);
+  }
+
+  openConversationPanel(event?: Event): void {
+    event?.stopPropagation();
+    this.chatUiService.requestOpenPanel();
   }
 }

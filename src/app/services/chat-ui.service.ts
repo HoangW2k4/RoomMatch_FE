@@ -13,12 +13,21 @@ export interface OpenConversationPayload {
 })
 export class ChatUiService {
   private openConversationSubject = new Subject<OpenConversationPayload>();
+  private openPanelSubject = new Subject<void>();
 
   get openConversation$(): Observable<OpenConversationPayload> {
     return this.openConversationSubject.asObservable();
   }
 
+  get openPanel$(): Observable<void> {
+    return this.openPanelSubject.asObservable();
+  }
+
   requestOpenConversation(payload: OpenConversationPayload): void {
     this.openConversationSubject.next(payload);
+  }
+
+  requestOpenPanel(): void {
+    this.openPanelSubject.next();
   }
 }

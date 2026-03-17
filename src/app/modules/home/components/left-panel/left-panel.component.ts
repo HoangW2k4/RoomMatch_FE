@@ -32,7 +32,7 @@ export class LeftPanelComponent implements OnInit {
 
   navItems: NavItem[] = [
     { icon: 'home', label: 'Trang chủ', route: '/home' },
-    { icon: 'message', label: 'Tin nhắn', route: '/chat', badge: 3 },
+    { icon: 'ic_message', label: 'Tin nhắn', route: '/chat', badge: 3 },
     { icon: 'bookmark', label: 'Phòng đã lưu', route: '/saved' },
     { icon: 'listing', label: 'Bài đăng của tôi', route: '/room/manage' },
     { icon: 'settings', label: 'Cài đặt', route: '/settings' }
