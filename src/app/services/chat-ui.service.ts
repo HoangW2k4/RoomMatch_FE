@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
+import { ChatPostAttachment } from '../modules/chat/chat.interface';
 
 export interface OpenConversationPayload {
   conversationId?: string;
   partnerId: string;
   partnerName: string;
   partnerAvatar: string;
+  postAttachment?: ChatPostAttachment;
 }
 
 @Injectable({

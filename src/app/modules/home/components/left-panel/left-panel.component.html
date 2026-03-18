@@ -1,8 +1,7 @@
 <aside class="left-panel d-none d-xl-flex flex-column gap-3 pb-3">
   <!-- User Profile -->
   <div class="d-flex align-items-center gap-3 py-2 px-2" *ngIf="isAuthenticated">
-    <img [src]="user.avatarUrl" [alt]="user.fullName" class="rounded-circle object-fit-cover flex-shrink-0 user-avatar"
-      title="avatar" (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
+    <img [src]="user.avatarUrl" [alt]="user.fullName" class="rounded-circle object-fit-cover flex-shrink-0 user-avatar"/>
     <div class="d-flex flex-column overflow-hidden">
       <span class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">{{ user.fullName }}</span>
       <span class="text-secondary" style="font-size: 0.8rem;">{{ user.role }}</span>

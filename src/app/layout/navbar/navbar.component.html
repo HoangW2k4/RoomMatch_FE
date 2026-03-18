@@ -24,9 +24,8 @@
             [class.active]="isChatPanelOpen"
             (click)="toggleChatPanel($event)">
             <img src="assets/icons/ic_message.svg" style="width: 22px; height: 22px;" alt="Message" />
-            <span *ngIf="messageCount > 0"
-                    class="position-absolute bg-danger border border-2 border-white rounded-circle"
-                    style="width: 10px; height: 10px; top: 8px; right: 8px;">
+            <span *ngIf="messageCount > 0" class="message-count position-absolute bg-danger border border-2 border-white rounded-circle">
+                {{ messageCount }}
             </span>
             </button>
 

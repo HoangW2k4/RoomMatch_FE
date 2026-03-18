@@ -130,11 +130,11 @@
               </div>
             </div>
 
-            <button class="btn-contact w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" (click)="openFeatureAlert('Liên hệ chủ phòng', 'Tính năng liên hệ trực tiếp đang được phát triển.')">
+            <button class="btn-contact w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" type="button" *ngIf="!isOwner" (click)="onContact($event)">
               <img src="/assets/icons/ic_send.svg" width="16" height="16" alt="send">
-              <span>Contact</span>
+              <span>Liên hệ</span>
             </button>
-            <button class="btn-call w-100 mt-2 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 call-whatsapp-btn" (click)="openFeatureAlert('Call / WhatsApp', 'Tính năng gọi điện/WhatsApp đang được phát triển.')">
+            <button class="btn-call w-100 mt-2 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 call-whatsapp-btn" *ngIf="!isOwner" (click)="openFeatureAlert('Call / WhatsApp', 'Tính năng gọi điện/WhatsApp đang được phát triển.')">
               <img class="icon-normal" src="/assets/icons/ic_call.svg" width="16" height="16" alt="call">
               <img class="icon-hover" src="/assets/icons/ic_call_hover.svg" width="16" height="16" alt="whatsapp">
               Call / WhatsApp

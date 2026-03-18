@@ -28,7 +28,7 @@ interface ConversationPreview {
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-  userAvatar = 'assets/images/avatar_default.jpg';
+  userAvatar = JSON.parse(localStorage.getItem('user') || '{}').avatar || 'assets/images/avatar_default.jpg';
   notificationCount = 0;
   messageCount = 0;
 
@@ -152,7 +152,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        this.userAvatar = parsed.avatarUrl || 'assets/images/avatar_default.jpg';
+        this.userAvatar = parsed.avatar || 'assets/images/avatar_default.jpg';
       } catch {
         this.userAvatar = 'assets/images/avatar_default.jpg';
       }

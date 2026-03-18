@@ -77,7 +77,7 @@
         <span class="count">{{ post.statistics.shareCount || 0 }}</span>
       </button>
     </div>
-    <button class="contact-btn" (click)="onContact($event)">
+    <button class="contact-btn" *ngIf="!isOwner" (click)="onContact($event)">
       <img src="/assets/icons/ic_send.svg" width="16" height="16" alt="send">
       <span>Contact</span>
     </button>

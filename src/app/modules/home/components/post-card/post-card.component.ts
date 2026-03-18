@@ -8,6 +8,7 @@ import { GalleryLayout4Component } from './layouts/gallery-layout-4.component';
 import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
 import { CommentSectionComponent } from './comment-section/comment-section.component';
 import { ChatUiService } from '../../../../services/chat-ui.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-post-card',
@@ -43,7 +44,8 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private el: ElementRef,
-    private chatUiService: ChatUiService
+    private chatUiService: ChatUiService,
+    private authService: AuthService
   ) {}
 
   ngAfterViewInit(): void {
@@ -146,6 +148,12 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
     return media?.type?.startsWith('video') ?? false;
   }
 
+  get isOwner(): boolean {
+    const currentUserId = this.authService.currentUserId;
+    if (!currentUserId) return false;
+    return String(this.post.landlordId) === currentUserId || String(this.post.landlordInfo?.id) === currentUserId;
+  }
+
   get shortAddress(): string {
     const addr = this.post.address;
     if (!addr) return 'Chưa cập nhật';
@@ -185,9 +193,14 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
     }
 
     this.chatUiService.requestOpenConversation({
-      partnerId,
+      partnerId: String(partnerId),
       partnerName: this.post.landlordInfo?.name || 'Chủ phòng',
-      partnerAvatar: this.post.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg'
+      partnerAvatar: this.post.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg',
+      postAttachment: {
+        postId: String(this.post.id),
+        title: this.post.title,
+        thumbnailUrl: this.post.medias?.[0]?.url || null
+      }
     });
 
     this.contacted.emit(this.post.id);

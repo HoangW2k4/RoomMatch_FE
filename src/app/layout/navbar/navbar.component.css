@@ -23,6 +23,20 @@
     background-color: #e0e7ff !important;
 }
 
+.message-count {
+    width: 16px;
+    height: 16px;
+    top: 0;
+    right: 0;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+}
+
 .chat-panel {
     position: absolute;
     right: -24px;

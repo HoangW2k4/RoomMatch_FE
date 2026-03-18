@@ -7,13 +7,15 @@ import {
   QueryList,
   ViewChildren
 } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ChatService } from '../../../modules/chat/chat.service';
-import { ChatConversationParticipant, ChatResponse } from '../../../modules/chat/chat.interface';
+import { ChatPostAttachment, ChatPostInfo, ChatResponse, ChatConversationParticipant } from '../../../modules/chat/chat.interface';
 import { WebsocketService } from '../../../services/websocket.service';
 import { ChatUiService, OpenConversationPayload } from '../../../services/chat-ui.service';
+import { PostDetailComponent } from '../../../modules/home/components/post-detail/post-detail.component';
 
 export interface ChatMessage {
   id: string;
@@ -21,6 +23,10 @@ export interface ChatMessage {
   isSent: boolean;
   time: Date;
   read: boolean;
+  medias?: {url: string, type: string}[];
+  postInfo?: ChatPostInfo | null;
+  isSending?: boolean;
+  isError?: boolean;
 }
 
 export interface Conversation {
@@ -38,12 +44,14 @@ export interface Conversation {
   isTemporary?: boolean;
   lastMessageText?: string;
   updatedAt?: Date | null;
+  selectedImages?: File[];
+  postAttachment?: ChatPostAttachment;
 }
 
 @Component({
   selector: 'app-chat-popup',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule, PostDetailComponent],
   templateUrl: './chat-popup.component.html',
   styleUrls: ['./chat-popup.component.css']
 })
@@ -51,6 +59,9 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   conversations: Conversation[] = [];
   private destroy$ = new Subject<void>();
   private currentUserId: string | null = null;
+
+  isPostDetailVisible = false;
+  selectedPostId: string | null = null;
   private readonly conversationIdResolveMaxAttempts = 6;
   private readonly conversationIdResolveDelayMs = 600;
 
@@ -136,26 +147,112 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   sendMessage(conv: Conversation): void {
     const text = conv.inputText.trim();
-    if (!text || !conv.partnerId || !this.currentUserId) return;
+    const hasImages = conv.selectedImages && conv.selectedImages.length > 0;
+    
+    if ((!text && !hasImages && !conv.postAttachment) || !conv.partnerId || !this.currentUserId) return;
+
+    if (hasImages) {
+      if (conv.isTemporary) {
+        this.sendMediaMessageOverRest(conv, text);
+        return;
+      }
+      this.sendMediaMessageOverRest(conv, text);
+      return;
+    }
 
     if (conv.isTemporary) {
       const sent = this.sendRealtimeMessage(conv, text);
       if (sent) {
         this.resolveConversationIdAfterFirstSend(conv);
       }
-
       return;
     }
 
     this.sendRealtimeMessage(conv, text);
   }
 
+  private sendMediaMessageOverRest(conv: Conversation, text: string): void {
+    const files = conv.selectedImages || [];
+    
+    // 1. Optimistic UI: Tạo tin nhắn nháp (hiển thị ngay)
+    const tempMessageId = this.buildTempMessageId();
+    const tempMedias = files.map(file => ({
+      url: this.getImagePreviewUrl(file),
+      type: file.type || 'IMAGE'
+    }));
+
+    const tempMessage: ChatMessage = {
+      id: tempMessageId,
+      text,
+      isSent: true,
+      time: new Date(),
+      read: true,
+      medias: tempMedias,
+      isSending: true,
+      postInfo: conv.postAttachment ? {
+        postId: conv.postAttachment.postId,
+        title: conv.postAttachment.title,
+        thumbnailUrl: conv.postAttachment.thumbnailUrl || null
+      } : null
+    };
+
+    conv.messages.push(tempMessage);
+    conv.lastMessageText = text || (conv.postAttachment ? 'Đã chia sẻ bài viết' : 'Hình ảnh');
+    conv.updatedAt = new Date();
+    
+    const postAttachmentToKeep = conv.postAttachment;
+    
+    conv.inputText = '';
+    conv.selectedImages = [];
+    conv.postAttachment = undefined;
+    this.shouldScroll = true;
+
+    // 2. Gửi API
+    const typeToSend = postAttachmentToKeep ? 'POST_SHARE' : 'IMAGE';
+    
+    this.chatService.sendMediaMessage({
+      recipientId: conv.partnerId,
+      content: text,
+      type: typeToSend,
+      postAttachment: postAttachmentToKeep || null
+    }, files)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        // Tìm và cập nhật lại tin nhắn sau khi gửi xong
+        const msgIndex = conv.messages.findIndex(m => m.id === tempMessageId);
+        if (msgIndex !== -1) {
+          conv.messages[msgIndex].isSending = false;
+          // Optionally update media URLs to the real server URLs
+          if (response.data && Array.isArray(response.data)) {
+            conv.messages[msgIndex].medias = response.data.map((m: any) => ({ url: m.url, type: m.type }));
+          }
+        }
+        
+        if (conv.isTemporary) {
+          this.resolveConversationIdAfterFirstSend(conv);
+        }
+      },
+      error: (error) => {
+         console.error('Không thể gửi tin nhắn hình ảnh', error);
+         const msgIndex = conv.messages.findIndex(m => m.id === tempMessageId);
+         if (msgIndex !== -1) {
+           conv.messages[msgIndex].isSending = false;
+           conv.messages[msgIndex].isError = true;
+         }
+      }
+    });
+  }
+
   private sendRealtimeMessage(conv: Conversation, text: string): boolean {
+    const typeToSend = conv.postAttachment ? 'POST_SHARE' : 'TEXT';
+    const postAttachmentToKeep = conv.postAttachment || null;
+
     const sent = this.websocketService.sendChatMessage({
       recipientId: conv.partnerId,
       content: text,
-      type: 'TEXT',
-      postAttachment: null
+      type: typeToSend,
+      postAttachment: postAttachmentToKeep
     });
 
     if (!sent) {
@@ -167,13 +264,19 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       text,
       isSent: true,
       time: new Date(),
-      read: true
+      read: true,
+      postInfo: postAttachmentToKeep ? {
+        postId: postAttachmentToKeep.postId,
+        title: postAttachmentToKeep.title,
+        thumbnailUrl: postAttachmentToKeep.thumbnailUrl || null
+      } : null
     });
 
-    conv.lastMessageText = text;
+    conv.lastMessageText = text || (postAttachmentToKeep ? 'Đã chia sẻ bài viết' : '');
     conv.updatedAt = new Date();
 
     conv.inputText = '';
+    conv.postAttachment = undefined;
     this.shouldScroll = true;
     return true;
   }
@@ -269,7 +372,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
               historyLoaded: false,
               messages: [],
               lastMessageText: item.lastMessage?.content ?? '',
-              updatedAt: item.updatedAt ? new Date(item.updatedAt) : null
+              updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
+              selectedImages: []
             };
           });
         },
@@ -294,7 +398,9 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
             text: message.content,
             isSent: message.senderId === this.currentUserId,
             time: new Date(message.sentAt),
-            read: message.read
+            read: message.read,
+            medias: message.medias ? message.medias.map(m => ({ url: m.url, type: m.type })) : undefined,
+            postInfo: message.postInfo
           }));
 
           conv.historyLoaded = true;
@@ -329,7 +435,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
         inputText: '',
         unreadCount: 0,
         historyLoaded: true,
-        messages: []
+        messages: [],
+        selectedImages: []
       };
       this.conversations = [conv, ...this.conversations];
     }
@@ -347,10 +454,16 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       text: message.content,
       isSent: message.senderId === this.currentUserId,
       time: new Date(message.sentAt),
-      read: message.read
+      read: message.read,
+      medias: message.medias ? message.medias.map(m => ({ url: m.url, type: m.type })) : undefined,
+      postInfo: message.postInfo
     });
 
-    conv.lastMessageText = message.content;
+    if (message.type === 'POST_SHARE') {
+      conv.lastMessageText = message.content || 'Đã chia sẻ bài viết';
+    } else {
+      conv.lastMessageText = message.content || (message.medias && message.medias.length > 0 ? 'Hình ảnh' : '');
+    }
     conv.updatedAt = new Date(message.sentAt);
 
     if (conv.isOpen) {
@@ -481,7 +594,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
         unreadCount: 0,
         historyLoaded: !payload.conversationId,
         messages: [],
-        isTemporary: !payload.conversationId
+        isTemporary: !payload.conversationId,
+        selectedImages: []
       };
 
       this.conversations = [conv, ...this.conversations];
@@ -497,11 +611,80 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       conv.historyLoaded = false;
     }
 
+    if (payload.postAttachment) {
+      conv.postAttachment = payload.postAttachment;
+      conv.replyToPost = payload.postAttachment.title; // for backwards compatibility
+    }
+
     this.openChat(conv);
   }
 
   openConversationPanel(event?: Event): void {
     event?.stopPropagation();
     this.chatUiService.requestOpenPanel();
+  }
+
+  onUploadError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = 'assets/images/image-placeholder.png';
+  }
+
+  openPostDetail(postId: string, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.selectedPostId = postId;
+    this.isPostDetailVisible = true;
+  }
+
+  onClosePostDetail(): void {
+    this.isPostDetailVisible = false;
+    this.selectedPostId = null;
+  }
+
+  onFileSelected(event: any, conv: Conversation): void {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    if (!conv.selectedImages) {
+      conv.selectedImages = [];
+    }
+
+    let currentLength = conv.selectedImages.length;
+
+    for (let i = 0; i < files.length; i++) {
+      if (currentLength >= 3) {
+        alert('Bạn chỉ được chọn tối đa 3 ảnh.');
+        break;
+      }
+      
+      const file = files[i];
+      if (file.type.startsWith('image/')) {
+        conv.selectedImages.push(file);
+        
+        // Optional: Generate preview URL for optimistic UI
+        // const reader = new FileReader();
+        // reader.onload = (e: any) => {};
+        // reader.readAsDataURL(file);
+        
+        currentLength++;
+      } else {
+        alert('Chỉ hỗ trợ file ảnh.');
+      }
+    }
+    
+    // Reset file input
+    event.target.value = '';
+  }
+
+  removeSelectedImage(conv: Conversation, index: number): void {
+    if (conv.selectedImages && conv.selectedImages.length > index) {
+      conv.selectedImages.splice(index, 1);
+    }
+  }
+
+  getImagePreviewUrl(file: File): string {
+    return URL.createObjectURL(file);
   }
 }

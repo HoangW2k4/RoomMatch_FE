@@ -49,6 +49,7 @@
   padding: 0 3px;
   line-height: 1;
   border: 1.5px solid #fff;
+  border-radius: 50%;
 }
 
 .chat-bubble-tooltip {
@@ -72,7 +73,7 @@
    ====================================================== */
 .chat-window {
   width: 340px;
-  height: 520px;
+  height: 460px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.16);
 }
 
@@ -132,6 +133,26 @@
 .cw-msg-avatar {
   width: 28px;
   height: 28px;
+}
+
+.cw-msg-img {
+  width: 100px;
+  height: 100px;
+  border: 1px solid rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.cw-msg-sending {
+  opacity: 0.6;
+}
+
+.cw-post-share {
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+.cw-post-share:hover {
+  background-color: #f8f9fa !important;
+  opacity: 0.9;
 }
 
 /* Bubbles */
@@ -209,4 +230,16 @@
 
 .cw-send-btn--active:hover {
   transform: scale(1.12);
+}
+
+.cw-remove-img-btn {
+  width: 18px;
+  height: 18px;
+  transform: translate(25%, -25%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.cw-remove-img-btn:hover {
+  background-color: #dc3545 !important;
+  color: #fff !important;
 }

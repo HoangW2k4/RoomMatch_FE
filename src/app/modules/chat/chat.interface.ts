@@ -19,6 +19,12 @@ export interface ChatPostInfo {
   thumbnailUrl?: string | null;
 }
 
+export interface ChatMedia {
+  url: string;
+  type: string;
+  displayOrder: number;
+}
+
 export interface ChatRequest {
   recipientId: string;
   content: string;
@@ -35,6 +41,7 @@ export interface ChatResponse {
   type: ChatMessageType;
   content: string;
   postInfo: ChatPostInfo | null;
+  medias?: ChatMedia[];
   sentAt: string;
   read: boolean;
 }

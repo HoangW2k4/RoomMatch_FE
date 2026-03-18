@@ -39,6 +39,17 @@ export class AuthService {
     return !!localStorage.getItem('accessToken');
   }
 
+  get currentUserId(): string | null {
+    const raw = localStorage.getItem('user');
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed.id ? String(parsed.id) : null;
+    } catch {
+      return null;
+    }
+  }
+
   /**
    * Get cookie value by name
    */

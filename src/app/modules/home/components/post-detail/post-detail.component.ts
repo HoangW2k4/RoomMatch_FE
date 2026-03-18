@@ -10,6 +10,7 @@ import { ModalService } from '../../../../services/modal.service';
 import { PostService } from '../../post.service';
 import { CommentSectionComponent } from '../post-card/comment-section/comment-section.component';
 import { FeatureNotDevelopedComponent } from '../../../../shared/module/feature-not-developed';
+import { ChatUiService } from '../../../../services/chat-ui.service';
 
 @Component({
   selector: 'app-post-detail',
@@ -24,6 +25,7 @@ export class PostDetailComponent implements OnChanges {
   @Input() similarPosts: RoomPostResponse[] = [];
   @Input() homePosts: RoomPostResponse[] = [];
   @Output() closed = new EventEmitter<void>();
+  @Output() contacted = new EventEmitter<string>();
 
   detail: RoomPostDetailResponse | null = null;
   isLoading = false;
@@ -39,9 +41,38 @@ export class PostDetailComponent implements OnChanges {
     private postService: PostService,
     private alertService: AlertService,
     private authService: AuthService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private chatUiService: ChatUiService
   ) {}
 
+  get isOwner(): boolean {
+    const currentUserId = this.authService.currentUserId;
+    if (!currentUserId || !this.detail) return false;
+    return String(this.detail.landlordInfo?.id) === currentUserId;
+  }
+
+  onContact(event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const partnerId = this.detail?.landlordInfo?.id;
+    if (!partnerId) {
+      return;
+    }
+
+    this.chatUiService.requestOpenConversation({
+      partnerId: String(partnerId),
+      partnerName: this.detail?.landlordInfo?.name || 'Chủ phòng',
+      partnerAvatar: this.detail?.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg',
+      postAttachment: {
+        postId: String(this.detail?.id),
+        title: this.detail?.title || '',
+        thumbnailUrl: this.detail?.medias?.[0]?.url || null
+      }
+    });
+    this.closed.emit();
+    this.contacted.emit(this.detail?.id);
+  }
   ngOnChanges(changes: SimpleChanges): void {
     const opened = changes['visible']?.currentValue === true;
     const postIdChanged = !!changes['postId'];
@@ -79,7 +110,6 @@ export class PostDetailComponent implements OnChanges {
   close(): void {
     this.closed.emit();
   }
-
   prevMedia(): void {
     if (!this.sortedMedias.length) return;
     this.selectedMediaIndex = (this.selectedMediaIndex - 1 + this.sortedMedias.length) % this.sortedMedias.length;

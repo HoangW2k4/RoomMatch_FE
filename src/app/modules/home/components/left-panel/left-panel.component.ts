@@ -55,7 +55,7 @@ export class LeftPanelComponent implements OnInit {
         const parsed = JSON.parse(stored);
         this.user = {
           fullName: parsed.name || 'Người dùng',
-          avatarUrl: parsed.avatarUrl || 'assets/images/avatar_default.jpg',
+          avatarUrl: parsed.avatar || 'assets/images/avatar_default.jpg',
           role: this.getRoleLabel(parsed.role)
         };
       } catch {
