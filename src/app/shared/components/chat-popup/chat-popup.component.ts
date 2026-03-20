@@ -16,6 +16,7 @@ import { ChatPostAttachment, ChatPostInfo, ChatResponse, ChatConversationPartici
 import { WebsocketService } from '../../../services/websocket.service';
 import { ChatUiService, OpenConversationPayload } from '../../../services/chat-ui.service';
 import { PostDetailComponent } from '../../../modules/home/components/post-detail/post-detail.component';
+import { FeatureNotDevelopedComponent } from '../../module/feature-not-developed';
 
 export interface ChatMessage {
   id: string;
@@ -51,7 +52,7 @@ export interface Conversation {
 @Component({
   selector: 'app-chat-popup',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, PostDetailComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PostDetailComponent, FeatureNotDevelopedComponent],
   templateUrl: './chat-popup.component.html',
   styleUrls: ['./chat-popup.component.css']
 })
@@ -62,6 +63,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   isPostDetailVisible = false;
   selectedPostId: string | null = null;
+  isFeatureNotDevelopedVisible = false;
+  
   private readonly conversationIdResolveMaxAttempts = 6;
   private readonly conversationIdResolveDelayMs = 600;
 
@@ -641,6 +644,18 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   onClosePostDetail(): void {
     this.isPostDetailVisible = false;
     this.selectedPostId = null;
+  }
+
+  showNotDevelopedFeature(event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.isFeatureNotDevelopedVisible = true;
+  }
+
+  closeNotDevelopedFeature(): void {
+    this.isFeatureNotDevelopedVisible = false;
   }
 
   onFileSelected(event: any, conv: Conversation): void {

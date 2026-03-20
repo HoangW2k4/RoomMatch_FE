@@ -157,20 +157,23 @@
 
 /* Bubbles */
 .cw-bubble {
-  max-width: 220px;
-  border-radius: 18px;
+  color: #1a1a2e !important;
+  font-weight: 500 !important;
   font-size: 0.84rem;
+  margin: 14px 0px;
   line-height: 1.45;
+  box-shadow: 0 2px 4px rgba(0.1,0.1,0.1,0.1);
 }
 
 .cw-bubble--received {
-  background: #f0f2f5;
+  background: #f8f9fa;
   color: #1a1a2e;
   border-bottom-left-radius: 4px;
 }
 
 .cw-bubble--sent {
   background: #3179c7;
+  color: #1a1a2e !important;
   border-bottom-right-radius: 4px;
 }
 

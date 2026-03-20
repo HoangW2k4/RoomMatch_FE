@@ -6,15 +6,18 @@ export interface ChatPostAttachment {
   postId: string;
   title: string;
   thumbnailUrl?: string | null;
+  price?: number;
 }
 
 export interface ChatPostInfo {
   postId: string;
   title: string;
   posterName?: string;
+  price?: number;
   media?: {
     url: string;
     type: string;
+    displayOrder?: number;
   };
   thumbnailUrl?: string | null;
 }
