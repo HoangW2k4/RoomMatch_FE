@@ -6,15 +6,30 @@
 
     <div class="d-flex align-items-center gap-3 ms-auto">
         <ng-container *ngIf="isAuthenticated">
-        <a routerLink="/notification" routerLinkActive="active"
+        <div
             class="btn rounded-circle d-flex align-items-center justify-content-center position-relative nav-icon-btn"
-            title="Thông báo">
+            title="Thông báo" (click)="toggleNotificationPanel($event)">
             <img src="assets/icons/bell.svg" style="width: 22px; height: 22px;" alt="Notification" />
             <span *ngIf="notificationCount > 0"
-                class="position-absolute bg-danger border border-2 border-white rounded-circle"
-                style="width: 10px; height: 10px; top: 8px; right: 8px;">
-            </span>
-        </a>
+                class="position-absolute bg-danger text-white rounded-circle d-flex align-items-center justify-content-center"
+                style="width: 18px; height: 18px; top: 0px; right: 0px; font-size: 10px; font-weight: bold; border: 2px solid white;">
+            {{ notificationCount > 99 ? '99+' : notificationCount }}
+          </span>
+        </div>
+        <div *ngIf="isNotificationPanelOpen" class="notification-panel shadow-sm" (click)="$event.stopPropagation()">
+          <div class="notification-header"><h6>Thông báo</h6></div>
+          <div class="notification-list" *ngIf="notifications.length; else noNotif">
+            <div *ngFor="let notif of notifications" class="notification-item" [class.unread]="!notif.read" (click)="onNotifClick(notif)">
+              <img [src]="notif.metaData.senderAvatar || 'assets/images/avatar_default.jpg'" class="notif-avatar" alt="avatar">
+              <div class="notif-content">
+                <div class="notif-title">{{ notif.title }}</div>
+                <div class="notif-time">{{ formatRelativeTime(notif.createdAt) }}</div>
+              </div>
+              <div *ngIf="!notif.read" class="notif-dot"></div>
+            </div>
+          </div>
+          <ng-template #noNotif><div class="no-notif">Không có thông báo</div></ng-template>
+        </div>
 
         <div class="position-relative chat-panel-anchor" (click)="$event.stopPropagation()">
             <button

@@ -5,10 +5,11 @@ import { SpinnerLoadingComponent } from './shared/module/spinner-loading';
 import { LoadingService } from './core/services/loading.service';
 import { AlertComponent, AlertType } from './shared/module/alert';
 import { AlertService } from './core/services/alert.service';
+import { AppToastsComponent } from './shared/components/toasts/toasts.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CommonModule, SpinnerLoadingComponent, AlertComponent],
+  imports: [RouterOutlet, CommonModule, SpinnerLoadingComponent, AlertComponent, AppToastsComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

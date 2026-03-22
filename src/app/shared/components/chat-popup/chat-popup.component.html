@@ -48,8 +48,8 @@
         <div *ngIf="!msg.isSent" class="d-flex align-items-end justify-content-start gap-2 mw-100">
           <img [src]="conv.partnerAvatar" class="cw-msg-avatar rounded-circle object-fit-cover flex-shrink-0 mb-1" [alt]="conv.partnerName" />
           <div class="d-flex flex-column align-items-start gap-1">
-            <div *ngIf="msg.text || msg.postInfo" class="cw-bubble cw-bubble--received p-1 text-break text-start" style="border-radius: 14px;">
-              <div *ngIf="msg.text" [class.mb-2]="msg.postInfo" class="px-1 pt-1">{{ msg.text }}</div>
+            <div *ngIf="msg.text || msg.postInfo" class="cw-bubble cw-bubble--received p-1 text-break text-start " style="border-radius: 14px;">
+              <div *ngIf="msg.text" [class.mb-2]="msg.postInfo" class="p-1">{{ msg.text }}</div>
               
               <div *ngIf="msg.postInfo" class="overflow-hidden shadow-sm" style="border-radius: 14px; width: 240px; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); background-color: #f0f2f5; margin-top: 2px;" (click)="openPostDetail(msg.postInfo.postId, $event)">
                 <div class="position-relative">
@@ -79,8 +79,8 @@
         
         <div *ngIf="msg.isSent" class="d-flex align-items-end justify-content-end gap-2 mw-100">
           <div class="d-flex flex-column align-items-end gap-1">
-            <div *ngIf="msg.text || msg.postInfo" class="cw-bubble cw-bubble--sent p-2 text-break text-start shadow-sm" [class.cw-msg-sending]="msg.isSending" [class.bg-white]="msg.postInfo" style="border-radius: 12px;">
-              <div *ngIf="msg.text" [class.mb-2]="msg.postInfo" class="px-1 pt-1">{{ msg.text }}</div>
+            <div *ngIf="msg.text || msg.postInfo" class="cw-bubble cw-bubble--sent p-2 text-break text-start shadow-sm" [class.cw-msg-sending]="msg.isSending" [class.bg-white]="msg.postInfo" style="border-radius: 14px;">
+              <div *ngIf="msg.text" [class.mb-2]="msg.postInfo">{{ msg.text }}</div>
               
               <div *ngIf="msg.postInfo" class="overflow-hidden shadow-sm cw-post-share text-start" style="border-radius: 14px; width: 240px; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); background-color: #f0f2f5; margin-top: 2px;" (click)="openPostDetail(msg.postInfo.postId, $event)">
                 <div class="position-relative">
@@ -115,7 +115,7 @@
     <!-- Pending Post Attachment Area -->
     <div class="px-3 pt-3 pb-2 bg-white border-top flex-shrink-0" *ngIf="conv.postAttachment">
       <div class="position-relative d-flex align-items-center gap-3 p-2 bg-white" style="border: 1px solid #e2e8f0; border-radius: 20px;">
-        <img *ngIf="conv.postAttachment.thumbnailUrl" [src]="conv.postAttachment.thumbnailUrl" class="object-fit-cover flex-shrink-0" style="width: 50px; height: 50px; border-radius: 12px;" alt="thumbnail" (error)="$event.target.setAttribute('src','assets/images/image-placeholder.png')">
+        <img *ngIf="conv.postAttachment.thumbnailUrl" [src]="conv.postAttachment.thumbnailUrl" class="object-fit-cover flex-shrink-0" style="width: 50px; height: 50px; border-radius: 14px;" alt="thumbnail" (error)="$event.target.setAttribute('src','assets/images/image-placeholder.png')">
         <div class="d-flex flex-column justify-content-center min-w-0 pe-2">
           <span class="fw-semibold text-truncate text-dark" style="font-size: 0.9rem;">{{ conv.postAttachment.title }}</span>
           <span class="fw-bold mt-1" style="font-size: 0.85rem; color: #3b82f6;">

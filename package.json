@@ -25,6 +25,7 @@
     "@angular/core": "^20.1.0",
     "@angular/fire": "^20.0.1",
     "@angular/forms": "^20.1.0",
+    "@angular/localize": "^21.2.5",
     "@angular/platform-browser": "^20.1.0",
     "@angular/router": "^20.1.0",
     "@ng-bootstrap/ng-bootstrap": "^19.0.1",

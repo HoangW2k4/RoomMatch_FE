@@ -1,4 +1,6 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { NotificationService } from '../../services/notification.service';
+import { Notification } from '../../models/notification.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -28,6 +30,19 @@ interface ConversationPreview {
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
+  // Notification panel state
+  isNotificationPanelOpen = false;
+  notifications: Notification[] = [];
+  // Inject NotificationService
+  constructor(
+    private elementRef: ElementRef,
+    private modalService: ModalService,
+    private authService: AuthService,
+    private chatService: ChatService,
+    private chatUiService: ChatUiService,
+    private notificationService: NotificationService
+  ) {}
+
   userAvatar = JSON.parse(localStorage.getItem('user') || '{}').avatar || 'assets/images/avatar_default.jpg';
   notificationCount = 0;
   messageCount = 0;
@@ -39,18 +54,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private currentUserId: string | null = null;
   private destroy$ = new Subject<void>();
 
-  constructor(
-    private elementRef: ElementRef,
-    private modalService: ModalService,
-    private authService: AuthService,
-    private chatService: ChatService,
-    private chatUiService: ChatUiService
-  ) {}
+
 
   ngOnInit(): void {
     this.currentUserId = this.getCurrentUserId();
     this.loadUserAvatar();
     this.loadConversations();
+    this.loadNotifications();
+    
+    if (this.currentUserId) {
+      this.notificationService.listenToRealtimeNotifications(this.currentUserId);
+    }
 
     this.chatUiService.openPanel$
       .pipe(takeUntil(this.destroy$))
@@ -110,12 +124,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.isChatPanelOpen = false;
   }
 
-  formatRelativeTime(date: Date | null): string {
+  formatRelativeTime(date: string | Date | null): string {
     if (!date) {
       return '';
     }
 
-    const diffMs = Date.now() - date.getTime();
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const diffMs = Date.now() - d.getTime();
     const diffMin = Math.floor(diffMs / 60000);
 
     if (diffMin < 1) {
@@ -244,5 +259,53 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private updateMessageCount(): void {
     this.messageCount = this.conversations.filter((item) => item.unread).length;
+  }
+
+
+  // New methods for notifications
+  private loadNotifications(): void {
+    this.notificationService.getNotifications(1, 10)
+      .subscribe({
+        next: (page) => {
+          this.notifications = page.content.filter(n => n.type !== 'NEW_MESSAGE');
+          this.notificationCount = page.content.filter(n => !n.seem).length;
+        },
+        error: (err) => console.error('Failed to load notifications', err)
+      });
+  }
+
+  toggleNotificationPanel(event: Event): void {
+    event.stopPropagation();
+    this.isNotificationPanelOpen = !this.isNotificationPanelOpen;
+    if (this.isNotificationPanelOpen) {
+      this.loadNotifications();
+    }
+  }
+
+  onNotifClick(notif: Notification): void {
+    if (!notif.read) {
+      this.notificationService.markAsRead(notif.id).subscribe({
+        next: () => {
+          notif.read = true;
+          // Refresh count if it was unseem
+          if (!notif.seem) {
+             this.notificationCount = Math.max(0, this.notificationCount - 1);
+          }
+        }
+      });
+    }
+
+    // Navigation logic based on type
+    if (notif.type === 'NEW_MESSAGE' && notif.referenceId) {
+      this.chatUiService.requestOpenConversation({
+        conversationId: notif.referenceId,
+        partnerId: notif.senderId,
+        partnerName: notif.metaData?.senderName || 'Người dùng',
+        partnerAvatar: notif.metaData?.senderAvatar || 'assets/images/avatar_default.jpg'
+      });
+    }
+    // More navigation types can be added here
+    
+    this.isNotificationPanelOpen = false;
   }
 }
