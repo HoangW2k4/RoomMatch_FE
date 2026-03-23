@@ -10,8 +10,8 @@
 
   <!-- Navigation -->
   <nav class="nav flex-column gap-1">
-    <a *ngFor="let item of navItems" [routerLink]="item.route" routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+    <a *ngFor="let item of navItems" [routerLink]="item.route" [queryParams]="item.queryParams || {}"
+      routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
       class="nav-link d-flex align-items-center gap-3 rounded-3 px-3 py-2 nav-item">
 
       <div class="nav-icon flex-shrink-0" [style.-webkit-mask-image]="'url(assets/icons/' + item.icon + '.svg)'"

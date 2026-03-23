@@ -5,14 +5,14 @@
     <div class="card-body p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="fw-bold mb-0">Thông báo</h6>
-        <span class="badge bg-danger rounded-pill text-xxs">Mới</span>
+        <span class="badge bg-danger rounded-pill text-xxs" *ngIf="hasNewNotifications">Mới</span>
       </div>
 
-      <div class="d-flex flex-column gap-3">
+      <div class="d-flex flex-column gap-3" *ngIf="notifications.length > 0">
         <div *ngFor="let noti of notifications" class="d-flex align-items-start gap-2">
           <!-- Avatar or Icon -->
-          <ng-container *ngIf="!noti.isIcon; else iconTpl">
-            <img [src]="noti.avatarUrl" alt="avatar" title="avatar"
+          <ng-container *ngIf="!isIconNotification(noti); else iconTpl">
+            <img [src]="getNotificationAvatar(noti)" alt="avatar" title="avatar"
               class="rounded-circle flex-shrink-0 object-fit-cover noti-avatar"
               (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
           </ng-container>
@@ -25,10 +25,14 @@
             </div>
           </ng-template>
           <div class="d-flex flex-column overflow-hidden">
-            <span class="text-dark text-sm">{{ noti.message }}</span>
-            <span class="text-muted text-xxs">{{ noti.time }}</span>
+            <span class="text-dark text-sm">{{ getNotificationMessage(noti) }}</span>
+            <span class="text-muted text-xxs">{{ getNotificationTime(noti) }}</span>
           </div>
         </div>
+      </div>
+
+      <div *ngIf="notifications.length === 0" class="text-muted small text-center py-2">
+        Chưa có thông báo
       </div>
     </div>
   </div>

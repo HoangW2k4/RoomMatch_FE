@@ -4,44 +4,51 @@
     <app-left-panel class="profile-sidebar"></app-left-panel>
 
     <!-- Main Content -->
-    <div class="profile-main">
+    <div class="d-flex flex-column gap-3" style="min-width: 0;">
       <!-- Profile Card -->
-      <div class="profile-card" *ngIf="!isLoadingUser && user">
-        <div class="profile-card-inner">
+      <div class="card border-0 shadow-sm rounded-4" *ngIf="!isLoadingUser && user">
+        <div class="card-body d-flex align-items-center gap-3 p-4">
           <!-- Avatar -->
-          <div class="profile-avatar-wrapper">
+          <div class="position-relative flex-shrink-0">
             <img [src]="user.avatarUrl" [alt]="user.fullName"
-              class="profile-avatar" (error)="onAvatarError($event)">
-            <div class="avatar-camera-badge">
-              <img src="assets/icons/ic_camera.svg" alt="Camera" width="14" height="14">
+              class="rounded-circle object-fit-cover border border-2 profile-avatar" (error)="onAvatarError($event)">
+            <div
+              class="avatar-camera-badge position-absolute d-flex align-items-center justify-content-center rounded-circle">
+              <img src="assets/icons/ic_profile_camera.svg" alt="Camera" width="14" height="14">
             </div>
           </div>
 
           <!-- Info -->
-          <div class="profile-info">
-            <div class="profile-name-row">
-              <h1 class="profile-name">{{ user.fullName }}</h1>
-              <span class="profile-badge" [ngClass]="roleBadgeClass">{{ roleLabel }}</span>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <h1 class="fs-5 fw-bold text-dark mb-0">{{ user.fullName }}</h1>
+              <span class="badge rounded-pill small" [ngClass]="roleBadgeClass">
+                {{ roleLabel }}
+                @if(user.role === 'ROLE_LANDLORD'){
+                <img src="assets/icons/ic_verified.svg" alt="Role" width="14" height="14" class="opacity-50">
+                }
+              </span>
             </div>
-            <p class="profile-bio">Thành viên RoomMatch</p>
-            <div class="profile-meta">
-              <span class="meta-item" *ngIf="user.phoneNumber">
-                <img src="assets/icons/ic_phone.svg" alt="Phone" width="14" height="14">
+            <p class="text-muted small mb-2 mt-1">Thành viên RoomMatch</p>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+              <span class="d-inline-flex align-items-center gap-1 text-muted small" *ngIf="user.phoneNumber">
+                <img src="assets/icons/ic_phone.svg" alt="Phone" width="14" height="14" class="opacity-50">
                 {{ user.phoneNumber }}
               </span>
-              <span class="meta-item" *ngIf="user.gender">
-                <img src="assets/icons/ic_user.svg" alt="Gender" width="14" height="14">
+              <span class="d-inline-flex align-items-center gap-1 text-muted small" *ngIf="user.gender">
+                <img [src]="genderIcon" alt="Gender" width="14" height="14" class="opacity-50">
                 {{ genderLabel }}
               </span>
-              <span class="meta-item" *ngIf="user.email">
-                <img src="assets/icons/ic_email.svg" alt="Email" width="14" height="14">
+              <span class="d-inline-flex align-items-center gap-1 text-muted small" *ngIf="user.email">
+                <img src="assets/icons/ic_email.svg" alt="Email" width="14" height="14" class="opacity-50">
                 {{ user.email }}
               </span>
             </div>
           </div>
 
           <!-- Edit Button -->
-          <button class="btn-edit-profile">
+          <button
+            class="btn btn-outline-secondary btn-sm rounded-3 d-inline-flex align-items-center gap-1 fw-semibold flex-shrink-0 align-self-start">
             <img src="assets/icons/settings.svg" alt="Edit" width="14" height="14">
             Chỉnh sửa
           </button>
@@ -49,85 +56,86 @@
       </div>
 
       <!-- Profile Card Skeleton -->
-      <div class="profile-card" *ngIf="isLoadingUser">
-        <div class="profile-card-inner">
-          <div class="skeleton-avatar shimmer"></div>
-          <div class="profile-info">
-            <div class="skeleton-name shimmer"></div>
-            <div class="skeleton-bio shimmer"></div>
-            <div class="skeleton-meta shimmer"></div>
+      <div class="card border-0 shadow-sm rounded-4" *ngIf="isLoadingUser">
+        <div class="card-body d-flex align-items-center gap-3 p-4">
+          <div class="skeleton-avatar shimmer rounded-circle flex-shrink-0"></div>
+          <div class="flex-grow-1">
+            <div class="skeleton-name shimmer rounded mb-2"></div>
+            <div class="skeleton-bio shimmer rounded"></div>
+            <div class="skeleton-meta shimmer rounded mt-2"></div>
           </div>
         </div>
       </div>
 
       <!-- Tabs -->
-      <div class="profile-tabs" *ngIf="!isLoadingUser">
-        <button *ngFor="let tab of tabs"
-          class="tab-btn" [class.active]="activeTab === tab.key"
-          (click)="switchTab(tab.key)">
+      <div class="d-flex border-bottom bg-white rounded-top-4 px-1" *ngIf="!isLoadingUser">
+        <button *ngFor="let tab of tabs" class="btn border-0 bg-transparent fw-semibold px-3 py-2 tab-btn"
+          [class.active]="activeTab === tab.key" (click)="switchTab(tab.key)">
           {{ tab.label }}
         </button>
       </div>
 
       <!-- Placeholder Tab -->
-      <div class="placeholder-tab" *ngIf="isPlaceholderTab && !isLoadingUser">
-        <div class="placeholder-content">
-          <img src="assets/icons/ic_info.svg" alt="Info" width="48" height="48" style="opacity:0.3">
-          <h3>Tính năng đang phát triển</h3>
-          <p>Tính năng này sẽ sớm có mặt trong phiên bản tiếp theo.</p>
+      <div class="bg-white rounded-bottom-4 shadow-sm" *ngIf="isPlaceholderTab && !isLoadingUser">
+        <div class="text-center py-5 px-3 text-muted">
+          <img src="assets/icons/ic_info.svg" alt="Info" width="48" height="48" class="opacity-25">
+          <h3 class="fs-6 fw-semibold text-dark mt-3 mb-2">Tính năng đang phát triển</h3>
+          <p class="small mb-0">Tính năng này sẽ sớm có mặt trong phiên bản tiếp theo.</p>
         </div>
       </div>
 
       <!-- Post Feed -->
-      <div class="feed-section" *ngIf="!isPlaceholderTab">
+      <div class="d-flex flex-column gap-3" *ngIf="!isPlaceholderTab">
         <!-- Section Header -->
-        <div class="section-header" *ngIf="totalPosts > 0 && !isLoading">
-          <span class="post-count">{{ totalPosts }} bài đăng</span>
+        <div class="px-1" *ngIf="totalPosts > 0 && !isLoading">
+          <span class="badge bg-light text-muted rounded-pill small">{{ totalPosts }} bài đăng</span>
         </div>
 
         <!-- Loading Skeleton -->
-        <div class="feed-list" *ngIf="isLoading && posts.length === 0">
-          <div class="skeleton-card" *ngFor="let s of skeletonItems">
-            <div class="skeleton-header">
-              <div class="skeleton-avatar-sm shimmer"></div>
-              <div class="skeleton-user-info">
-                <div class="skeleton-line-short shimmer"></div>
-                <div class="skeleton-line-long shimmer"></div>
+        <div class="d-flex flex-column gap-3" *ngIf="isLoading && posts.length === 0">
+          <div class="card border-0 shadow-sm rounded-4 p-3 d-flex flex-column gap-2" *ngFor="let s of skeletonItems">
+            <div class="d-flex align-items-center gap-2">
+              <div class="skeleton-avatar-sm shimmer rounded-circle flex-shrink-0"></div>
+              <div class="d-flex flex-column gap-1 flex-grow-1">
+                <div class="skeleton-line-short shimmer rounded"></div>
+                <div class="skeleton-line-long shimmer rounded"></div>
               </div>
             </div>
-            <div class="skeleton-title shimmer"></div>
-            <div class="skeleton-image shimmer"></div>
-            <div class="skeleton-actions shimmer"></div>
+            <div class="skeleton-title shimmer rounded"></div>
+            <div class="skeleton-image shimmer rounded-3"></div>
+            <div class="skeleton-actions shimmer rounded"></div>
           </div>
         </div>
 
         <!-- Posts -->
-        <div class="feed-list" *ngIf="posts.length > 0">
-          <app-post-card *ngFor="let post of posts; trackBy: trackByPostId"
-            [post]="post"
-            (liked)="onLikePost($event)"
+        <div class="d-flex flex-column gap-3" *ngIf="posts.length > 0">
+          <app-post-card *ngFor="let post of posts; trackBy: trackByPostId" [post]="post" (liked)="onLikePost($event)"
             (openDetail)="onOpenDetail($event)">
           </app-post-card>
         </div>
 
         <!-- Empty State -->
-        <div class="empty-state" *ngIf="!isLoading && posts.length === 0 && !isPlaceholderTab">
-          <img src="assets/icons/search.svg" alt="Empty" width="48" height="48" style="opacity:0.3">
-          <h3>Chưa có bài đăng nào</h3>
-          <p *ngIf="activeTab === 'my-posts'">Bạn chưa có bài đăng nào. Hãy tạo bài đăng đầu tiên!</p>
-          <p *ngIf="activeTab === 'liked'">Bạn chưa lưu bài đăng nào.</p>
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-3"
+          *ngIf="!isLoading && posts.length === 0 && !isPlaceholderTab">
+          <img src="assets/icons/search.svg" alt="Empty" width="48" height="48" class="opacity-25 mx-auto">
+          <h3 class="fs-6 fw-semibold text-dark mt-3 mb-2">Chưa có bài đăng nào</h3>
+          <p class="small text-muted mb-0" *ngIf="activeTab === 'my-posts'">Bạn chưa có bài đăng nào. Hãy tạo bài đăng
+            đầu tiên!</p>
+          <p class="small text-muted mb-0" *ngIf="activeTab === 'liked'">Bạn chưa lưu bài đăng nào.</p>
         </div>
 
         <!-- Loading more spinner -->
-        <div class="loading-more" *ngIf="isLoadingMore">
-          <div class="spinner"></div>
+        <div class="d-flex justify-content-center py-4" *ngIf="isLoadingMore">
+          <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
         </div>
 
         <!-- Scroll sentinel -->
-        <div #scrollSentinel class="scroll-sentinel"></div>
+        <div #scrollSentinel style="height:1px;width:100%;"></div>
 
         <!-- End of feed -->
-        <div class="end-of-feed" *ngIf="!hasMore && posts.length > 0 && !isLoading">
+        <div class="text-center text-muted small py-3" *ngIf="!hasMore && posts.length > 0 && !isLoading">
           <span>Bạn đã xem hết bài đăng</span>
         </div>
       </div>
@@ -138,10 +146,7 @@
   </div>
 
   <!-- Post Detail Popup -->
-  <app-post-detail
-    [visible]="isPostDetailVisible"
-    [postId]="selectedPostId"
-    [homePosts]="posts"
+  <app-post-detail [visible]="isPostDetailVisible" [postId]="selectedPostId" [homePosts]="posts"
     (closed)="onCloseDetail()">
   </app-post-detail>
 </div>

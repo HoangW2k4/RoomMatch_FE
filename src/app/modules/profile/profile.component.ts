@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil, finalize } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
@@ -66,15 +66,28 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
   private likeInFlightPostIds = new Set<string>();
 
+  private pendingTab: string | null = null;
+
   constructor(
     private authService: AuthService,
     private alertService: AlertService,
     private modalService: ModalService,
     private postService: PostService,
     private profileService: ProfileService,
+    private route: ActivatedRoute,
   ) { }
 
   ngOnInit(): void {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.pendingTab = params['tab'] || null;
+      if (this.tabs.length > 0 && this.pendingTab) {
+        const validTab = this.tabs.find(t => t.key === this.pendingTab);
+        if (validTab && this.activeTab !== validTab.key) {
+          this.switchTab(validTab.key);
+        }
+        this.pendingTab = null;
+      }
+    });
     this.loadUserInfo();
   }
 
@@ -125,7 +138,14 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
         { key: 'liked', label: 'Bài đã thích', icon: 'bookmark' },
       ];
     }
-    this.activeTab = this.tabs[0].key;
+    // If a pending tab was requested via query param, use it
+    if (this.pendingTab) {
+      const validTab = this.tabs.find(t => t.key === this.pendingTab);
+      this.activeTab = validTab ? validTab.key : this.tabs[0].key;
+      this.pendingTab = null;
+    } else {
+      this.activeTab = this.tabs[0].key;
+    }
   }
 
   get genderLabel(): string {
@@ -133,6 +153,14 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'MALE': return 'Nam';
       case 'FEMALE': return 'Nữ';
       default: return 'Khác';
+    }
+  } 
+
+  get genderIcon(): string {
+    switch (this.user?.gender) {
+      case 'MALE': return 'assets/icons/ic_male.svg';
+      case 'FEMALE': return 'assets/icons/ic_female.svg';
+      default: return 'assets/icons/ic_gender.svg';
     }
   }
 
