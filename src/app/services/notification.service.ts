@@ -113,9 +113,11 @@ export class NotificationService {
     
     // Tùy theo type để hiển thị nội dung cho phù hợp
     if (notif.type === 'NEW_MESSAGE') {
-      content = 'Ai đó vừa nhắn tin cho bạn';
+      content = notif.metaData?.senderName + ' đã nhắn tin cho bạn';
     } else if (notif.type === 'REPOST_CREATED') {
-      content = 'Bài viết của bạn đã được chia sẻ lại';
+      content = notif.metaData?.senderName + ' đã chia sẻ bài viết của bạn';
+    } else if (notif.type === 'NEW_COMMENT') {
+      content = notif.metaData?.senderName + ' đã bình luận bài viết của bạn';
     } else {
       content = notif.title || 'Bạn có một thông báo mới.';
     }

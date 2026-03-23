@@ -33,8 +33,8 @@
     </div>
   </div>
 
-  <!-- Suggested Rooms -->
-  <div class="card border-0 rounded-4 shadow-sm">
+  <!-- Suggested Rooms (HOME only) -->
+  <div class="card border-0 rounded-4 shadow-sm" *ngIf="mode === 'home'">
     <div class="card-body p-3">
       <h6 class="fw-bold mb-3">Phòng gợi ý</h6>
 
@@ -55,6 +55,33 @@
 
       <div *ngIf="suggestedPosts.length === 0" class="text-muted small text-center py-2">
         Chưa có gợi ý
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Visitors (PROFILE only) -->
+  <div class="card border-0 rounded-4 shadow-sm" *ngIf="mode === 'profile'">
+    <div class="card-body p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">Ghé thăm gần đây</h6>
+        <span class="text-primary small fw-semibold" style="cursor:pointer">Xem tất cả</span>
+      </div>
+
+      <div class="d-flex flex-column gap-3" *ngIf="recentVisitors.length > 0">
+        <div *ngFor="let visitor of recentVisitors" class="d-flex align-items-center gap-2">
+          <img [src]="visitor.avatarUrl" [alt]="visitor.name"
+            class="rounded-circle flex-shrink-0 object-fit-cover"
+            style="width: 36px; height: 36px;"
+            (error)="$event.target.setAttribute('src','assets/images/avatar_default.jpg')">
+          <div class="d-flex flex-column overflow-hidden">
+            <span class="fw-semibold text-dark small text-truncate">{{ visitor.name }}</span>
+            <span class="text-muted text-xxs">{{ visitor.time }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="recentVisitors.length === 0" class="text-muted small text-center py-2">
+        Chưa có lượt ghé thăm
       </div>
     </div>
   </div>

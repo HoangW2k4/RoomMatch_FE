@@ -59,11 +59,11 @@ import { ToastService } from '../../../services/toast.service';
       box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
       padding: 0 !important;
       overflow: hidden;
-      width: 400px;
+      width: 360px;
       max-width: 100%;
     }
     ::ng-deep .custom-toast .toast-body {
-      padding: 20px 24px !important;
+      padding: 16px 20px !important;
       background: #fff;
       border-radius: 18px;
     }
@@ -79,19 +79,19 @@ import { ToastService } from '../../../services/toast.service';
       opacity: 0.8;
     }
     .custom-toast-avatar {
-      width: 56px;
-      height: 56px;
+      width: 46px;
+      height: 46px;
       object-fit: cover;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .custom-toast-title {
-      font-size: 1.1rem;
+      font-size: 0.95rem;
       letter-spacing: -0.2px;
     }
   `]
 })
 export class AppToastsComponent {
-  constructor(public toastService: ToastService) {}
+  constructor(public toastService: ToastService) { }
 
   isTemplate(toast: any) {
     return toast.textOrTpl instanceof TemplateRef;

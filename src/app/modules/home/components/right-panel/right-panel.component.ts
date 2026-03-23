@@ -3,6 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RoomPostResponse } from '../../../../core/models/post.interface';
 
+export interface VisitorItem {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  time: string;
+}
+
 interface NotificationItem {
   id: number;
   avatarUrl: string;
@@ -20,7 +27,15 @@ interface NotificationItem {
 })
 export class RightPanelComponent {
   @Input() posts: RoomPostResponse[] = [];
+  @Input() mode: 'home' | 'profile' = 'home';
   @Output() openDetail = new EventEmitter<string>();
+
+  recentVisitors: VisitorItem[] = [
+    { id: '1', name: 'Nguyễn Văn A', avatarUrl: 'assets/images/avatar_default.jpg', time: '5 phút trước' },
+    { id: '2', name: 'Trần Thị B', avatarUrl: 'assets/images/avatar_default.jpg', time: '1 giờ trước' },
+    { id: '3', name: 'Lê Minh C', avatarUrl: 'assets/images/avatar_default.jpg', time: '3 giờ trước' },
+    { id: '4', name: 'Phạm Đức D', avatarUrl: 'assets/images/avatar_default.jpg', time: 'Hôm qua' },
+  ];
 
   notifications: NotificationItem[] = [
     {

@@ -85,9 +85,12 @@ export class PostService {
   /**
    * Get all posts by current landlord
    */
-  getPostsByLandlord(page = 1, size = 10): Observable<ApiResponse<PaginatedResponse<RoomPostResponse>>> {
+  getPostsByLandlord(landlordId: string, page = 1, size = 10): Observable<ApiResponse<PaginatedResponse<RoomPostResponse>>> {
     return this.api.get<ApiResponse<PaginatedResponse<RoomPostResponse>>>(`${this.basePath}/all-by-landlord`, {
-      params: new HttpParams().set('page', page.toString()).set('size', size.toString())
+      params: new HttpParams()
+        .set('landlordId', landlordId)
+        .set('page', page.toString())
+        .set('size', size.toString())
     });
   }
 
