@@ -131,12 +131,13 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
       this.tabs = [
         { key: 'my-posts', label: 'Bài đăng của tôi', icon: 'listing' },
         { key: 'reposts', label: 'Bài đăng lại', icon: 'repeat' },
+
       ];
     } else {
       this.tabs = [
         { key: 'my-reposts', label: 'Bài đã đăng lại', icon: 'repeat' },
         { key: 'liked', label: 'Bài đã thích', icon: 'bookmark' },
-      ];
+      ]
     }
     // If a pending tab was requested via query param, use it
     if (this.pendingTab) {
@@ -183,7 +184,7 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get isPlaceholderTab(): boolean {
-    return this.activeTab === 'reposts' || this.activeTab === 'my-reposts';
+    return this.activeTab === 'reposts' || this.activeTab === 'my-reposts' || this.activeTab === 'statistics' || this.activeTab === 'settings';
   }
 
   // ===== Load Posts =====

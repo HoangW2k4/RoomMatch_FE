@@ -70,12 +70,13 @@
 /* ===== Tabs ===== */
 .tab-btn {
   position: relative;
-  color: #9ca3af;
-  font-size: 0.92rem;
-  transition: color 0.2s ease;
+  color: #6b7280;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  border-radius: 0;
 }
 .tab-btn:hover {
-  color: #374151;
+  color: #3b82f6;
 }
 .tab-btn.active {
   color: #3b82f6;
@@ -86,12 +87,15 @@
   bottom: -1px;
   left: 0;
   right: 0;
-  height: 2.5px;
+  height: 2px;
   background: #3b82f6;
   border-radius: 2px 2px 0 0;
 }
 .small{
   font-size: 14px;
+}
+.border-bottom{
+  border-bottom: 2px solid #e5e7eb !important;
 }
 /* ===== Skeleton ===== */
 .skeleton-avatar {

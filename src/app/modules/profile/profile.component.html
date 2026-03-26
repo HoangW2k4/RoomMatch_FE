@@ -68,10 +68,21 @@
       </div>
 
       <!-- Tabs -->
-      <div class="d-flex border-bottom bg-white rounded-top-4 px-1" *ngIf="!isLoadingUser">
-        <button *ngFor="let tab of tabs" class="btn border-0 bg-transparent fw-semibold px-3 py-2 tab-btn"
-          [class.active]="activeTab === tab.key" (click)="switchTab(tab.key)">
-          {{ tab.label }}
+      <div class="d-flex justify-content-between align-items-center border-bottom px-4 pr-3" *ngIf="!isLoadingUser">
+        <div class="d-flex gap-4">
+          <button *ngFor="let tab of tabs" class="btn border-0 bg-transparent fw-bold px-0 py-3 tab-btn"
+            [class.active]="activeTab === tab.key" (click)="switchTab(tab.key)">
+            {{ tab.label }}
+          </button>
+        </div>
+        
+        <button *ngIf="user?.role === 'ROLE_LANDLORD'" 
+                class="btn btn-primary rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2 fw-medium shadow-sm"
+                routerLink="/post/create">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/>
+          </svg>
+          Tạo bài đăng mới
         </button>
       </div>
 
