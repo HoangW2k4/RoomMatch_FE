@@ -122,7 +122,7 @@
       <aside class="col-12 col-xl-4 right-panel p-2">
         <div class="card border host-card mx-3 mt-2 mb-4 p-2">
           <div class="card-body p-2">
-            <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2 mb-2 host-info-row" (click)="onGoToProfile($event)" style="cursor: pointer;">
               <img class="host-avatar" [src]="post.landlordInfo.avatarUrl || 'assets/images/avatar_default.jpg'" alt="avatar" (error)="onImageError($event)"/>
               <div>
                 <h4 class="h6 mb-0">{{ post.landlordInfo.name }}</h4>

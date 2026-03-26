@@ -1,8 +1,7 @@
 <div class="post-card">
-  <!-- Header -->
   <div class="post-header">
     <div class="user-info">
-      <div class="avatar-wrapper">
+      <div class="avatar-wrapper" (click)="onGoToProfile($event)" style="cursor: pointer;">
         <img
           [src]="post.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg'"
           class="avatar"
@@ -12,7 +11,7 @@
         <span class="online-dot"></span>
       </div>
       <div class="user-details">
-        <div class="user-name-row">
+        <div class="user-name-row" (click)="onGoToProfile($event)" style="cursor: pointer;">
           <span class="user-name">{{ post.landlordInfo?.name || 'Chủ phòng' }}</span>
           <img src="/assets/icons/ic_verified.svg" class="verified-badge" width="16" height="16" alt="verified">
         </div>

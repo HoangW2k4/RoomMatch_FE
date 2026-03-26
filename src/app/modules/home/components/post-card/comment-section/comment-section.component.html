@@ -52,11 +52,13 @@
   <div class="comment-thread" [class.is-nested]="depth > 0" [class.is-last-child]="isLast">
 
     <div class="comment-row d-flex align-items-start gap-2 py-1">
-      <img [src]="comment.userAvatarUrl || 'assets/images/avatar_default.jpg'" class="comment-avatar"
-        [class.small]="depth > 0" alt="avatar" title="avatar" (error)="onAvatarError($event)" />
+      <img [src]="comment.userAvatarUrl || 'assets/images/avatar_default.jpg'" class="comment-avatar clickable"
+        [class.small]="depth > 0" alt="avatar" title="avatar" (error)="onAvatarError($event)"
+        (click)="onGoToProfile(comment.userId)" />
       <div class="comment-content flex-grow-1 min-w-0">
         <div class="comment-bubble rounded-4 px-3 py-2 bg-body-secondary d-inline-block">
-          <span class="comment-author fw-semibold small d-block">{{ comment.userFullName }}</span>
+          <span class="comment-author fw-semibold small d-block clickable"
+                (click)="onGoToProfile(comment.userId)">{{ comment.userFullName }}</span>
           <p class="comment-text mb-0" *ngIf="!comment.isDeleted">{{ comment.content }}</p>
           <p class="comment-text deleted mb-0 fst-italic" *ngIf="comment.isDeleted">Bình luận đã bị xóa</p>
         </div>

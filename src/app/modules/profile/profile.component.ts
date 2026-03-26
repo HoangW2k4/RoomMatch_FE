@@ -38,9 +38,10 @@ interface TabItem {
   styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
-  // User info
   user: UserProfile | null = null;
   isLoadingUser = true;
+  viewingUserId: string | null = null;
+  isOwnProfile = true;
 
   // Tabs
   tabs: TabItem[] = [];
@@ -104,13 +105,17 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   // ===== User Info =====
 
   private loadUserInfo(): void {
-    const userId = this.authService.currentUserId;
-    if (!userId) {
+    this.viewingUserId = this.route.snapshot.queryParamMap.get('userId');
+    const userIdToLoad = this.viewingUserId || this.authService.currentUserId;
+    
+    if (!userIdToLoad) {
       this.isLoadingUser = false;
       return;
     }
 
-    this.profileService.getUserInfo(userId)
+    this.isOwnProfile = !this.viewingUserId || this.viewingUserId === this.authService.currentUserId;
+
+    this.profileService.getUserInfo(userIdToLoad)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -128,16 +133,27 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private initTabs(): void {
     if (this.user?.role === 'ROLE_LANDLORD') {
-      this.tabs = [
-        { key: 'my-posts', label: 'Bài đăng của tôi', icon: 'listing' },
-        { key: 'reposts', label: 'Bài đăng lại', icon: 'repeat' },
-
-      ];
+      if (this.isOwnProfile) {
+        this.tabs = [
+          { key: 'my-posts', label: 'Bài đăng của tôi', icon: 'listing' },
+          { key: 'reposts', label: 'Bài đăng lại', icon: 'repeat' },
+        ];
+      } else {
+        this.tabs = [
+          { key: 'my-posts', label: 'Bài đăng', icon: 'listing' },
+        ];
+      }
     } else {
-      this.tabs = [
-        { key: 'my-reposts', label: 'Bài đã đăng lại', icon: 'repeat' },
-        { key: 'liked', label: 'Bài đã thích', icon: 'bookmark' },
-      ]
+      if (this.isOwnProfile) {
+        this.tabs = [
+          { key: 'my-reposts', label: 'Bài đã đăng lại', icon: 'repeat' },
+          { key: 'liked', label: 'Bài đã thích', icon: 'bookmark' },
+        ];
+      } else {
+        this.tabs = [
+          { key: 'my-reposts', label: 'Bài đã đăng lại', icon: 'repeat' },
+        ];
+      }
     }
     // If a pending tab was requested via query param, use it
     if (this.pendingTab) {
@@ -201,7 +217,8 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
 
     let request$;
     if (this.activeTab === 'my-posts') {
-      request$ = this.postService.getPostsByLandlord(this.authService.currentUserId!, this.currentPage, this.pageSize);
+      const targetUserId = this.viewingUserId || this.authService.currentUserId!;
+      request$ = this.postService.getPostsByLandlord(targetUserId, this.currentPage, this.pageSize);
     } else {
       request$ = this.postService.getLikedPosts(this.currentPage, this.pageSize);
     }

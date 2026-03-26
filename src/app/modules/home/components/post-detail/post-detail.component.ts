@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { Amenity, RoomPostDetailResponse, RoomPostResponse } from '../../../../core/models/post.interface';
@@ -42,7 +43,8 @@ export class PostDetailComponent implements OnChanges {
     private alertService: AlertService,
     private authService: AuthService,
     private modalService: ModalService,
-    private chatUiService: ChatUiService
+    private chatUiService: ChatUiService,
+    private router: Router
   ) {}
 
   get isOwner(): boolean {
@@ -109,6 +111,20 @@ export class PostDetailComponent implements OnChanges {
 
   close(): void {
     this.closed.emit();
+  }
+
+  onGoToProfile(event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    const targetUserId = this.detail?.landlordInfo?.id;
+    if (targetUserId) {
+      if (String(targetUserId) === this.authService.currentUserId) {
+        this.router.navigate(['/profile']);
+      } else {
+        this.router.navigate(['/profile'], { queryParams: { userId: targetUserId }});
+      }
+      this.close();
+    }
   }
   prevMedia(): void {
     if (!this.sortedMedias.length) return;

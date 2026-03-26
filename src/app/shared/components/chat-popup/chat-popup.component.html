@@ -3,7 +3,7 @@
   <div *ngFor="let conv of openConversations" class="chat-window d-flex flex-column bg-white rounded-top-3 overflow-hidden">
 
     <div class="cw-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white flex-shrink-0">
-      <div class="d-flex align-items-center gap-2 min-w-0">
+      <div class="d-flex align-items-center gap-2 min-w-0 cw-profile-link" (click)="onGoToProfile(conv.partnerId, conv, $event)" title="Xem trang cá nhân">
         <div class="position-relative flex-shrink-0">
           <img [src]="conv.partnerAvatar" class="cw-avatar rounded-circle object-fit-cover" [alt]="conv.partnerName" />
           <span class="cw-status-dot position-absolute rounded-circle" *ngIf="conv.isOnline"></span>

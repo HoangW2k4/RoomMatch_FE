@@ -98,6 +98,12 @@
 .cw-name {
   font-size: 0.9rem;
   color: #1a1a2e;
+  transition: color 0.15s ease;
+}
+
+.cw-profile-link:hover .cw-name {
+  text-decoration: underline;
+  color: #3179c7;
 }
 
 .cw-online-status {

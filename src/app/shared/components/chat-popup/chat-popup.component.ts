@@ -7,7 +7,7 @@ import {
   QueryList,
   ViewChildren
 } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
@@ -86,7 +86,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   constructor(
     private chatService: ChatService,
     private websocketService: WebsocketService,
-    private chatUiService: ChatUiService
+    private chatUiService: ChatUiService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -146,6 +147,24 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   hideChat(conv: Conversation): void {
     conv.isOpen = false;
+  }
+
+  onGoToProfile(partnerId: string, conv?: Conversation, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    if (!partnerId) return;
+    
+    if (conv) {
+      conv.isOpen = false;
+    }
+    
+    if (partnerId === this.currentUserId) {
+      this.router.navigate(['/profile']);
+    } else {
+      this.router.navigate(['/profile'], { queryParams: { userId: partnerId }});
+    }
   }
 
   sendMessage(conv: Conversation): void {

@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { PostMedia, RoomPostResponse } from '../../../../core/models/post.interface';
 import { GalleryLayout1Component } from './layouts/gallery-layout-1.component';
 import { GalleryLayout2Component } from './layouts/gallery-layout-2.component';
@@ -45,7 +46,8 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
   constructor(
     private el: ElementRef,
     private chatUiService: ChatUiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngAfterViewInit(): void {
@@ -210,6 +212,19 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
     event.stopPropagation();
     event.preventDefault();
     this.openDetail.emit(this.post.id);
+  }
+
+  onGoToProfile(event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    const targetUserId = this.post.landlordInfo?.id || this.post.landlordId;
+    if (targetUserId) {
+      if (String(targetUserId) === this.authService.currentUserId) {
+        this.router.navigate(['/profile']);
+      } else {
+        this.router.navigate(['/profile'], { queryParams: { userId: targetUserId }});
+      }
+    }
   }
 
   onAvatarError(event: Event): void {

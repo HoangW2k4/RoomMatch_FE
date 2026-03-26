@@ -52,6 +52,12 @@
   display: block;
   line-height: 1.2;
 }
+.clickable {
+  cursor: pointer;
+}
+.comment-author.clickable:hover {
+  text-decoration: underline;
+}
 .comment-text {
   margin: 2px 0 0;
   font-size: 0.84rem;

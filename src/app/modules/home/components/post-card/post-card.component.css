@@ -60,6 +60,9 @@
   font-size: 0.9rem;
   color: #1f2937;
 }
+.user-name-row:hover .user-name {
+  text-decoration: underline;
+}
 .verified-badge {
   flex-shrink: 0;
 }

@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, OnDestroy, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommentResponse, CommentRequest } from '../../../../../core/models/post.interface';
 import { PostService } from '../../../post.service';
@@ -36,7 +37,8 @@ export class CommentSectionComponent implements OnInit, OnDestroy {
 
   constructor(
     private postService: PostService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -51,7 +53,7 @@ export class CommentSectionComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     this.currentUserId = user?.id || null;
-    this.currentUserAvatar = user?.avatarUrl || null;
+    this.currentUserAvatar = user?.avatar || null;
   }
 
   ngOnDestroy(): void {
@@ -255,6 +257,15 @@ export class CommentSectionComponent implements OnInit, OnDestroy {
       } else {
         this.submitReply();
       }
+    }
+  }
+
+  onGoToProfile(userId: string): void {
+    if (!userId) return;
+    if (userId === this.currentUserId) {
+      this.router.navigate(['/profile']);
+    } else {
+      this.router.navigate(['/profile'], { queryParams: { userId: userId }});
     }
   }
 }
