@@ -11,6 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ChatService } from '../../modules/chat/chat.service';
 import { ChatConversation, ChatConversationParticipant } from '../../modules/chat/chat.interface';
 import { ChatUiService } from '../../services/chat-ui.service';
+import { AddPostPopupComponent } from '../../modules/home/components/add-post-popup/add-post-popup.component';
 
 interface ConversationPreview {
   id: string;
@@ -25,7 +26,7 @@ interface ConversationPreview {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NgbDropdownModule],
+  imports: [CommonModule, FormsModule, RouterModule, NgbDropdownModule, AddPostPopupComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -46,15 +47,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
   userAvatar = JSON.parse(localStorage.getItem('user') || '{}').avatar || 'assets/images/avatar_default.jpg';
   notificationCount = 0;
   messageCount = 0;
+  userRole = JSON.parse(localStorage.getItem('user') || '{}').role || '';
 
   isChatPanelOpen = false;
   chatSearchText = '';
   conversations: ConversationPreview[] = [];
 
+  isAddPostVisible = false;
+
   private currentUserId: string | null = null;
   private destroy$ = new Subject<void>();
 
+  openAddPostModal(): void {
+    this.isAddPostVisible = true;
+  }
 
+  closeAddPostModal(): void {
+    this.isAddPostVisible = false;
+  }
 
   ngOnInit(): void {
     this.currentUserId = this.getCurrentUserId();

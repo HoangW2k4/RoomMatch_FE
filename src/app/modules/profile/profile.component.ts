@@ -17,6 +17,7 @@ import { RightPanelComponent } from '../home/components/right-panel/right-panel.
 import { PostCardComponent } from '../home/components/post-card/post-card.component';
 import { PostDetailComponent } from '../home/components/post-detail/post-detail.component';
 import { EditProfilePopupComponent } from './edit-profile-popup/edit-profile-popup.component';
+import { AddPostPopupComponent } from '../home/components/add-post-popup/add-post-popup.component';
 
 interface TabItem {
   key: string;
@@ -35,6 +36,7 @@ interface TabItem {
     PostCardComponent,
     PostDetailComponent,
     EditProfilePopupComponent,
+    AddPostPopupComponent
   ],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
@@ -72,6 +74,7 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private pendingTab: string | null = null;
   isEditProfileVisible = false;
+  isAddPostVisible = false;
 
   constructor(
     private authService: AuthService,
@@ -369,5 +372,14 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isFirstLoad = true;
     this.user = null;
     this.loadUserInfo();
+  }
+
+  // ===== Create Post =====
+  openAddPostModal(): void {
+    this.isAddPostVisible = true;
+  }
+
+  closeAddPostModal(): void {
+    this.isAddPostVisible = false;
   }
 }

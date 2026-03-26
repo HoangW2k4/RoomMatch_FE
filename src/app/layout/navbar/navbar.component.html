@@ -86,6 +86,11 @@
             </div>
         </div>
 
+        <button *ngIf="userRole === 'ROLE_LANDLORD'" type="button" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold ms-2 me-1 px-3 d-none d-md-flex align-items-center"
+                style="height: 36px;" (click)="openAddPostModal()">
+             <span class="fs-5 me-1" style="line-height: 0;">+</span> Đăng tin
+        </button>
+
         <div ngbDropdown class="d-inline-block ms-1">
             <button class="btn p-0 border-0 bg-transparent dropdown-toggle-no-caret"
                     type="button" id="userDropdown" ngbDropdownToggle>
@@ -126,3 +131,10 @@
     </div>
     </div>
 </nav>
+
+<!-- Add Post Popup -->
+<app-add-post-popup
+  [visible]="isAddPostVisible"
+  (closed)="closeAddPostModal()"
+  (postCreated)="closeAddPostModal()">
+</app-add-post-popup>
