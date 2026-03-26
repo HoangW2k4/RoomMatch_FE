@@ -1,0 +1,98 @@
+.avatar-preview {
+  width: 160px;
+  height: 160px;
+  border: 4px solid #f8f9fa;
+}
+.avatar-camera-badge {
+  bottom: 4px;
+  right: 4px;
+  width: 38px;
+  height: 38px;
+  background: #e1e0e0f7;
+  border: 2px solid #fff;
+  cursor: pointer;
+}
+.avatar-camera-badge:hover {
+  background: #d1d1d1f7;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Form controls styling */
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.95rem;
+  color: #1a202c;
+  background-color: #ffffff;
+  transition: all 0.2s;
+}
+
+.form-control::placeholder {
+  color: #a0aec0;
+}
+
+.form-control:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Custom Gender Buttons to match the image */
+.btn-outline-custom {
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  background-color: #fff;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.btn-outline-custom:hover {
+  background-color: #f8fafc;
+}
+
+.btn-check:checked + .btn-outline-custom {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+html .btn-check:focus + .btn-outline-custom {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Base button properties */
+.py-10 {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* Cancel Button */
+.btn-cancel {
+  background-color: #f5f7fa;
+  border: 1px solid #f5f7fa;
+  color: #4a5568 !important;
+  transition: all 0.2s;
+}
+.btn-cancel:hover {
+  background-color: #e2e8f0;
+  border-color: #e2e8f0;
+}
+
+/* Save Button */
+.btn-save {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+  transition: all 0.2s;
+}
+.btn-save:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.15);
+}
+.btn-save:disabled {
+  background-color: #93c5fd;
+  border-color: #93c5fd;
+}

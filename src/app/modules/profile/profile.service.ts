@@ -25,4 +25,8 @@ export class ProfileService {
       params: new HttpParams().set('userId', userId)
     });
   }
+
+  updateInfo(formData: FormData): Observable<ApiResponse<any>> {
+    return this.api.post<ApiResponse<any>>('/account/change-info', formData);
+  }
 }

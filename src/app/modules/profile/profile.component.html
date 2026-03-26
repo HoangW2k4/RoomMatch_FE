@@ -47,7 +47,7 @@
           </div>
 
           <!-- Edit Button -->
-          <button
+          <button (click)="openEditProfile()" *ngIf="isOwnProfile"
             class="btn btn-outline-secondary btn-sm rounded-3 d-inline-flex align-items-center gap-1 fw-semibold flex-shrink-0 align-self-start">
             <img src="assets/icons/settings.svg" alt="Edit" width="14" height="14">
             Chỉnh sửa
@@ -160,4 +160,12 @@
   <app-post-detail [visible]="isPostDetailVisible" [postId]="selectedPostId" [homePosts]="posts"
     (closed)="onCloseDetail()">
   </app-post-detail>
+
+  <!-- Edit Profile Popup -->
+  <app-edit-profile-popup *ngIf="isEditProfileVisible && user" 
+    [visible]="isEditProfileVisible" 
+    [user]="user" 
+    (closed)="isEditProfileVisible = false" 
+    (profileUpdated)="onProfileUpdated()">
+  </app-edit-profile-popup>
 </div>

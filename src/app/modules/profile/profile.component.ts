@@ -16,6 +16,7 @@ import { LeftPanelComponent } from '../home/components/left-panel/left-panel.com
 import { RightPanelComponent } from '../home/components/right-panel/right-panel.component';
 import { PostCardComponent } from '../home/components/post-card/post-card.component';
 import { PostDetailComponent } from '../home/components/post-detail/post-detail.component';
+import { EditProfilePopupComponent } from './edit-profile-popup/edit-profile-popup.component';
 
 interface TabItem {
   key: string;
@@ -33,6 +34,7 @@ interface TabItem {
     RightPanelComponent,
     PostCardComponent,
     PostDetailComponent,
+    EditProfilePopupComponent,
   ],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
@@ -42,6 +44,7 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   isLoadingUser = true;
   viewingUserId: string | null = null;
   isOwnProfile = true;
+  private isFirstLoad = true;
 
   // Tabs
   tabs: TabItem[] = [];
@@ -68,6 +71,7 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   private likeInFlightPostIds = new Set<string>();
 
   private pendingTab: string | null = null;
+  isEditProfileVisible = false;
 
   constructor(
     private authService: AuthService,
@@ -80,16 +84,27 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.pendingTab = params['tab'] || null;
-      if (this.tabs.length > 0 && this.pendingTab) {
-        const validTab = this.tabs.find(t => t.key === this.pendingTab);
-        if (validTab && this.activeTab !== validTab.key) {
-          this.switchTab(validTab.key);
+      const newUserId = params['userId'] || null;
+      const tabParam = params['tab'] || null;
+
+      const userIdChanged = this.isFirstLoad || this.viewingUserId !== newUserId;
+
+      if (userIdChanged) {
+        this.viewingUserId = newUserId;
+        this.isFirstLoad = false;
+        this.pendingTab = tabParam;
+        this.loadUserInfo();
+      } else {
+        if (this.isLoadingUser) {
+          this.pendingTab = tabParam;
+        } else if (tabParam && this.tabs.length > 0) {
+          const validTab = this.tabs.find(t => t.key === tabParam);
+          if (validTab && this.activeTab !== validTab.key) {
+            this.switchTab(validTab.key);
+          }
         }
-        this.pendingTab = null;
       }
     });
-    this.loadUserInfo();
   }
 
   ngAfterViewInit(): void {
@@ -105,15 +120,23 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   // ===== User Info =====
 
   private loadUserInfo(): void {
-    this.viewingUserId = this.route.snapshot.queryParamMap.get('userId');
     const userIdToLoad = this.viewingUserId || this.authService.currentUserId;
-    
+
     if (!userIdToLoad) {
       this.isLoadingUser = false;
       return;
     }
 
     this.isOwnProfile = !this.viewingUserId || this.viewingUserId === this.authService.currentUserId;
+
+    // Reset state before loading a potential new user profile
+    this.currentPage = 1;
+    this.posts = [];
+    this.totalPosts = 0;
+    this.hasMore = false;
+    this.isLoadingUser = true;
+    this.user = null;
+    this.tabs = [];
 
     this.profileService.getUserInfo(userIdToLoad)
       .pipe(takeUntil(this.destroy$))
@@ -171,7 +194,7 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'FEMALE': return 'Nữ';
       default: return 'Khác';
     }
-  } 
+  }
 
   get genderIcon(): string {
     switch (this.user?.gender) {
@@ -334,5 +357,17 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   onAvatarError(event: Event): void {
     const img = event.target as HTMLImageElement;
     img.src = 'assets/images/avatar_default.jpg';
+  }
+
+  // ===== Edit Profile =====
+
+  openEditProfile(): void {
+    this.isEditProfileVisible = true;
+  }
+
+  onProfileUpdated(): void {
+    this.isFirstLoad = true;
+    this.user = null;
+    this.loadUserInfo();
   }
 }
