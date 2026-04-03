@@ -1,5 +1,5 @@
 .add-post-container {
-  max-height: calc(90vh - 150px);
+  max-height: calc(90vh - 110px);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 8px; 
@@ -25,8 +25,8 @@
 
 /* Image Upload section */
 .media-upload-box {
-  width: 160px;
-  height: 150px;
+  width: 170px;
+  height: 160px;
   background-color: #fcfcfc;
   transition: all 0.2s ease;
 }
@@ -36,13 +36,31 @@
 }
 
 .media-preview-box {
-  width: 140px;
-  height: 140px;
+  width: 170px;
+  height: 160px;
+  cursor: pointer;
 }
 .media-preview-box img {
   border: 1px solid #eee;
 }
-
+.btn-remove-img {
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  color: #6b7280;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-remove-img img{  
+  border: none;
+}
+.btn-remove-img:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #4b5563;
+}
 /* Form inputs styling to match design */
 .form-control, .form-select {
   border-radius: 8px;
@@ -101,4 +119,46 @@
 
 .filter-white {
   filter: brightness(0) invert(1);
+}
+
+/* Footer actions */
+.footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  width: 100%;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.btn-cancel:hover {
+  color: #4b5563;
+}
+
+.btn-submit {
+  background: #2563eb;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 22px;
+  border-radius: 10px;
+  min-width: 96px;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+}
+
+.btn-submit:hover {
+  background: #1d4ed8;
+}
+
+.btn-submit:disabled {
+  background: #93c5fd;
+  box-shadow: none;
+  cursor: not-allowed;
 }

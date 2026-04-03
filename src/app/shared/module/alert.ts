@@ -14,6 +14,7 @@ export type AlertType = 'success' | 'warning' | 'error' | 'info';
       [width]="'450px'"
       [closeOnBackdrop]="true"
       (closed)="onClose()"
+      [zIndex]="1233"
     >
       <div class="alert-body">
         <div class="alert-icon-container">

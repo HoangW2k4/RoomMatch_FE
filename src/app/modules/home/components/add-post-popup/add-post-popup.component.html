@@ -4,20 +4,21 @@
     
     <!-- Photos & Videos -->
     <section>
-      <h6 class="fw-bold mb-3 section-title">Photos & Videos</h6>
+      <h6 class="fw-bold mb-3 section-title">Ảnh và Video</h6>
       <div class="d-flex flex-wrap gap-3">
         <!-- Add Button -->
         <label class="media-upload-box d-flex flex-column align-items-center justify-content-center border border-2 border-dashed rounded-4 cursor-pointer">
           <img src="assets/icons/ic_profile_camera.svg" alt="Add Media" width="24" height="24" class="mb-2 opacity-50">
-          <span class="text-secondary small fw-medium">Add Media</span>
-          <input type="file" class="d-none" accept="image/*" multiple (change)="onFileSelected($event)">
+          <span class="text-secondary small fw-medium">Thêm ảnh/video</span>
+          <input type="file" class="d-none" accept="image/*,video/*" multiple (change)="onFileSelected($event)">
         </label>
 
         <!-- Previews -->
-        <div *ngFor="let preview of mediaPreviews; let i = index" class="position-relative media-preview-box rounded-4 overflow-hidden shadow-sm">
-          <img [src]="preview" alt="Preview" class="w-100 h-100 object-fit-cover">
-          <button class="btn btn-sm btn-light position-absolute top-0 end-0 m-1 rounded-circle flex-center p-1 shadow-sm" (click)="removeMedia(i)">
-            <span aria-hidden="true">&times;</span>
+        <div *ngFor="let preview of mediaPreviews; let i = index" class="position-relative media-preview-box rounded-4 overflow-hidden shadow-sm" (click)="openMediaViewer(preview)">
+          <img *ngIf="preview.type === 'image'" [src]="preview.url" alt="Preview" class="w-100 h-100 object-fit-cover">
+          <video *ngIf="preview.type === 'video'" [src]="preview.url" class="w-100 h-100 object-fit-cover" muted playsinline></video>
+          <button class="btn btn-sm btn-light position-absolute top-0 end-0 m-1 rounded-circle flex-center p-1 shadow-sm btn-remove-img" (click)="removeMedia(i); $event.stopPropagation();">
+            <img src="assets/icons/close.svg" alt="" width="14" height="14">
           </button>
         </div>
       </div>
@@ -26,19 +27,19 @@
     <!-- Basic Info -->
     <section>
       <div class="mb-3">
-        <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Title of the post</label>
+        <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Tiêu đề bài viết</label>
         <app-input-field
           [control]="titleControl"
-          placeholder="e.g. Cozy studio apartment near city center">
+          placeholder="Ví dụ: Phòng trọ tiện nghi, giá hợp lý...">
         </app-input-field>
       </div>
       <div>
-        <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Description</label>
+        <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Mô tả chi tiết</label>
         <app-input-field
           [control]="descriptionControl"
           [multiline]="true"
           [rows]="4"
-          placeholder="Describe the room, building, and ideal roommate...">
+          placeholder="Mô tả chi tiết về căn phòng, tiện ích, vị trí, và những điểm nổi bật khác...">
         </app-input-field>
       </div>
     </section>
@@ -49,36 +50,50 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="text-primary" viewBox="0 0 16 16">
           <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
         </svg>
-        LOCATION
+        Vị trí
       </h6>
       <div class="row g-3 mb-3">
         <div class="col-md-4">
-          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Province</label>
-          <select class="form-select" [(ngModel)]="selectedProvinceCode" (change)="onProvinceChange()">
-            <option value="">Select Province</option>
-            <option *ngFor="let prov of provinces" [value]="prov.code">{{ prov.name }}</option>
-          </select>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Tỉnh/Thành phố</label>
+          <app-dropdown-field
+            [items]="provinces"
+            [value]="selectedProvince"
+            [displayWith]="provinceLabel"
+            [compareWith]="provinceCompare"
+            placeholder="Select Province"
+            (valueChange)="onProvinceChange($event)">
+          </app-dropdown-field>
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">District</label>
-          <select class="form-select" [(ngModel)]="selectedDistrictCode" (change)="onDistrictChange()" [disabled]="!selectedProvinceCode">
-            <option value="">Select District</option>
-            <option *ngFor="let dist of districts" [value]="dist.code">{{ dist.name }}</option>
-          </select>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Quận/Huyện</label>
+          <app-dropdown-field
+            [items]="districts"
+            [value]="selectedDistrict"
+            [displayWith]="districtLabel"
+            [compareWith]="districtCompare"
+            placeholder="Select District"
+            [disabled]="!selectedProvince"
+            (valueChange)="onDistrictChange($event)">
+          </app-dropdown-field>
         </div>
         <div class="col-md-4">
-          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Ward</label>
-          <select class="form-select" [(ngModel)]="selectedWardCode" [disabled]="!selectedDistrictCode">
-            <option value="">Select Ward</option>
-            <option *ngFor="let ward of wards" [value]="ward.code">{{ ward.name }}</option>
-          </select>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Phường/Xã</label>
+          <app-dropdown-field
+            [items]="wards"
+            [value]="selectedWard"
+            [displayWith]="wardLabel"
+            [compareWith]="wardCompare"
+            placeholder="Select Ward"
+            [disabled]="!selectedDistrict"
+            (valueChange)="onWardChange($event)">
+          </app-dropdown-field>
         </div>
       </div>
       <div>
-        <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Specific Address</label>
+        <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Địa chỉ cụ thể</label>
         <app-input-field
           [control]="streetControl"
-          placeholder="House number, street name...">
+          placeholder="Số nhà, tên đường...">
         </app-input-field>
       </div>
     </section>
@@ -87,7 +102,7 @@
     <section class="row g-4">
       <div class="col-md-6 border-end pe-md-4">
         <div class="mb-3">
-          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Monthly Rental Price</label>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Giá Thuê Hàng Tháng</label>
           <app-input-field
             [control]="priceControl"
             type="currency"
@@ -101,7 +116,7 @@
           </app-input-field>
         </div>
         <div>
-          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Deposit Price</label>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Tiền cọc</label>
           <app-input-field
             [control]="depositControl"
             type="currency"
@@ -117,7 +132,7 @@
       </div>
       <div class="col-md-6 ps-md-4">
         <div class="mb-3">
-          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Area (m2)</label>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Diện tích (m2)</label>
           <app-input-field
             [control]="areaControl"
             type="decimal"
@@ -130,7 +145,7 @@
           </app-input-field>
         </div>
         <div>
-          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Max People</label>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Số người tối đa</label>
           <app-input-field
             [control]="peoplesControl"
             type="number"
@@ -158,14 +173,20 @@
 
   </div>
 
+  <app-detail-list-medias
+    [visible]="isMediaViewerOpen"
+    [items]="orderedMediaPreviews"
+    [startIndex]="mediaViewerIndex"
+    (closed)="closeMediaViewer()">
+  </app-detail-list-medias>
+
   <!-- Action Buttons -->
-  <div popup-footer class="d-flex w-100 gap-2">
-    <button type="button" class="btn btn-light py-2 px-4 fw-semibold border rounded-3 text-secondary"
-      (click)="close()">Cancel</button>
-    <button type="button" class="btn btn-primary flex-grow-1 py-2 fw-bold text-uppercase rounded-3" (click)="submit()"
+  <div popup-footer class="footer-actions">
+    <button type="button" class="btn btn-cancel" (click)="close()">Hủy</button>
+    <button type="button" class="btn btn-submit" (click)="submit()"
       [disabled]="isSubmitting || !isValidForm()">
       <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-      Tạo Bài Đăng
+      Tạo bài đăng
     </button>
   </div>
 

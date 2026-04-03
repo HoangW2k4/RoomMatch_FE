@@ -1,10 +1,13 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl } from '@angular/forms';
 import { PopupComponent } from '../../../../shared/components/popup';
 import { InputFieldComponent } from '../../../../shared/components/input-field.component';
+import { DropdownFieldComponent } from '../../../../shared/components/dropdown-field/dropdown-field.component';
+import { DetailListMediasComponent } from '../../../../shared/components/detail-list-medias/detail-list-medias.component';
 import { RoomPostRequest, Amenity, Province, District, Ward } from '../../../../core/models/post.interface';
 import { ApiService } from '../../../../core/services/api.service';
+import { AlertService } from '../../../../core/services/alert.service';
 import { PostService } from '../../post.service';
 
 interface AmenityOption {
@@ -17,11 +20,11 @@ interface AmenityOption {
 @Component({
   selector: 'app-add-post-popup',
   standalone: true,
-  imports: [CommonModule, FormsModule, PopupComponent, InputFieldComponent],
+  imports: [CommonModule, FormsModule, PopupComponent, InputFieldComponent, DropdownFieldComponent, DetailListMediasComponent],
   templateUrl: './add-post-popup.component.html',
   styleUrls: ['./add-post-popup.component.css']
 })
-export class AddPostPopupComponent implements OnInit {
+export class AddPostPopupComponent implements OnInit, OnChanges {
   @Input() visible = false;
   @Output() closed = new EventEmitter<void>();
   @Output() postCreated = new EventEmitter<void>();
@@ -53,10 +56,41 @@ export class AddPostPopupComponent implements OnInit {
   selectedProvinceCode = '';
   selectedDistrictCode = '';
   selectedWardCode = '';
+  selectedProvince: Province | null = null;
+  selectedDistrict: District | null = null;
+  selectedWard: Ward | null = null;
+
+  readonly provinceLabel = (item: Province) => item?.name ?? '';
+  readonly districtLabel = (item: District) => item?.name ?? '';
+  readonly wardLabel = (item: Ward) => item?.name ?? '';
+
+  readonly provinceCompare = (a: Province, b: Province) => a?.code === b?.code;
+  readonly districtCompare = (a: District, b: District) => a?.code === b?.code;
+  readonly wardCompare = (a: Ward, b: Ward) => a?.code === b?.code;
 
   // Media Data
   selectedFiles: File[] = [];
-  mediaPreviews: string[] = [];
+  mediaPreviews: Array<{ url: string; type: 'image' | 'video' }> = [];
+
+  get orderedMediaPreviews(): Array<{ url: string; type: 'image' | 'video' }> {
+    if (!this.mediaPreviews.length) return [];
+    const videos = this.mediaPreviews.filter((item) => item.type === 'video');
+    const images = this.mediaPreviews.filter((item) => item.type === 'image');
+    return [...videos, ...images];
+  }
+
+  isMediaViewerOpen = false;
+  mediaViewerIndex = 0;
+
+  openMediaViewer(preview: { url: string; type: 'image' | 'video' }): void {
+    const index = this.orderedMediaPreviews.indexOf(preview);
+    this.mediaViewerIndex = index >= 0 ? index : 0;
+    this.isMediaViewerOpen = true;
+  }
+
+  closeMediaViewer(): void {
+    this.isMediaViewerOpen = false;
+  }
 
   // Amenities Data
   amenitiesList: AmenityOption[] = [
@@ -81,12 +115,19 @@ export class AddPostPopupComponent implements OnInit {
 
   constructor(
     private api: ApiService,
-    private postService: PostService
+    private postService: PostService,
+    private alertService: AlertService
   ) {}
 
   ngOnInit(): void {
     if (this.visible) {
       this.loadProvinces();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['visible']?.currentValue) {
+      this.ensureProvincesLoaded();
     }
   }
 
@@ -113,6 +154,10 @@ export class AddPostPopupComponent implements OnInit {
     this.selectedProvinceCode = '';
     this.selectedDistrictCode = '';
     this.selectedWardCode = '';
+    this.selectedProvince = null;
+    this.selectedDistrict = null;
+    this.selectedWard = null;
+    this.clearMediaPreviews();
     this.selectedFiles = [];
     this.mediaPreviews = [];
     this.amenitiesList.forEach(a => a.active = false);
@@ -129,7 +174,18 @@ export class AddPostPopupComponent implements OnInit {
     });
   }
 
-  onProvinceChange(): void {
+  private ensureProvincesLoaded(): void {
+    if (!this.provinces.length) {
+      this.loadProvinces();
+    }
+  }
+
+  onProvinceChange(province: Province | Province[] | null): void {
+    const nextProvince = Array.isArray(province) ? province[0] ?? null : province;
+    this.selectedProvince = nextProvince;
+    this.selectedProvinceCode = nextProvince?.code ?? '';
+    this.selectedDistrict = null;
+    this.selectedWard = null;
     this.selectedDistrictCode = '';
     this.selectedWardCode = '';
     this.districts = [];
@@ -144,7 +200,11 @@ export class AddPostPopupComponent implements OnInit {
     }
   }
 
-  onDistrictChange(): void {
+  onDistrictChange(district: District | District[] | null): void {
+    const nextDistrict = Array.isArray(district) ? district[0] ?? null : district;
+    this.selectedDistrict = nextDistrict;
+    this.selectedDistrictCode = nextDistrict?.code ?? '';
+    this.selectedWard = null;
     this.selectedWardCode = '';
     this.wards = [];
     if (this.selectedDistrictCode) {
@@ -157,26 +217,72 @@ export class AddPostPopupComponent implements OnInit {
     }
   }
 
+  onWardChange(ward: Ward | Ward[] | null): void {
+    const nextWard = Array.isArray(ward) ? ward[0] ?? null : ward;
+    this.selectedWard = nextWard;
+    this.selectedWardCode = nextWard?.code ?? '';
+  }
+
   // --- Image Handling ---
   onFileSelected(event: any): void {
     const files = event.target.files;
     if (files) {
+      const maxFileSize = 10 * 1024 * 1024;
+      const maxTotalSize = 25 * 1024 * 1024;
+      let totalSize = this.selectedFiles.reduce((sum, f) => sum + f.size, 0);
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        const isImage = file.type.startsWith('image/');
+        const isVideo = file.type.startsWith('video/');
+
+        if (!isImage && !isVideo) {
+          this.alertService.show('warning', 'Lưu ý', 'Chỉ hỗ trợ ảnh hoặc video.');
+          continue;
+        }
+
+        if (file.size > maxFileSize) {
+          this.alertService.show('warning', 'Lưu ý', 'Mỗi file tối đa 10MB.');
+          continue;
+        }
+
+        if (totalSize + file.size > maxTotalSize) {
+          this.alertService.show('warning', 'Lưu ý', 'Tổng dung lượng tối đa 25MB.');
+          break;
+        }
+
         this.selectedFiles.push(file);
-        
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          this.mediaPreviews.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
+        totalSize += file.size;
+
+        if (isImage) {
+          const reader = new FileReader();
+          reader.onload = (e: any) => {
+            this.mediaPreviews.push({ url: e.target.result, type: 'image' });
+          };
+          reader.readAsDataURL(file);
+        } else {
+          const url = URL.createObjectURL(file);
+          this.mediaPreviews.push({ url, type: 'video' });
+        }
       }
     }
   }
 
   removeMedia(index: number): void {
+    const preview = this.mediaPreviews[index];
+    if (preview?.url && preview.url.startsWith('blob:')) {
+      URL.revokeObjectURL(preview.url);
+    }
     this.selectedFiles.splice(index, 1);
     this.mediaPreviews.splice(index, 1);
+  }
+
+  private clearMediaPreviews(): void {
+    this.mediaPreviews.forEach((preview) => {
+      if (preview.url.startsWith('blob:')) {
+        URL.revokeObjectURL(preview.url);
+      }
+    });
   }
 
   private parseNumericValue(value: unknown): number | null {

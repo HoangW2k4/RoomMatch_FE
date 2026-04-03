@@ -47,3 +47,7 @@ a{
   cursor: pointer;
   text-decoration: none;
 }
+
+body.detail-media-open {
+  overflow: hidden;
+}

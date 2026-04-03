@@ -22,6 +22,7 @@ import { DOCUMENT } from '@angular/common';
       class="popup-backdrop"
       *ngIf="visible"
       (click)="onBackdropClick($event)"
+      [style.zIndex]="zIndex"
     >
       <div
         class="popup-container"
@@ -163,6 +164,7 @@ export class PopupComponent implements OnChanges, OnDestroy {
   @Input() visible = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Input() title?: string;
+  @Input() zIndex = 1131;
   @Input() width = '500px';
   @Input() bodyPadding = '16px';
   @Input() maxHeight = '80vh';

@@ -1,0 +1,53 @@
+<ng-template #overlayTemplate>
+  <div class="media-overlay" (click)="close()">
+    <div class="media-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <button type="button" class="media-close" (click)="close()" aria-label="Close">
+        <img src="assets/icons/close.svg" alt="">
+      </button>
+
+      <div class="media-detail">
+        <div class="media-main">
+          <button type="button" class="media-nav left" (click)="prev()" aria-label="Previous">
+            <span class="chevron"></span>
+          </button>
+
+          <ng-container [ngSwitch]="currentItem?.type">
+            <img
+              *ngSwitchCase="'image'"
+              [src]="currentItem?.url"
+              alt="Preview"
+              class="media-main__content"
+            />
+            <video
+              *ngSwitchCase="'video'"
+              [src]="currentItem?.url"
+              class="media-main__content"
+              controls
+              playsinline
+            ></video>
+          </ng-container>
+
+          <button type="button" class="media-nav right" (click)="next()" aria-label="Next">
+            <span class="chevron"></span>
+          </button>
+        </div>
+
+        <div class="media-thumbs">
+          <button
+            type="button"
+            class="media-thumb"
+            *ngFor="let item of items; let i = index"
+            [class.active]="i === selectedIndex"
+            (click)="select(i)"
+          >
+            <img *ngIf="item.type === 'image'" [src]="item.url" alt="Thumbnail" />
+            <div *ngIf="item.type === 'video'" class="thumb-video">
+              <video [src]="item.url" muted playsinline></video>
+              <span class="thumb-play"></span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
