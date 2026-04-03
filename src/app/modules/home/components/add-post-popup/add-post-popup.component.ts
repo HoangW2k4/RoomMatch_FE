@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, FormControl } from '@angular/forms';
 import { PopupComponent } from '../../../../shared/components/popup';
+import { InputFieldComponent } from '../../../../shared/components/input-field.component';
 import { RoomPostRequest, Amenity, Province, District, Ward } from '../../../../core/models/post.interface';
 import { ApiService } from '../../../../core/services/api.service';
 import { PostService } from '../../post.service';
@@ -16,7 +17,7 @@ interface AmenityOption {
 @Component({
   selector: 'app-add-post-popup',
   standalone: true,
-  imports: [CommonModule, FormsModule, PopupComponent],
+  imports: [CommonModule, FormsModule, PopupComponent, InputFieldComponent],
   templateUrl: './add-post-popup.component.html',
   styleUrls: ['./add-post-popup.component.css']
 })
@@ -35,6 +36,14 @@ export class AddPostPopupComponent implements OnInit {
   area: number | null = null;
   peoples: number | null = 1;
   street = '';
+
+  priceControl = new FormControl('');
+  depositControl = new FormControl('');
+  areaControl = new FormControl('');
+  peoplesControl = new FormControl('1');
+  titleControl = new FormControl('');
+  descriptionControl = new FormControl('');
+  streetControl = new FormControl('');
 
   // Location Data
   provinces: Province[] = [];
@@ -94,6 +103,13 @@ export class AddPostPopupComponent implements OnInit {
     this.area = null;
     this.peoples = 1;
     this.street = '';
+    this.priceControl.setValue('');
+    this.depositControl.setValue('');
+    this.areaControl.setValue('');
+    this.peoplesControl.setValue('1');
+    this.titleControl.setValue('');
+    this.descriptionControl.setValue('');
+    this.streetControl.setValue('');
     this.selectedProvinceCode = '';
     this.selectedDistrictCode = '';
     this.selectedWardCode = '';
@@ -163,6 +179,20 @@ export class AddPostPopupComponent implements OnInit {
     this.mediaPreviews.splice(index, 1);
   }
 
+  private parseNumericValue(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const normalized = String(value).replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+    if (!normalized) {
+      return null;
+    }
+
+    const numericValue = Number(normalized);
+    return Number.isNaN(numericValue) ? null : numericValue;
+  }
+
   // --- Amenity Handling ---
   toggleAmenity(amenity: AmenityOption): void {
     amenity.active = !amenity.active;
@@ -177,18 +207,26 @@ export class AddPostPopupComponent implements OnInit {
 
     this.isSubmitting = true;
 
+    const priceValue = this.parseNumericValue(this.priceControl.value);
+    const depositValue = this.parseNumericValue(this.depositControl.value);
+    const areaValue = this.parseNumericValue(this.areaControl.value);
+    const peoplesValue = this.parseNumericValue(this.peoplesControl.value);
+    const titleValue = (this.titleControl.value || '').toString().trim();
+    const descriptionValue = (this.descriptionControl.value || '').toString().trim();
+    const streetValue = (this.streetControl.value || '').toString().trim();
+
     const requestData: any = {
-      title: this.title,
-      description: this.description,
-      price: this.price,
-      deposit: this.deposit,
-      peoples: this.peoples,
-      area: this.area,
+      title: titleValue,
+      description: descriptionValue,
+      price: priceValue,
+      deposit: depositValue,
+      peoples: peoplesValue,
+      area: areaValue,
       addressRequest: {
         provinceCode: this.selectedProvinceCode,
         districtCode: this.selectedDistrictCode,
         wardCode: this.selectedWardCode,
-        detail: this.street
+        detail: streetValue
       },
       medias: [], // Ignored since we use files
       amenities: this.amenitiesList
@@ -211,10 +249,18 @@ export class AddPostPopupComponent implements OnInit {
   }
 
   isValidForm(): boolean {
-    return !!this.title && !!this.description &&
-      this.price != null && this.deposit != null &&
-      this.area != null && this.peoples != null &&
+    const priceValue = this.parseNumericValue(this.priceControl.value);
+    const depositValue = this.parseNumericValue(this.depositControl.value);
+    const areaValue = this.parseNumericValue(this.areaControl.value);
+    const peoplesValue = this.parseNumericValue(this.peoplesControl.value);
+    const titleValue = (this.titleControl.value || '').toString().trim();
+    const descriptionValue = (this.descriptionControl.value || '').toString().trim();
+    const streetValue = (this.streetControl.value || '').toString().trim();
+
+    return !!titleValue && !!descriptionValue &&
+      priceValue != null && depositValue != null &&
+      areaValue != null && peoplesValue != null &&
       !!this.selectedProvinceCode && !!this.selectedDistrictCode && !!this.selectedWardCode &&
-      !!this.street;
+      !!streetValue;
   }
 }

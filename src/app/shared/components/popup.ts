@@ -28,6 +28,7 @@ import { DOCUMENT } from '@angular/common';
         [style.width]="width"
         [style.maxHeight]="maxHeight"
         [style.minHeight]="minHeight"
+        [style.height]="height"
         (click)="$event.stopPropagation()"
       > 
         <button class="close-btn" (click)="close()">
@@ -165,6 +166,7 @@ export class PopupComponent implements OnChanges, OnDestroy {
   @Input() width = '500px';
   @Input() bodyPadding = '16px';
   @Input() maxHeight = '80vh';
+  @Input() height = 'auto';
   @Input() minHeight = '100px';
   @Input() closeOnBackdrop = true;
   @Input() showCloseButton = true;

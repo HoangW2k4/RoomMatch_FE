@@ -1,4 +1,4 @@
-<app-popup [visible]="visible" title="Tạo mới bài đăng" width="800px" bodyPadding="20px" [showFooter]="true" (closed)="close()">
+<app-popup [visible]="visible" title="Tạo mới bài đăng" width="650px" maxHeight="90vh" height="90vh" bodyPadding="20px" [showFooter]="true" [scrollableBody]="false" (closed)="close()">
   
   <div class="add-post-container d-flex flex-column gap-4">
     
@@ -27,17 +27,25 @@
     <section>
       <div class="mb-3">
         <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Title of the post</label>
-        <input type="text" class="form-control" [(ngModel)]="title" placeholder="e.g. Cozy studio apartment near city center">
+        <app-input-field
+          [control]="titleControl"
+          placeholder="e.g. Cozy studio apartment near city center">
+        </app-input-field>
       </div>
       <div>
         <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Description</label>
-        <textarea class="form-control" rows="4" [(ngModel)]="description" placeholder="Describe the room, building, and ideal roommate..."></textarea>
+        <app-input-field
+          [control]="descriptionControl"
+          [multiline]="true"
+          [rows]="4"
+          placeholder="Describe the room, building, and ideal roommate...">
+        </app-input-field>
       </div>
     </section>
 
     <!-- Location -->
     <section>
-      <h6 class="fw-bold mb-3 section-title d-flex align-items-center gap-2">
+      <h6 class="fw-bold mb-3 section-title text-primary d-flex align-items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="text-primary" viewBox="0 0 16 16">
           <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
         </svg>
@@ -68,7 +76,10 @@
       </div>
       <div>
         <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Specific Address</label>
-        <input type="text" class="form-control" [(ngModel)]="street" placeholder="House number, street name...">
+        <app-input-field
+          [control]="streetControl"
+          placeholder="House number, street name...">
+        </app-input-field>
       </div>
     </section>
 
@@ -76,31 +87,57 @@
     <section class="row g-4">
       <div class="col-md-6 border-end pe-md-4">
         <div class="mb-3">
-          <label class="form-label small fw-bold text-primary mb-1 text-uppercase">Monthly Rental Price</label>
-          <div class="input-group">
-            <span class="input-group-text bg-white bg-opacity-10 opacity-75 fw-bold">$</span>
-            <input type="number" class="form-control form-control-lg fw-bold" [(ngModel)]="price" placeholder="0">
-          </div>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Monthly Rental Price</label>
+          <app-input-field
+            [control]="priceControl"
+            type="currency"
+            [decimalFormat]="{ integer: 12, decimal: 0 }"
+            thousandSeparator="."
+            decimalSeparator="," 
+            [min]="0"
+            [step]="100000"
+            beforeInput="$"
+            placeholder="0">
+          </app-input-field>
         </div>
         <div>
-          <label class="form-label small fw-bold text-primary mb-1 text-uppercase">Deposit Price</label>
-          <div class="input-group">
-            <span class="input-group-text bg-white bg-opacity-10 opacity-75 fw-bold">$</span>
-            <input type="number" class="form-control form-control-lg fw-bold" [(ngModel)]="deposit" placeholder="0">
-          </div>
+          <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Deposit Price</label>
+          <app-input-field
+            [control]="depositControl"
+            type="currency"
+            [decimalFormat]="{ integer: 12, decimal: 0 }"
+            thousandSeparator="."
+            decimalSeparator="," 
+            [min]="0"
+            [step]="100000"
+            beforeInput="$"
+            placeholder="0">
+          </app-input-field>
         </div>
       </div>
       <div class="col-md-6 ps-md-4">
         <div class="mb-3">
           <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Area (m2)</label>
-          <div class="input-group">
-            <input type="number" class="form-control form-control-lg" [(ngModel)]="area" placeholder="0">
-            <span class="input-group-text bg-white opacity-75 small">m²</span>
-          </div>
+          <app-input-field
+            [control]="areaControl"
+            type="decimal"
+            [decimalFormat]="{ integer: 6, decimal: 2 }"
+            thousandSeparator="."
+            decimalSeparator="," 
+            [min]="0"
+            afterInput="m²"
+            placeholder="0">
+          </app-input-field>
         </div>
         <div>
           <label class="form-label small fw-bold text-secondary mb-1 text-uppercase">Max People</label>
-          <input type="number" class="form-control form-control-lg" [(ngModel)]="peoples" placeholder="1">
+          <app-input-field
+            [control]="peoplesControl"
+            type="number"
+            [min]="1"
+            [step]="1"
+            placeholder="1">
+          </app-input-field>
         </div>
       </div>
     </section>

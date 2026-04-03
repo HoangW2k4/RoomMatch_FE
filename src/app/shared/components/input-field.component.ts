@@ -25,24 +25,52 @@ import {
         [class.is-invalid]="isInvalid"
         [class.disabled]="disabled"
         [class.read-only]="readOnly"
+        [class.has-before]="!!beforeInput"
       >
-        <input
-          [type]="nativeType"
-          [min]="min"
-          [max]="max"
-          class="flex-input"
-          [placeholder]="placeholder"
-          [ngClass]="{
-            'is-invalid': formControl.invalid && formControl.touched
-          }"
-          [value]="displayValue"
-          (input)="onInput($event)"
-          (blur)="onBlur($event)"
-          (focus)="onFocus($event)"
-          [disabled]="disabled"
-          [readOnly]="readOnly"
-          [attr.maxlength]="maxLength || null"
-        />
+        <span
+          *ngIf="beforeInput"
+          class="before-input text-muted small"
+        >
+          {{ beforeInput }}
+        </span>
+        <ng-container *ngIf="!multiline; else textareaTpl">
+          <input
+            [type]="nativeType"
+            [min]="min"
+            [max]="max"
+            class="flex-input"
+            [placeholder]="placeholder"
+            [ngClass]="{
+              'is-invalid': formControl.invalid && formControl.touched
+            }"
+            [value]="displayValue"
+            (input)="onInput($event)"
+            (keydown)="onKeyDown($event)"
+            (blur)="onBlur($event)"
+            (focus)="onFocus($event)"
+            [disabled]="disabled"
+            [readOnly]="readOnly"
+            [attr.maxlength]="maxLength || null"
+          />
+        </ng-container>
+        <ng-template #textareaTpl>
+          <textarea
+            class="flex-input textarea-input"
+            [placeholder]="placeholder"
+            [ngClass]="{
+              'is-invalid': formControl.invalid && formControl.touched
+            }"
+            [value]="displayValue"
+            (input)="onInput($event)"
+            (keydown)="onKeyDown($event)"
+            (blur)="onBlur($event)"
+            (focus)="onFocus($event)"
+            [disabled]="disabled"
+            [readOnly]="readOnly"
+            [attr.maxlength]="maxLength || null"
+            [attr.rows]="rows"
+          ></textarea>
+        </ng-template>
 
         <span
           class="char-count text-muted small"
@@ -121,7 +149,7 @@ import {
         }
 
         &:focus-within {
-          border-color: var(--primary-color);
+          border-color: #0d6efd;
           outline: none;
         }
 
@@ -177,6 +205,24 @@ import {
         flex-shrink: 0;
       }
 
+      .before-input {
+        padding: 0 8px 0 12px;
+        font-size: 0.875em;
+        color: #6c757d;
+        white-space: nowrap;
+        pointer-events: none;
+        flex-shrink: 0;
+      }
+
+      .input-wrapper.has-before .flex-input {
+        padding-left: 0;
+      }
+
+      .textarea-input {
+        min-height: 96px;
+        resize: vertical;
+      }
+
       .input-wrapper.is-invalid {
         border-color: var(--danger-color);
       }
@@ -192,10 +238,14 @@ export class InputFieldComponent {
   @Input() readOnly = false;
   @Input() maxLength?: number;
   @Input() afterInput = '';
+  @Input() beforeInput = '';
   @Input() customErrors: { [key: string]: string } = {};
   @Input() showCharCount = false;
   @Input() min?: number;
   @Input() max?: number;
+  @Input() step?: number;
+  @Input() multiline = false;
+  @Input() rows = 3;
   @Input() inputMode?: 'numeric';
   @Input() hiddenInfo?: string;
 
@@ -220,6 +270,7 @@ export class InputFieldComponent {
   @Output() onChange = new EventEmitter<any>();
 
   private isFocusing = false;
+  private rawValue: string | null = null;
 
   objectKeys(obj: any): string[] {
     return Object.keys(obj || {});
@@ -241,9 +292,14 @@ export class InputFieldComponent {
 
     if (!['decimal', 'currency'].includes(this.type)) return value;
 
-    if (this.isFocusing || this.autoFormatOnBlur) {
+    if (this.isFocusing && this.rawValue !== null) {
+      return this.rawValue;
+    }
+
+    if (this.autoFormatOnBlur) {
       return this.formatNumberCustom(value);
     }
+
     return value;
   }
 
@@ -258,6 +314,9 @@ export class InputFieldComponent {
 
   onFocus(_: Event) {
     this.isFocusing = true;
+    if (['decimal', 'currency'].includes(this.type)) {
+      this.rawValue = this.formControl.value ?? '';
+    }
   }
 
   onInput(event: Event) {
@@ -267,16 +326,41 @@ export class InputFieldComponent {
     if (this.inputMode === 'numeric') {
       val = val.replace(/[^0-9]/g, '');
     } else if (['number', 'decimal', 'currency'].includes(this.type)) {
-      val = val.replace(/[^0-9.]/g, '');
-      const dotCount = (val.match(/\./g) || []).length;
-      if (dotCount > 1) {
-        val = val.substring(0, val.lastIndexOf('.'));
+      const cleaned = val.replace(/[^0-9.,]/g, '');
+      const decimalsAllowed = this.decimalFormat.decimal > 0;
+      const separator = cleaned.includes(',') ? ',' : '.';
+      let displayValue = '';
+      let keepTrailingSeparator = false;
+
+      if (!decimalsAllowed) {
+        displayValue = cleaned.replace(/[.,]/g, '');
+      } else {
+        const sepIndex = cleaned.search(/[.,]/);
+        if (sepIndex >= 0) {
+          const head = cleaned.slice(0, sepIndex).replace(/[.,]/g, '');
+          const tail = cleaned.slice(sepIndex + 1).replace(/[.,]/g, '');
+          keepTrailingSeparator = sepIndex === cleaned.length - 1;
+          displayValue = `${head}${separator}${tail}`;
+        } else {
+          displayValue = cleaned;
+        }
       }
 
-      const [intPart, decPart = ''] = val.split('.');
+      const normalized = displayValue.replace(/,/g, '.');
+      const [intPart, decPart = ''] = normalized.split('.');
       const integer = intPart.slice(0, this.decimalFormat.integer);
       const decimal = decPart.slice(0, this.decimalFormat.decimal);
       val = decimal ? `${integer}.${decimal}` : integer;
+      displayValue = decimal
+        ? `${integer}${separator}${decimal}`
+        : integer;
+
+      if (decimalsAllowed && keepTrailingSeparator && decimal.length === 0) {
+        displayValue = `${integer}${separator}`;
+      }
+
+      this.rawValue = displayValue;
+      input.value = displayValue;
     }
 
     if (this.min !== undefined || this.max !== undefined) {
@@ -294,12 +378,73 @@ export class InputFieldComponent {
     }
 
     this.formControl.setValue(val);
-    input.value = val;
+    if (!['number', 'decimal', 'currency'].includes(this.type)) {
+      input.value = val;
+    }
     this.onChange.emit(val);
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+    if (allowedKeys.includes(event.key)) {
+      return;
+    }
+
+    if (this.step && ['number', 'decimal', 'currency'].includes(this.type)) {
+      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        const rawValue = this.formControl.value ?? '0';
+        const normalized = String(rawValue).replace(/[^0-9.,]/g, '').replace(/,/g, '.');
+        const currentValue = Number(normalized) || 0;
+        const stepValue = this.step ?? 1;
+
+        let nextValue = event.key === 'ArrowUp'
+          ? currentValue + stepValue
+          : currentValue - stepValue;
+
+        if (this.min !== undefined) {
+          nextValue = Math.max(this.min, nextValue);
+        }
+        if (this.max !== undefined) {
+          nextValue = Math.min(this.max, nextValue);
+        }
+
+        const decimals = ['decimal', 'currency'].includes(this.type)
+          ? this.decimalFormat.decimal
+          : 0;
+        const fixedValue = decimals > 0
+          ? Number(nextValue.toFixed(decimals))
+          : Math.round(nextValue);
+
+        this.formControl.setValue(fixedValue);
+        const displayValue = ['decimal', 'currency'].includes(this.type)
+          ? this.formatNumberCustom(fixedValue)
+          : String(fixedValue);
+        (event.target as HTMLInputElement).value = displayValue;
+        this.onChange.emit(fixedValue);
+        return;
+      }
+    }
+
+    if (this.inputMode === 'numeric') {
+      if (!/\d/.test(event.key)) {
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (['number', 'decimal', 'currency'].includes(this.type)) {
+      const decimalsAllowed = this.decimalFormat.decimal > 0;
+      const isSeparator = event.key === '.' || event.key === ',';
+      if (!/\d/.test(event.key) && !(decimalsAllowed && isSeparator)) {
+        event.preventDefault();
+      }
+    }
   }
 
   onBlur(event: Event) {
     this.isFocusing = false;
+    this.rawValue = null;
     this.onBlurInput.emit(event);
     this.formControl.markAsTouched();
 
