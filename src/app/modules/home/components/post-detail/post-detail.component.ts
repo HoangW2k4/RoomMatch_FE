@@ -7,6 +7,7 @@ import { Amenity, RoomPostDetailResponse, RoomPostResponse } from '../../../../c
 import { AlertService } from '../../../../core/services/alert.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { PopupComponent } from '../../../../shared/components/popup';
+import { DetailListMediasComponent, DetailMediaItem } from '../../../../shared/components/detail-list-medias/detail-list-medias.component';
 import { ModalService } from '../../../../services/modal.service';
 import { PostService } from '../../post.service';
 import { CommentSectionComponent } from '../post-card/comment-section/comment-section.component';
@@ -16,7 +17,7 @@ import { ChatUiService } from '../../../../services/chat-ui.service';
 @Component({
   selector: 'app-post-detail',
   standalone: true,
-  imports: [CommonModule, PopupComponent, CommentSectionComponent, FeatureNotDevelopedComponent],
+  imports: [CommonModule, PopupComponent, CommentSectionComponent, FeatureNotDevelopedComponent, DetailListMediasComponent],
   templateUrl: './post-detail.component.html',
   styleUrls: ['./post-detail.component.css']
 })
@@ -31,6 +32,8 @@ export class PostDetailComponent implements OnChanges {
   detail: RoomPostDetailResponse | null = null;
   isLoading = false;
   selectedMediaIndex = 0;
+  isMediaViewerOpen = false;
+  mediaViewerIndex = 0;
   showFeatureNotDeveloped = false;
   featureNotDevelopedTitle = 'Tính năng đang phát triển';
   featureNotDevelopedMessage = 'Tính năng này hiện đang được phát triển và sẽ sớm có mặt trong phiên bản tiếp theo.';
@@ -140,6 +143,16 @@ export class PostDetailComponent implements OnChanges {
     this.selectedMediaIndex = index;
   }
 
+  openMediaViewer(index: number): void {
+    if (!this.sortedMedias.length) return;
+    this.mediaViewerIndex = Math.min(Math.max(index, 0), this.sortedMedias.length - 1);
+    this.isMediaViewerOpen = true;
+  }
+
+  closeMediaViewer(): void {
+    this.isMediaViewerOpen = false;
+  }
+
   get currentMedia() {
     return this.sortedMedias[this.selectedMediaIndex] ?? null;
   }
@@ -151,6 +164,13 @@ export class PostDetailComponent implements OnChanges {
     const videos = medias.filter(media => media?.type?.startsWith('video'));
     const images = medias.filter(media => !media?.type?.startsWith('video'));
     return [...videos, ...images];
+  }
+
+  get detailMediaItems(): DetailMediaItem[] {
+    return this.sortedMedias.map((media) => ({
+      url: media.url,
+      type: media?.type?.startsWith('video') ? 'video' : 'image'
+    }));
   }
 
   get displayedSimilarPosts(): RoomPostResponse[] {

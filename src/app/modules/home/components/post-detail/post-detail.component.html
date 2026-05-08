@@ -23,6 +23,7 @@
             [src]="media.url"
             [alt]="post.title"
             title="post-image"
+            (click)="openMediaViewer(selectedMediaIndex); $event.stopPropagation()"
           />
           <video
             *ngIf="media.type.startsWith('video')"
@@ -30,6 +31,7 @@
             class="w-100 h-100"
             controls
             autoplay
+            (click)="openMediaViewer(selectedMediaIndex); $event.stopPropagation()"
           ></video>
 
           <button class="nav-btn left btn btn-light" *ngIf="sortedMedias.length > 1" (click)="prevMedia()">
@@ -166,6 +168,13 @@
     </div>
   </div>
 </app-popup>
+
+<app-detail-list-medias
+  [visible]="isMediaViewerOpen"
+  [items]="detailMediaItems"
+  [startIndex]="mediaViewerIndex"
+  (closed)="closeMediaViewer()">
+</app-detail-list-medias>
 
 <app-feature-not-developed 
   [visible]="showFeatureNotDeveloped"

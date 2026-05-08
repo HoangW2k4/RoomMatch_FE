@@ -18,13 +18,15 @@
               alt="Preview"
               class="media-main__content"
             />
-            <video
-              *ngSwitchCase="'video'"
-              [src]="currentItem?.url"
-              class="media-main__content"
-              controls
-              playsinline
-            ></video>
+            <div *ngSwitchCase="'video'" class="media-video">
+              <video
+                [src]="currentItem?.url"
+                class="media-main__content"
+                controls
+                playsinline
+              ></video>
+              <span class="media-play" aria-hidden="true"></span>
+            </div>
           </ng-container>
 
           <button type="button" class="media-nav right" (click)="next()" aria-label="Next">

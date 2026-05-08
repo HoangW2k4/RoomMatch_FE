@@ -16,7 +16,10 @@
         <!-- Previews -->
         <div *ngFor="let preview of mediaPreviews; let i = index" class="position-relative media-preview-box rounded-4 overflow-hidden shadow-sm" (click)="openMediaViewer(preview)">
           <img *ngIf="preview.type === 'image'" [src]="preview.url" alt="Preview" class="w-100 h-100 object-fit-cover">
-          <video *ngIf="preview.type === 'video'" [src]="preview.url" class="w-100 h-100 object-fit-cover" muted playsinline></video>
+          <div *ngIf="preview.type === 'video'" class="media-preview-video">
+            <video [src]="preview.url" class="w-100 h-100 object-fit-cover" muted playsinline></video>
+            <span class="media-preview-play" aria-hidden="true"></span>
+          </div>
           <button class="btn btn-sm btn-light position-absolute top-0 end-0 m-1 rounded-circle flex-center p-1 shadow-sm btn-remove-img" (click)="removeMedia(i); $event.stopPropagation();">
             <img src="assets/icons/close.svg" alt="" width="14" height="14">
           </button>
