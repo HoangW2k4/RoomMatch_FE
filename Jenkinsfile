@@ -9,23 +9,34 @@ pipeline {
     IMAGE = "ghcr.io/hoangw2k4/roommatch_fe:uat"
     K8S_REPO = "https://github.com/HoangW2k4/k8s-fizahub.git"
     K8S_BRANCH = "main"
+    TARGET_BRANCH = "devops"
   }
   stages {
     stage("Checkout") {
       steps {
-        checkout scm
+        git branch: "${TARGET_BRANCH}",
+            credentialsId: "test_github",
+            url: "https://github.com/HoangW2k4/RoomMatch_FE.git"
       }
     }
 
     stage("Build Image") {
-      when { branch "devops" }
+      when {
+        expression {
+          return env.GIT_BRANCH == "origin/${TARGET_BRANCH}" || env.GIT_BRANCH == TARGET_BRANCH
+        }
+      }
       steps {
         sh "docker build -t ${IMAGE} ."
       }
     }
 
     stage("Push Image") {
-      when { branch "devops" }
+      when {
+        expression {
+          return env.GIT_BRANCH == "origin/${TARGET_BRANCH}" || env.GIT_BRANCH == TARGET_BRANCH
+        }
+      }
       steps {
         withCredentials([string(credentialsId: "test_github", variable: "GHCR_TOKEN")]) {
           sh '''
@@ -37,7 +48,11 @@ pipeline {
     }
 
     stage("Deploy to K8s") {
-      when { branch "devops" }
+      when {
+        expression {
+          return env.GIT_BRANCH == "origin/${TARGET_BRANCH}" || env.GIT_BRANCH == TARGET_BRANCH
+        }
+      }
       steps {
         withKubeConfig([credentialsId: "kubeconfig-file"]) {
           withCredentials([string(credentialsId: "test_github", variable: "GITHUB_TOKEN")]) {
