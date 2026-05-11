@@ -14,9 +14,7 @@ pipeline {
   stages {
     stage("Checkout") {
       steps {
-        git branch: "${TARGET_BRANCH}",
-            credentialsId: "test_github",
-            url: "https://github.com/HoangW2k4/RoomMatch_FE.git"
+        checkout scm
         script {
           env.CURRENT_BRANCH = sh(
             script: "git rev-parse --abbrev-ref HEAD",
