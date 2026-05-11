@@ -17,7 +17,7 @@ pipeline {
         checkout scm
         script {
           env.CURRENT_BRANCH = sh(
-            script: "git rev-parse --abbrev-ref HEAD",
+            script: "git branch -r --contains HEAD | sed 's#^[ *]*origin/##' | head -n 1",
             returnStdout: true
           ).trim()
           echo "Checked out branch: ${env.CURRENT_BRANCH}"
