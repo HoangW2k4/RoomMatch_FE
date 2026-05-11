@@ -69,7 +69,7 @@ pipeline {
               cd k8s-fizahub
               git checkout ${K8S_BRANCH}
 
-              kubectl apply -f k8s/roommatch/
+              kubectl apply -f k8s/roommatch
 
               kubectl rollout restart deployment/${APP_NAME} -n ${NAMESPACE}
               kubectl rollout status deployment/${APP_NAME} -n ${NAMESPACE}
