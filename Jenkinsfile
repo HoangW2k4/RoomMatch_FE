@@ -17,13 +17,20 @@ pipeline {
         git branch: "${TARGET_BRANCH}",
             credentialsId: "test_github",
             url: "https://github.com/HoangW2k4/RoomMatch_FE.git"
+        script {
+          env.CURRENT_BRANCH = sh(
+            script: "git rev-parse --abbrev-ref HEAD",
+            returnStdout: true
+          ).trim()
+          echo "Checked out branch: ${env.CURRENT_BRANCH}"
+        }
       }
     }
 
     stage("Build Image") {
       when {
         expression {
-          return env.GIT_BRANCH == "origin/${TARGET_BRANCH}" || env.GIT_BRANCH == TARGET_BRANCH
+          return env.CURRENT_BRANCH == TARGET_BRANCH
         }
       }
       steps {
@@ -34,7 +41,7 @@ pipeline {
     stage("Push Image") {
       when {
         expression {
-          return env.GIT_BRANCH == "origin/${TARGET_BRANCH}" || env.GIT_BRANCH == TARGET_BRANCH
+          return env.CURRENT_BRANCH == TARGET_BRANCH
         }
       }
       steps {
@@ -50,7 +57,7 @@ pipeline {
     stage("Deploy to K8s") {
       when {
         expression {
-          return env.GIT_BRANCH == "origin/${TARGET_BRANCH}" || env.GIT_BRANCH == TARGET_BRANCH
+          return env.CURRENT_BRANCH == TARGET_BRANCH
         }
       }
       steps {
