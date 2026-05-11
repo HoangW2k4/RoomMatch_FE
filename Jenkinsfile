@@ -1,10 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'docker:git'                 // Image chứa Docker CLI và Git
-      args '-v /var/run/docker.sock:/var/run/docker.sock' // Dùng Docker daemon của host
-    }
-  }
+  agent any
   triggers {
     githubPush()
   }
@@ -17,19 +12,20 @@ pipeline {
   }
   stages {
     stage("Checkout") {
-      when { branch "devops" }
       steps {
         checkout scm
       }
     }
 
     stage("Build Image") {
+      when { branch "devops" }
       steps {
         sh "docker build -t ${IMAGE} ."
       }
     }
 
     stage("Push Image") {
+      when { branch "devops" }
       steps {
         withCredentials([string(credentialsId: "test_github", variable: "GHCR_TOKEN")]) {
           sh '''
@@ -41,6 +37,7 @@ pipeline {
     }
 
     stage("Deploy to K8s") {
+      when { branch "devops" }
       steps {
         withKubeConfig([credentialsId: "kubeconfig-file"]) {
           withCredentials([string(credentialsId: "test_github", variable: "GITHUB_TOKEN")]) {
