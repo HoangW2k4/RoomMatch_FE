@@ -8,7 +8,7 @@ pipeline {
     NAMESPACE = "room-match"
     IMAGE = "ghcr.io/hoangw2k4/roommatch_fe:uat"
     K8S_REPO = "https://github.com/HoangW2k4/k8s-fizahub.git"
-    K8S_BRANCH = "main"
+    K8S_BRANCH = "room_match"
     TARGET_BRANCH = "devops"
   }
   stages {
