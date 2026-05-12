@@ -15,7 +15,7 @@ WORKDIR /app
 RUN npm install -g serve
 COPY --from=build /app/dist/roommatch-fe ./dist/roommatch-fe
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh 
     
 EXPOSE 3000
 CMD ["/app/entrypoint.sh"]
