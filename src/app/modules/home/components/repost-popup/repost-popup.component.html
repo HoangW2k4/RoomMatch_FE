@@ -1,0 +1,57 @@
+<app-popup
+  [visible]="visible"
+  title="Đăng lại để tìm người ở ghép"
+  width="620px"
+  maxHeight="90vh"
+  bodyPadding="20px"
+  [scrollableBody]="true"
+  (closed)="close()">
+  <div class="checking" *ngIf="isChecking">
+    <span class="spinner-border spinner-border-sm"></span>
+    Đang kiểm tra bài đăng của bạn…
+  </div>
+
+  <form *ngIf="!isChecking" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="repost-author">
+      <img src="assets/images/avatar_default.jpg" alt="Avatar">
+      <div><strong>Bài đăng lại của bạn</strong><span>Chia sẻ bài phòng kèm lời giới thiệu</span></div>
+    </div>
+
+    <div class="caption-field">
+      <app-input-field
+        [control]="form.controls.caption"
+        label="Nội dung giới thiệu"
+        placeholder="Bạn muốn nói gì về phòng này?"
+        [required]="true"
+        [multiline]="true"
+        [rows]="3"
+        [maxLength]="500"
+        [showCharCount]="true"
+        [customErrors]="{ minlength: 'Nội dung cần ít nhất 10 ký tự', maxlength: 'Nội dung không quá 500 ký tự' }">
+      </app-input-field>
+    </div>
+
+    <article class="original-post" *ngIf="post">
+      <img [src]="post.medias[0]?.url || 'assets/images/placeholder-room.png'" alt="Ảnh phòng">
+      <div><span>Bài đăng gốc</span><strong>{{ post.title }}</strong><small>{{ post.price | number:'1.0-0' }} đ/tháng · {{ post.address.fullAddress }}</small></div>
+    </article>
+
+    <div class="form-grid">
+      <app-input-field [control]="form.controls.age" label="Tuổi" type="number" [required]="true" [min]="18" [max]="100"></app-input-field>
+      <div class="field-group">
+        <label>Giới tính <span>*</span></label>
+        <app-dropdown-field [items]="genders" [value]="form.controls.gender.value || null" [displayWith]="genderLabel" placeholder="Chọn giới tính" [searchable]="false" [required]="true" (valueChange)="setGender($event)"></app-dropdown-field>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Nghề nghiệp <span>*</span></label>
+      <app-dropdown-field [items]="occupations" [value]="form.controls.occupation.value || null" [displayWith]="occupationLabel" placeholder="Chọn nghề nghiệp" [searchable]="false" [required]="true" (valueChange)="setOccupation($event)"></app-dropdown-field>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-light" (click)="close()">Hủy</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">{{ isSubmitting ? 'Đang đăng…' : 'Đăng lại' }}</button>
+    </div>
+  </form>
+</app-popup>

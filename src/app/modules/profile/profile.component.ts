@@ -9,7 +9,7 @@ import { ModalService } from '../../services/modal.service';
 import { PostService } from '../home/post.service';
 import { ProfileService, UserProfile } from './profile.service';
 
-import { RoomPostResponse } from '../../core/models/post.interface';
+import { RePostResponse, RoomPostResponse } from '../../core/models/post.interface';
 import { ApiResponse, PaginatedResponse } from '../../core/models/base.interface';
 
 import { LeftPanelComponent } from '../home/components/left-panel/left-panel.component';
@@ -18,6 +18,7 @@ import { PostCardComponent } from '../home/components/post-card/post-card.compon
 import { PostDetailComponent } from '../home/components/post-detail/post-detail.component';
 import { EditProfilePopupComponent } from './edit-profile-popup/edit-profile-popup.component';
 import { AddPostPopupComponent } from '../home/components/add-post-popup/add-post-popup.component';
+import { PopupComponent } from '../../shared/components/popup';
 
 interface TabItem {
   key: string;
@@ -36,7 +37,8 @@ interface TabItem {
     PostCardComponent,
     PostDetailComponent,
     EditProfilePopupComponent,
-    AddPostPopupComponent
+    AddPostPopupComponent,
+    PopupComponent
   ],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
@@ -60,6 +62,9 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   pageSize = 10;
   totalPosts = 0;
   hasMore = false;
+  myRepost: RePostResponse | null = null;
+  isDeletingRepost = false;
+  showDeleteRepostConfirm = false;
 
   skeletonItems = Array(3).fill(0);
 
@@ -229,12 +234,16 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   get isPlaceholderTab(): boolean {
-    return this.activeTab === 'reposts' || this.activeTab === 'my-reposts' || this.activeTab === 'statistics' || this.activeTab === 'settings';
+    return this.activeTab === 'reposts' || this.activeTab === 'statistics' || this.activeTab === 'settings';
   }
 
   // ===== Load Posts =====
 
   loadPosts(): void {
+    if (this.activeTab === 'my-reposts') {
+      this.loadMyRepost();
+      return;
+    }
     if (this.isPlaceholderTab) {
       this.posts = [];
       this.hasMore = false;
@@ -384,6 +393,54 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   closeAddPostModal(): void {
     this.isAddPostVisible = false;
+  }
+
+  private loadMyRepost(): void {
+    this.posts = [];
+    this.hasMore = false;
+    this.totalPosts = 0;
+    this.myRepost = null;
+    if (!this.isOwnProfile) return;
+
+    this.isLoading = true;
+    this.postService.getMyRepost()
+      .pipe(takeUntil(this.destroy$), finalize(() => this.isLoading = false))
+      .subscribe({
+        next: res => {
+          this.myRepost = res.data ?? null;
+          if (this.myRepost?.originalPost?.id) {
+            this.loadOriginalPostLandlord(this.myRepost.originalPost.id);
+          }
+        },
+        error: () => this.alertService.show('error', 'Lỗi', 'Không thể tải bài đăng lại của bạn.')
+      });
+  }
+
+  private loadOriginalPostLandlord(postId: string): void {
+    this.postService.getPostDetail(postId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: res => {
+          if (!this.myRepost || !res.data) return;
+          this.myRepost.originalPost.landlordId = res.data.landlordInfo.id;
+          this.myRepost.originalPost.landlordInfo = res.data.landlordInfo;
+        }
+      });
+  }
+
+  deleteMyRepost(): void {
+    if (this.isDeletingRepost) return;
+    this.isDeletingRepost = true;
+    this.postService.deleteRepost()
+      .pipe(takeUntil(this.destroy$), finalize(() => this.isDeletingRepost = false))
+      .subscribe({
+        next: () => {
+          this.myRepost = null;
+          this.showDeleteRepostConfirm = false;
+          this.alertService.show('success', 'Đã xóa', 'Bài đăng lại đã được xóa.');
+        },
+        error: () => this.alertService.show('error', 'Lỗi', 'Không thể xóa bài đăng lại.')
+      });
   }
 
   onPostCreated(): void {

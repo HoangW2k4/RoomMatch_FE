@@ -95,8 +95,41 @@
         </div>
       </div>
 
+      <!-- Repost managed in Profile -->
+      <section class="repost-profile-section" *ngIf="activeTab === 'my-reposts' && !isPlaceholderTab">
+        <div class="d-flex flex-column gap-3" *ngIf="isLoading">
+          <div class="card border-0 shadow-sm rounded-4 p-3">
+            <div class="skeleton-title shimmer rounded mb-3"></div>
+            <div class="skeleton-image shimmer rounded-3"></div>
+          </div>
+        </div>
+
+        <article class="repost-feed-card" *ngIf="!isLoading && myRepost as repost">
+          <header class="repost-header">
+            <img [src]="repost.seekerInfo.avatarUrl || 'assets/images/avatar_default.jpg'" [alt]="repost.seekerInfo.name" (error)="onAvatarError($event)">
+            <div class="repost-author-copy">
+              <strong>{{ repost.seekerInfo.name }}</strong>
+              <span>{{ repost.createdAt | date:'dd/MM/yyyy, HH:mm' }} · Đang tìm người ở ghép</span>
+            </div>
+            <button *ngIf="isOwnProfile" type="button" class="repost-delete-button" title="Xóa bài đăng lại" aria-label="Xóa bài đăng lại" (click)="showDeleteRepostConfirm = true">
+              <img src="assets/icons/ic_delete.svg" alt="Delete" width="16" height="16">
+            </button>
+          </header>
+          <p class="repost-caption">{{ repost.caption }}</p>
+          <div class="original-post-frame">
+            <app-post-card [post]="repost.originalPost" [playbackPaused]="isPostDetailVisible" (openDetail)="onOpenDetail($event)"></app-post-card>
+          </div>
+        </article>
+
+        <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-3" *ngIf="!isLoading && !myRepost">
+          <img src="assets/icons/repeat.svg" alt="Empty" width="48" height="48" class="opacity-25 mx-auto">
+          <h3 class="fs-6 fw-semibold text-dark mt-3 mb-2">Chưa có bài đăng lại</h3>
+          <p class="small text-muted mb-0">Hãy chọn một phòng phù hợp và đăng lại để tìm người ở ghép.</p>
+        </div>
+      </section>
+
       <!-- Post Feed -->
-      <div class="d-flex flex-column gap-3" *ngIf="!isPlaceholderTab">
+      <div class="d-flex flex-column gap-3" *ngIf="!isPlaceholderTab && activeTab !== 'my-reposts'">
         <!-- Section Header -->
         <div class="px-1" *ngIf="totalPosts > 0 && !isLoading">
           <span class="badge bg-light text-muted rounded-pill small">{{ totalPosts }} bài đăng</span>
@@ -176,4 +209,26 @@
     (closed)="closeAddPostModal()"
     (postCreated)="onPostCreated()">
   </app-add-post-popup>
+
+  <!-- Delete repost confirmation -->
+  <app-popup
+    [visible]="showDeleteRepostConfirm"
+    title="Xóa bài đăng lại?"
+    width="440px"
+    bodyPadding="20px"
+    [scrollableBody]="false"
+    (closed)="showDeleteRepostConfirm = false">
+    <div class="delete-repost-dialog">
+      <div class="delete-warning-icon">
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+          <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 11H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <p>Bài đăng lại sẽ bị xóa khỏi trang cá nhân. Sau đó bạn có thể đăng lại một phòng khác.</p>
+      <div class="delete-dialog-actions">
+        <button type="button" class="btn btn-light" [disabled]="isDeletingRepost" (click)="showDeleteRepostConfirm = false">Hủy</button>
+        <button type="button" class="btn btn-danger" [disabled]="isDeletingRepost" (click)="deleteMyRepost()">{{ isDeletingRepost ? 'Đang xóa…' : 'Xóa bài' }}</button>
+      </div>
+    </div>
+  </app-popup>
 </div>

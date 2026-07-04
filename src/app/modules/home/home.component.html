@@ -42,6 +42,7 @@
             <app-post-card *ngFor="let post of posts; trackBy: trackByPostId" [post]="post"
               [playbackPaused]="isPostDetailVisible"
               (liked)="onLikePost($event)"
+              (shared)="onSharePost($event)"
               (openDetail)="onOpenDetail($event)"></app-post-card>
           </div>
 
@@ -83,4 +84,5 @@
     [homePosts]="posts"
     (closed)="onCloseDetail()"
   ></app-post-detail>
+  <app-repost-popup [visible]="isRepostVisible" [post]="selectedRepostPost" (closed)="closeRepost()" (alreadyReposted)="notifyAlreadyReposted()"></app-repost-popup>
 </div>

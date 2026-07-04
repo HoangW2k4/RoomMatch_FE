@@ -146,15 +146,15 @@ export class PostService {
   /**
    * Create a repost (seeker only)
    */
-  createRepost(request: RePostRequest): Observable<ApiResponse<void>> {
-    return this.api.post<ApiResponse<void>>(`${this.basePath}/repost`, request);
+  createRepost(request: RePostRequest): Observable<ApiResponse<RePostResponse>> {
+    return this.api.post<ApiResponse<RePostResponse>>(`${this.basePath}/repost`, request);
   }
 
   /**
    * Get repost by current user
    */
-  getMyRepost(): Observable<ApiResponse<RePostResponse>> {
-    return this.api.get<ApiResponse<RePostResponse>>(`${this.basePath}/get-repost`);
+  getMyRepost(): Observable<ApiResponse<RePostResponse | null>> {
+    return this.api.get<ApiResponse<RePostResponse | null>>(`${this.basePath}/get-repost`);
   }
 
   /**

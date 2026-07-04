@@ -16,11 +16,12 @@ import { SearchFilterComponent } from './components/search-filter/search-filter.
 import { LeftPanelComponent } from './components/left-panel/left-panel.component';
 import { RightPanelComponent } from './components/right-panel/right-panel.component';
 import { PostDetailComponent } from './components/post-detail/post-detail.component';
+import { RepostPopupComponent } from './components/repost-popup/repost-popup.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, PostCardComponent, SearchFilterComponent, LeftPanelComponent, RightPanelComponent, PostDetailComponent],
+  imports: [CommonModule, RouterModule, PostCardComponent, SearchFilterComponent, LeftPanelComponent, RightPanelComponent, PostDetailComponent, RepostPopupComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
@@ -39,6 +40,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   // Post detail popup state
   isPostDetailVisible = false;
   selectedPostId: string | null = null;
+  isRepostVisible = false;
+  selectedRepostPost: RoomPostResponse | null = null;
 
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef;
   private intersectionObserver!: IntersectionObserver;
@@ -209,5 +212,32 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   onCloseDetail(): void {
     this.isPostDetailVisible = false;
     this.selectedPostId = null;
+  }
+
+  onSharePost(postId: string): void {
+    if (!this.authService.isAuthenticated) {
+      this.modalService.openLoginModal();
+      return;
+    }
+    if (!this.authService.hasRole('ROLE_SEEKER')) {
+      this.alertService.show('warning', 'Không thể đăng lại', 'Chỉ người tìm phòng mới có thể tìm người ở ghép.');
+      return;
+    }
+    this.selectedRepostPost = this.posts.find(post => post.id === postId) ?? null;
+    this.isRepostVisible = !!this.selectedRepostPost;
+  }
+
+  closeRepost(): void {
+    this.isRepostVisible = false;
+    this.selectedRepostPost = null;
+  }
+
+  notifyAlreadyReposted(): void {
+    this.closeRepost();
+    this.alertService.show(
+      'warning',
+      'Bạn đã có bài đăng lại',
+      'Mỗi người chỉ được đăng lại một bài tại một thời điểm. Hãy xóa bài đăng lại hiện tại trong trang cá nhân trước khi đăng bài mới.'
+    );
   }
 }

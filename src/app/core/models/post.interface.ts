@@ -118,10 +118,11 @@ export interface CommentRequest {
 
 export interface SeekerInfoSnapshot {
   name: string;
-  gender: string;
+  avatarUrl?: string | null;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
   age: number;
-  occupation: string;
-  description: string;
+  occupation?: string | null;
+  description?: string | null;
 }
 
 export interface RePostResponse {
@@ -130,13 +131,19 @@ export interface RePostResponse {
   originalPost: RoomPostResponse;
   caption: string;
   seekerInfo: SeekerInfoSnapshot;
+  status: RepostStatus;
   createdAt: string;
 }
 
 export interface RePostRequest {
   originalPostId: string;
   caption: string;
-  seekerInfo: SeekerInfoSnapshot;
+  seekerInfo: {
+    age: number;
+    gender: 'MALE' | 'FEMALE' | 'OTHER';
+    occupation?: string | null;
+    description?: string | null;
+  };
 }
 
 // ===== Search =====
