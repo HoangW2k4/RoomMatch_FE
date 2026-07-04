@@ -7,7 +7,7 @@ import { SignInComponent, SignInData } from './sign-in/sign-in.component';
 import { SignUpComponent, SignUpData, SignUpError } from './sign-up/sign-up.component';
 import { OtpVerificationComponent } from './otp-verification/otp-verification.component';
 import { ForgotPasswordComponent, ForgotPasswordData, ForgotPasswordError } from './forgot-password/forgot-password.component';
-import { LoginService } from './login.service';
+import { JwtResponse, LoginService } from './login.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { AlertService } from '../../../core/services/alert.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -93,6 +93,26 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.showForgotPassword = false;
   }
 
+  private persistAuthSession(data: JwtResponse | undefined): boolean {
+    if (!data?.accessToken || !data.refreshToken) {
+      this.showAlertModal('error', 'Lỗi đăng nhập', 'Máy chủ không trả về token hợp lệ. Vui lòng thử lại.');
+      return false;
+    }
+
+    localStorage.setItem('accessToken', data.accessToken);
+    this.authService.updateCurrentUser({
+      id: data.id,
+      name: data.fullName,
+      fullName: data.fullName,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      role: data.role,
+      avatar: data.avatar || ''
+    });
+    document.cookie = `refreshToken=${data.refreshToken}; path=/; SameSite=Strict`;
+    return true;
+  }
+
   // Sign In handlers
   onSignIn(data: SignInData): void {
     this.loadingService.show('Đang đăng nhập...');
@@ -101,15 +121,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginService.signin({ email: data.email, password: data.password }).subscribe({
       next: (response) => {
         this.loadingService.hide();
+        if (!this.persistAuthSession(response.data)) {
+          return;
+        }
         this.showAlertModal('success', 'Thành công', 'Đăng nhập thành công!');
-        localStorage.setItem('accessToken', response?.data?.accessToken || '');
-        this.authService.updateCurrentUser({
-          role: response?.data?.role || '',
-          name: response?.data?.fullName || '',
-          id: response?.data?.id || '',
-          avatar: response?.data?.avatar || ''
-        });
-        document.cookie = `refreshToken=${response?.data?.refreshToken || ''}; path=/; SameSite=Strict`;
         // Navigate to home or dashboard
         setTimeout(() => {
           this.closeModal();
@@ -273,6 +288,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       ).subscribe({
         next: (response) => {
           this.loadingService.hide();
+          if (!this.persistAuthSession(response.data)) {
+            return;
+          }
           this.showAlertModal('success', 'Xác thực thành công', 'Tài khoản của bạn đã được tạo thành công!');
           
           setTimeout(() => {

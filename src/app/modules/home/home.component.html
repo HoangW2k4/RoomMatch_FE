@@ -40,6 +40,7 @@
           <!-- Posts Feed -->
           <div class="feed-list" *ngIf="posts.length > 0">
             <app-post-card *ngFor="let post of posts; trackBy: trackByPostId" [post]="post"
+              [playbackPaused]="isPostDetailVisible"
               (liked)="onLikePost($event)"
               (openDetail)="onOpenDetail($event)"></app-post-card>
           </div>

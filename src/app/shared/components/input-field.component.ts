@@ -315,7 +315,9 @@ export class InputFieldComponent {
   onFocus(_: Event) {
     this.isFocusing = true;
     if (['decimal', 'currency'].includes(this.type)) {
-      this.rawValue = this.formControl.value ?? '';
+      this.rawValue = this.type === 'currency'
+        ? this.formatNumberCustom(this.formControl.value)
+        : this.formControl.value ?? '';
     }
   }
 
@@ -323,9 +325,17 @@ export class InputFieldComponent {
     const input = event.target as HTMLInputElement;
     let val = input.value;
 
-    if (this.inputMode === 'numeric') {
+    if (this.type === 'currency') {
+      // Currency is displayed with grouping separators while the form control
+      // keeps the raw integer value expected by the API.
+      const digits = val.replace(/\D/g, '').slice(0, this.decimalFormat.integer);
+      val = digits;
+      const formatted = this.formatNumberCustom(digits);
+      this.rawValue = formatted;
+      input.value = formatted;
+    } else if (this.inputMode === 'numeric') {
       val = val.replace(/[^0-9]/g, '');
-    } else if (['number', 'decimal', 'currency'].includes(this.type)) {
+    } else if (['number', 'decimal'].includes(this.type)) {
       const cleaned = val.replace(/[^0-9.,]/g, '');
       const decimalsAllowed = this.decimalFormat.decimal > 0;
       const separator = cleaned.includes(',') ? ',' : '.';
@@ -448,14 +458,14 @@ export class InputFieldComponent {
     this.onBlurInput.emit(event);
     this.formControl.markAsTouched();
 
-    const shouldFormat = ['number', 'decimal'].includes(this.type);
+    const shouldFormat = ['number', 'decimal', 'currency'].includes(this.type);
     if (!shouldFormat) return;
 
     const value = this.formControl.value;
     if (value === null || value === undefined || value === '' || value === '0')
       return;
 
-    const num = Number(value.replace(/[^0-9.]/g, ''));
+    const num = Number(String(value).replace(/[^0-9.]/g, ''));
     if (isNaN(num)) return;
 
     const fixed = num.toFixed(this.decimalFormat.decimal);

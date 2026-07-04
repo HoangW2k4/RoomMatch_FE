@@ -44,4 +44,6 @@ Thumbs.db
 #Doc
 PROJECT_STRUCTURE.md
 CORE_USAGE.md
-doc
+docs/*
+!docs/PROJECT_LOGIC.md
+

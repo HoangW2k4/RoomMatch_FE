@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { PostMedia, RoomPostResponse } from '../../../../core/models/post.interface';
@@ -26,8 +26,9 @@ import { AuthService } from '../../../../core/services/auth.service';
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.css']
 })
-export class PostCardComponent implements AfterViewInit, OnDestroy {
+export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() post!: RoomPostResponse;
+  @Input() playbackPaused = false;
   @Output() liked = new EventEmitter<string>();
   @Output() commented = new EventEmitter<string>();
   @Output() shared = new EventEmitter<string>();
@@ -59,7 +60,7 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
             (this.el.nativeElement as HTMLElement).querySelectorAll('video')
           );
 
-          if (this.isVisible) {
+          if (this.isVisible && !this.playbackPaused) {
             // Start sequential playback from current index
             this.playCurrentVideo();
           } else {
@@ -73,13 +74,23 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
     this.observer.observe(this.el.nativeElement);
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['playbackPaused']) return;
+
+    if (this.playbackPaused) {
+      this.pauseAllVideos();
+    } else if (this.isVisible) {
+      this.playCurrentVideo();
+    }
+  }
+
   ngOnDestroy(): void {
     this.observer?.disconnect();
     this.cleanupListeners();
   }
 
   private playCurrentVideo(): void {
-    if (this.videos.length === 0) return;
+    if (this.playbackPaused || this.videos.length === 0) return;
 
     // Pause all first
     this.pauseAllVideos();
@@ -96,7 +107,7 @@ export class PostCardComponent implements AfterViewInit, OnDestroy {
   }
 
   private playNextVideo(): void {
-    if (!this.isVisible || this.videos.length === 0) return;
+    if (this.playbackPaused || !this.isVisible || this.videos.length === 0) return;
 
     // Move to next video, loop back to first when all played
     this.currentVideoIndex = (this.currentVideoIndex + 1) % this.videos.length;
