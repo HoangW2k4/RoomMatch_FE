@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, tap, map } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ApiResponse } from '../models/base.interface';
@@ -24,10 +24,25 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+export interface CurrentUser {
+  id?: string;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  phoneNumber?: string;
+  role?: string;
+  avatar?: string;
+  avatarUrl?: string;
+  gender?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly currentUserSubject = new BehaviorSubject<CurrentUser | null>(this.readStoredUser());
+  readonly currentUser$ = this.currentUserSubject.asObservable();
+
   constructor(
     private http: HttpClient,
     private router: Router
@@ -40,11 +55,32 @@ export class AuthService {
   }
 
   get currentUserId(): string | null {
+    const id = this.currentUserSubject.value?.id;
+    return id ? String(id) : null;
+  }
+
+  updateCurrentUser(user: CurrentUser): void {
+    const current = this.currentUserSubject.value ?? {};
+    const avatar = user.avatarUrl || user.avatar || current.avatarUrl || current.avatar;
+    const fullName = user.fullName || user.name || current.fullName || current.name;
+    const updated: CurrentUser = {
+      ...current,
+      ...user,
+      name: fullName,
+      fullName,
+      avatar,
+      avatarUrl: avatar
+    };
+
+    localStorage.setItem('user', JSON.stringify(updated));
+    this.currentUserSubject.next(updated);
+  }
+
+  private readStoredUser(): CurrentUser | null {
     const raw = localStorage.getItem('user');
     if (!raw) return null;
     try {
-      const parsed = JSON.parse(raw);
-      return parsed.id ? String(parsed.id) : null;
+      return JSON.parse(raw) as CurrentUser;
     } catch {
       return null;
     }
@@ -62,8 +98,7 @@ export class AuthService {
    * Check if user has specific role
    */
   hasRole(role: string): boolean {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    return user?.role === role;
+    return this.currentUserSubject.value?.role === role;
   }
 
 
@@ -83,6 +118,7 @@ export class AuthService {
   private clearLocalData(): void {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
+    this.currentUserSubject.next(null);
     document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
     this.router.navigate(['/auth/login']);
   }

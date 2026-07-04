@@ -44,10 +44,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService
   ) {}
 
-  userAvatar = JSON.parse(localStorage.getItem('user') || '{}').avatar || 'assets/images/avatar_default.jpg';
+  userAvatar = 'assets/images/avatar_default.jpg';
   notificationCount = 0;
   messageCount = 0;
-  userRole = JSON.parse(localStorage.getItem('user') || '{}').role || '';
+  userRole = '';
 
   isChatPanelOpen = false;
   chatSearchText = '';
@@ -68,7 +68,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.currentUserId = this.getCurrentUserId();
-    this.loadUserAvatar();
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.userAvatar = user?.avatarUrl || user?.avatar || 'assets/images/avatar_default.jpg';
+        this.userRole = user?.role || '';
+        this.currentUserId = user?.id ? String(user.id) : null;
+      });
     this.loadConversations();
     this.loadNotifications();
     

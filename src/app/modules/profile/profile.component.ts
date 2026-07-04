@@ -146,6 +146,9 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: (res) => {
           this.user = res.data ?? null;
+          if (this.isOwnProfile && this.user) {
+            this.authService.updateCurrentUser(this.user);
+          }
           this.initTabs();
           this.loadPosts();
           this.isLoadingUser = false;
@@ -381,5 +384,15 @@ export class ProfileComponent implements OnInit, OnDestroy, AfterViewInit {
 
   closeAddPostModal(): void {
     this.isAddPostVisible = false;
+  }
+
+  onPostCreated(): void {
+    this.isAddPostVisible = false;
+    this.activeTab = 'my-posts';
+    this.currentPage = 1;
+    this.posts = [];
+    this.totalPosts = 0;
+    this.hasMore = false;
+    this.loadPosts();
   }
 }

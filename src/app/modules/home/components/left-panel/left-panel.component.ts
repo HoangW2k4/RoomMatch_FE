@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { Subject, takeUntil } from 'rxjs';
 
 interface UserInfo {
   fullName: string;
@@ -25,7 +26,7 @@ interface NavItem {
   templateUrl: './left-panel.component.html',
   styleUrls: ['./left-panel.component.css']
 })
-export class LeftPanelComponent implements OnInit {
+export class LeftPanelComponent implements OnInit, OnDestroy {
   user: UserInfo = {
     fullName: 'Người dùng',
     avatarUrl: 'assets/images/avatar_default.jpg',
@@ -34,34 +35,38 @@ export class LeftPanelComponent implements OnInit {
   };
 
   navItems: NavItem[] = [];
+  private readonly destroy$ = new Subject<void>();
 
   constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
-    this.loadUserInfo();
-    this.buildNavItems();
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        const storedAvatar = user?.avatarUrl || user?.avatar;
+        this.user = {
+          fullName: user?.fullName || user?.name || 'Người dùng',
+          avatarUrl: typeof storedAvatar === 'string' && storedAvatar.trim()
+            ? storedAvatar.trim()
+            : 'assets/images/avatar_default.jpg',
+          role: this.getRoleLabel(user?.role || ''),
+          rawRole: user?.role || ''
+        };
+        this.buildNavItems();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated;
   }
 
-  private loadUserInfo(): void {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        this.user = {
-          fullName: parsed.name || 'Người dùng',
-          avatarUrl: parsed.avatar || 'assets/images/avatar_default.jpg',
-          role: this.getRoleLabel(parsed.role),
-          rawRole: parsed.role || ''
-        };
-      } catch {
-        // keep defaults
-      }
-    }
-    this.buildNavItems();
+  onAvatarError(): void {
+    this.user.avatarUrl = 'assets/images/avatar_default.jpg';
   }
 
   private buildNavItems(): void {
