@@ -8,7 +8,7 @@ import { PostService } from './post.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AlertService } from '../../core/services/alert.service';
 
-import { RoomPostResponse, RoomSearchRequest } from '../../core/models/post.interface';
+import { HomeFeedItem, HomeFeedSearchRequest, RoomPostResponse } from '../../core/models/post.interface';
 import { PaginatedResponse, ApiResponse } from '../../core/models/base.interface';
 
 import { PostCardComponent } from './components/post-card/post-card.component';
@@ -26,14 +26,18 @@ import { RepostPopupComponent } from './components/repost-popup/repost-popup.com
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
-  posts: RoomPostResponse[] = [];
+  feedItems: HomeFeedItem[] = [];
   isLoading = false;
   isLoadingMore = false;
   totalPosts = 0;
   currentPage = 1;
   pageSize = 10;
   hasMore = false;
-  currentFilters: RoomSearchRequest = {};
+  currentFilters: HomeFeedSearchRequest = {};
+
+  get posts(): RoomPostResponse[] {
+    return this.feedItems.map(item => item.originalPost);
+  }
 
   skeletonItems = Array(3).fill(0);
 
@@ -100,17 +104,17 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ===== Search =====
 
-  onSearch(filters: RoomSearchRequest): void {
+  onSearch(filters: HomeFeedSearchRequest): void {
     this.currentFilters = filters;
     this.currentPage = 1;
-    this.posts = [];
+    this.feedItems = [];
     this.loadPosts();
   }
 
   resetSearch(): void {
     this.currentFilters = {};
     this.currentPage = 1;
-    this.posts = [];
+    this.feedItems = [];
     this.loadPosts();
   }
 
@@ -118,7 +122,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   loadPosts(): void {
     this.isLoading = true;
-    this.postService.searchPosts(this.currentFilters, this.currentPage, this.pageSize)
+    this.postService.searchFeed(this.currentFilters, this.currentPage, this.pageSize)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -128,12 +132,12 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         })
       )
       .subscribe({
-        next: (res: ApiResponse<PaginatedResponse<RoomPostResponse>>) => {
+        next: (res: ApiResponse<PaginatedResponse<HomeFeedItem>>) => {
           const data = res.data;
           if (data) {
-            this.posts = this.currentPage === 1
+            this.feedItems = this.currentPage === 1
               ? data.content
-              : [...this.posts, ...data.content];
+              : [...this.feedItems, ...data.content];
             this.totalPosts = data.totalElements;
             this.hasMore = !data.last;
           }
@@ -164,7 +168,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    const post = this.posts.find(p => p.id === postId);
+    const post = this.feedItems.find(item => item.originalPost.id === postId)?.originalPost;
     if (!post) {
       return;
     }
@@ -198,8 +202,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  trackByPostId(index: number, post: RoomPostResponse): string {
-    return post.id;
+  trackByFeedItemId(index: number, item: HomeFeedItem): string {
+    return `${item.itemType}:${item.feedItemId}`;
   }
 
   // ===== Post Detail =====
@@ -223,7 +227,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       this.alertService.show('warning', 'Không thể đăng lại', 'Chỉ người tìm phòng mới có thể tìm người ở ghép.');
       return;
     }
-    this.selectedRepostPost = this.posts.find(post => post.id === postId) ?? null;
+    this.selectedRepostPost = this.feedItems.find(item => item.originalPost.id === postId)?.originalPost ?? null;
     this.isRepostVisible = !!this.selectedRepostPost;
   }
 

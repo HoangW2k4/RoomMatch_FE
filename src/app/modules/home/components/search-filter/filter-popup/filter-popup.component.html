@@ -179,8 +179,8 @@
                             type="number"
                             placeholder="Từ"
                             afterInput="tuổi"
-                            [min]="0"
-                            [max]="99"
+                            [min]="18"
+                            [max]="100"
                             (onChange)="onMinAgeChange($event)"
                         ></app-input-field>
                         <span class="text-muted small flex-shrink-0">—</span>
@@ -189,12 +189,24 @@
                             type="number"
                             placeholder="Đến"
                             afterInput="tuổi"
-                            [min]="0"
-                            [max]="99"
+                            [min]="18"
+                            [max]="100"
                             (onChange)="onMaxAgeChange($event)"
                         ></app-input-field>
                     </div>
                 </div>
+            </div>
+            <div class="d-flex flex-column gap-2">
+                <span class="form-text text-uppercase small fw-semibold">NGHỀ NGHIỆP</span>
+                <app-dropdown-field
+                    [items]="OCCUPATIONS"
+                    [value]="selectedOccupation"
+                    [displayWith]="occupationDisplay"
+                    [compareWith]="occupationCompare"
+                    placeholder="Chọn nghề nghiệp"
+                    [direction]="'up'"
+                    (valueChange)="onOccupationChange($event)">
+                </app-dropdown-field>
             </div>
         </div>
 

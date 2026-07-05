@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, ElementRef, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { PostMedia, RoomPostResponse } from '../../../../core/models/post.interface';
+import { ContactTarget, FeedActor, FeedItemType, PostMedia, RoomPostResponse } from '../../../../core/models/post.interface';
 import { GalleryLayout1Component } from './layouts/gallery-layout-1.component';
 import { GalleryLayout2Component } from './layouts/gallery-layout-2.component';
 import { GalleryLayout3Component } from './layouts/gallery-layout-3.component';
@@ -10,6 +10,7 @@ import { GalleryLayout5Component } from './layouts/gallery-layout-5.component';
 import { CommentSectionComponent } from './comment-section/comment-section.component';
 import { ChatUiService } from '../../../../services/chat-ui.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ModalService } from '../../../../services/modal.service';
 
 @Component({
   selector: 'app-post-card',
@@ -29,6 +30,13 @@ import { AuthService } from '../../../../core/services/auth.service';
 export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() post!: RoomPostResponse;
   @Input() playbackPaused = false;
+  @Input() feedItemType: FeedItemType = 'ROOM_POST';
+  @Input() feedItemId: string | null = null;
+  @Input() publishedAt: string | null = null;
+  @Input() actor: FeedActor | null = null;
+  @Input() contactTarget: ContactTarget | null = null;
+  @Input() canContact = true;
+  @Input() caption: string | null = null;
   @Output() liked = new EventEmitter<string>();
   @Output() commented = new EventEmitter<string>();
   @Output() shared = new EventEmitter<string>();
@@ -48,6 +56,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
     private el: ElementRef,
     private chatUiService: ChatUiService,
     private authService: AuthService,
+    private modalService: ModalService,
     private router: Router
   ) {}
 
@@ -164,7 +173,16 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   get isOwner(): boolean {
     const currentUserId = this.authService.currentUserId;
     if (!currentUserId) return false;
-    return String(this.post.landlordId) === currentUserId || String(this.post.landlordInfo?.id) === currentUserId;
+    const targetId = this.contactTarget?.userId || this.post.landlordInfo?.id || this.post.landlordId;
+    return String(targetId) === currentUserId;
+  }
+
+  get displayActor(): FeedActor {
+    return this.actor ?? {
+      id: String(this.post.landlordInfo?.id || this.post.landlordId),
+      name: this.post.landlordInfo?.name || 'Chủ phòng',
+      avatarUrl: this.post.landlordInfo?.avatarUrl
+    };
   }
 
   get shortAddress(): string {
@@ -200,18 +218,26 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
     event.stopPropagation();
     event.preventDefault();
 
-    const partnerId = this.post.landlordInfo?.id || this.post.landlordId;
+    if (!this.authService.isAuthenticated) {
+      this.modalService.openLoginModal();
+      return;
+    }
+
+    const partnerId = this.contactTarget?.userId || this.post.landlordInfo?.id || this.post.landlordId;
     if (!partnerId) {
       return;
     }
 
     this.chatUiService.requestOpenConversation({
       partnerId: String(partnerId),
-      partnerName: this.post.landlordInfo?.name || 'Chủ phòng',
-      partnerAvatar: this.post.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg',
+      partnerName: this.contactTarget?.name || this.post.landlordInfo?.name || 'Chủ phòng',
+      partnerAvatar: this.contactTarget?.avatarUrl || this.post.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg',
       postAttachment: {
         postId: String(this.post.id),
-        title: this.post.title,
+        attachmentType: this.feedItemType,
+        referenceId: this.feedItemId || String(this.post.id),
+        originalPostId: String(this.post.id),
+        title: this.feedItemType === 'REPOST' ? (this.caption || this.post.title) : this.post.title,
         thumbnailUrl: this.post.medias?.[0]?.url || null
       }
     });
@@ -228,7 +254,7 @@ export class PostCardComponent implements AfterViewInit, OnChanges, OnDestroy {
   onGoToProfile(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-    const targetUserId = this.post.landlordInfo?.id || this.post.landlordId;
+    const targetUserId = this.displayActor.id;
     if (targetUserId) {
       if (String(targetUserId) === this.authService.currentUserId) {
         this.router.navigate(['/profile']);

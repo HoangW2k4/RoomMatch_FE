@@ -170,6 +170,50 @@ export interface RepostSearchRequest {
   keyword?: string;
 }
 
+// ===== Unified Home Feed =====
+
+export type FeedItemType = 'ROOM_POST' | 'REPOST';
+
+export interface FeedActor {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+}
+
+export interface ContactTarget {
+  userId: string;
+  name: string;
+  avatarUrl?: string | null;
+}
+
+export interface HomeFeedItem {
+  itemType: FeedItemType;
+  feedItemId: string;
+  publishedAt: string;
+  actor: FeedActor;
+  contactTarget: ContactTarget;
+  canContact: boolean;
+  caption?: string | null;
+  seekerInfo?: SeekerInfoSnapshot | null;
+  originalPost: RoomPostResponse;
+}
+
+export interface HomeFeedSearchRequest {
+  keyword?: string;
+  provinceCode?: string;
+  districtCode?: string;
+  wardCode?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minArea?: number;
+  maxArea?: number;
+  amenityCodes?: string[];
+  gender?: string;
+  minAge?: number;
+  maxAge?: number;
+  occupation?: string;
+}
+
 // ===== Location (for address dropdowns) =====
 
 export interface Province {

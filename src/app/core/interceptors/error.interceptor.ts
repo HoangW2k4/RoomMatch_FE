@@ -145,6 +145,7 @@ function refreshAccessToken(refreshToken: string, httpBackend: HttpBackend): Obs
       }
 
       localStorage.setItem('accessToken', newAccessToken);
+      window.dispatchEvent(new CustomEvent('roommatch:access-token-changed', { detail: newAccessToken }));
       return [newAccessToken];
     })
   );

@@ -102,9 +102,10 @@
                 </div>
               </div>
             </div>
+            <small *ngIf="msg.isSending" class="text-muted" style="font-size: 0.7rem;">Đang gửi…</small>
+            <small *ngIf="msg.isError" class="text-danger" style="font-size: 0.7rem;">Gửi thất bại</small>
 
             <div *ngIf="msg.medias && msg.medias.length > 0" class="d-flex flex-wrap justify-content-end gap-1" style="max-width: 250px;">
-              <small *ngIf="msg.isError" class="text-danger mt-1" style="font-size: 0.7rem;">Gửi lỗi</small>
               <small *ngIf="!msg.isSending && !msg.isError && msg.medias && msg.medias.length > 0" class="text-muted mt-1" style="font-size: 0.7rem;">Đã gửi</small>
             </div>
           </div>

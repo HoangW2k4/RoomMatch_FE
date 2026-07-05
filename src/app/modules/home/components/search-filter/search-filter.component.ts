@@ -4,7 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { RoomSearchRequest, Province, District, Ward } from '../../../../core/models/post.interface';
+import { HomeFeedSearchRequest, Province, District, Ward } from '../../../../core/models/post.interface';
 import { ApiService } from '../../../../core/services/api.service';
 import {
   FilterPopupComponent,
@@ -19,10 +19,10 @@ import {
   styleUrls: ['./search-filter.component.css']
 })
 export class SearchFilterComponent implements OnInit, OnDestroy {
-  @Output() search = new EventEmitter<RoomSearchRequest>();
+  @Output() search = new EventEmitter<HomeFeedSearchRequest>();
 
   // Applied filters (shown in tags, sent to parent)
-  filters: RoomSearchRequest = {};
+  filters: HomeFeedSearchRequest = {};
   isRoommateMode = false;
 
   showFilterPopup = false;
@@ -144,6 +144,13 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
       wardCode: result.wardCode,
       minPrice: result.minPrice,
       maxPrice: result.maxPrice,
+      minArea: result.minArea,
+      maxArea: result.maxArea,
+      amenityCodes: result.amenityCodes,
+      gender: result.isRoommateMode ? result.gender : undefined,
+      minAge: result.isRoommateMode ? result.minAge : undefined,
+      maxAge: result.isRoommateMode ? result.maxAge : undefined,
+      occupation: result.isRoommateMode ? result.occupation : undefined,
     };
     // Store resolved names from popup
     this.provinceName = result.provinceName ?? '';
@@ -205,5 +212,10 @@ export class SearchFilterComponent implements OnInit, OnDestroy {
   clearKeyword(): void { this.filters.keyword = ''; this.emitSearch(); }
   applyFilters(): void { this.emitSearch(); }
 
-  private emitSearch(): void { this.search.emit({ ...this.filters }); }
+  private emitSearch(): void {
+    this.search.emit({
+      ...this.filters,
+      amenityCodes: this.amenityChips.filter(c => c.active).map(c => c.code)
+    });
+  }
 }

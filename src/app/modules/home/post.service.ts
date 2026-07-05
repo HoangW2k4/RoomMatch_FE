@@ -13,7 +13,9 @@ import {
   RePostResponse,
   RePostRequest,
   RoomSearchRequest,
-  RepostSearchRequest
+  RepostSearchRequest,
+  HomeFeedItem,
+  HomeFeedSearchRequest
 } from '../../core/models/post.interface';
 
 @Injectable({
@@ -42,6 +44,21 @@ export class PostService {
     if (filters.targetArea != null) params = params.set('targetArea', filters.targetArea.toString());
     this.LoadingService.hide();
     return this.api.get<ApiResponse<PaginatedResponse<RoomPostResponse>>>(`${this.basePath}/search`, { params });
+  }
+
+  searchFeed(filters: HomeFeedSearchRequest, page = 1, size = 10): Observable<ApiResponse<PaginatedResponse<HomeFeedItem>>> {
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
+    const scalarParams: Array<keyof Omit<HomeFeedSearchRequest, 'amenityCodes'>> = [
+      'keyword', 'provinceCode', 'districtCode', 'wardCode',
+      'minPrice', 'maxPrice', 'minArea', 'maxArea',
+      'gender', 'minAge', 'maxAge', 'occupation'
+    ];
+    scalarParams.forEach(key => {
+      const value = filters[key];
+      if (value !== undefined && value !== null && value !== '') params = params.set(key, String(value));
+    });
+    (filters.amenityCodes ?? []).forEach(code => params = params.append('amenityCodes', code));
+    return this.api.get<ApiResponse<PaginatedResponse<HomeFeedItem>>>(`${this.basePath}/search-feed`, { params });
   }
 
   /**

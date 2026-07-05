@@ -43,6 +43,12 @@ export class ChatService {
       .pipe(map((response) => response.data ?? null));
   }
 
+  sendMessage(request: ChatRequest): Observable<ChatResponse> {
+    return this.apiService
+      .post<ApiResponse<ChatResponse>>('/chat/send', request)
+      .pipe(map((response) => response.data!));
+  }
+
   markRead(conversationId: string): Observable<void> {
     return this.apiService.get<void>('/chat/mark-read', {
       params: {
@@ -63,6 +69,15 @@ export class ChatService {
     
     if (request.postAttachment) {
       formData.append('postAttachment.postId', request.postAttachment.postId);
+      if (request.postAttachment.attachmentType) {
+        formData.append('postAttachment.attachmentType', request.postAttachment.attachmentType);
+      }
+      if (request.postAttachment.referenceId) {
+        formData.append('postAttachment.referenceId', request.postAttachment.referenceId);
+      }
+      if (request.postAttachment.originalPostId) {
+        formData.append('postAttachment.originalPostId', request.postAttachment.originalPostId);
+      }
       formData.append('postAttachment.title', request.postAttachment.title);
       if (request.postAttachment.thumbnailUrl) {
         formData.append('postAttachment.thumbnailUrl', request.postAttachment.thumbnailUrl);

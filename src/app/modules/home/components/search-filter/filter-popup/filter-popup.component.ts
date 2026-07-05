@@ -16,6 +16,7 @@ import { InputFieldComponent } from '../../../../../shared/components/input-fiel
 export interface AmenityChip { label: string; code: string; icon: string; active: boolean; }
 export interface PriceRange { label: string; min: number; max: number | undefined; }
 export interface GenderOption { value: string; label: string; }
+export interface OccupationOption { value: string; label: string; }
 export interface FilterDraft {
     keyword?: string;
     provinceCode?: string;
@@ -29,6 +30,7 @@ export interface FilterDraft {
     gender?: string;
     minAge?: number;
     maxAge?: number;
+    occupation?: string;
 }
 export interface AppliedFilters {
     keyword?: string;
@@ -40,10 +42,13 @@ export interface AppliedFilters {
     wardName?: string;
     minPrice?: number;
     maxPrice?: number;
+    minArea?: number;
+    maxArea?: number;
     isRoommateMode?: boolean;
     gender?: string;
     minAge?: number;
     maxAge?: number;
+    occupation?: string;
     amenityCodes?: string[];
 }
 
@@ -91,6 +96,7 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
     genderDisplay = (item: GenderOption) => item.label;
     genderCompare = (a: GenderOption, b: GenderOption) => a.value === b.value;
     selectedGender: GenderOption | null = null;
+    selectedOccupation: OccupationOption | null = null;
 
     private destroy$ = new Subject<void>();
 
@@ -99,6 +105,15 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         { value: 'FEMALE', label: 'Nữ' },
         { value: 'OTHER', label: 'Khác' },
     ];
+    readonly OCCUPATIONS: OccupationOption[] = [
+        { value: 'Sinh viên', label: 'Sinh viên' },
+        { value: 'Nhân viên văn phòng', label: 'Nhân viên văn phòng' },
+        { value: 'Kinh doanh', label: 'Kinh doanh' },
+        { value: 'Lao động tự do', label: 'Lao động tự do' },
+        { value: 'Khác', label: 'Khác' },
+    ];
+    occupationDisplay = (item: OccupationOption) => item.label;
+    occupationCompare = (a: OccupationOption, b: OccupationOption) => a.value === b.value;
 
     readonly PRICE_RANGES: PriceRange[] = [
         { label: 'Dưới 2 triệu', min: 0, max: 2_000_000 },
@@ -135,9 +150,12 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
             wardCode: this.initialFilters.wardCode,
             minPrice: this.initialFilters.minPrice,
             maxPrice: this.initialFilters.maxPrice,
+            minArea: this.initialFilters.minArea,
+            maxArea: this.initialFilters.maxArea,
             gender: this.initialFilters.gender,
             minAge: this.initialFilters.minAge,
             maxAge: this.initialFilters.maxAge,
+            occupation: this.initialFilters.occupation,
         };
         this.minPriceControl.setValue(this.draft.minPrice ?? '');
         this.maxPriceControl.setValue(this.draft.maxPrice ?? '');
@@ -147,6 +165,7 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         this.maxAgeControl.setValue(this.draft.maxAge ?? '');
         this.keywordControl.setValue(this.draft.keyword ?? '');
         this.selectedGender = this.GENDERS.find(g => g.value === this.draft.gender) ?? null;
+        this.selectedOccupation = this.OCCUPATIONS.find(item => item.value === this.draft.occupation) ?? null;
         // Clone amenity active states from parent chips
         this.draftAmenities = this.allAmenityChips.map(c => ({ ...c }));
         // Resolve selected location objects from codes
@@ -212,6 +231,12 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
         this.draft.gender = selected?.value;
     }
 
+    onOccupationChange(occupation: OccupationOption | OccupationOption[]): void {
+        const selected = Array.isArray(occupation) ? occupation[0] : occupation;
+        this.selectedOccupation = selected ?? null;
+        this.draft.occupation = selected?.value;
+    }
+
     private loadWards(code: string): void {
         this.api.get<Ward[]>('/location/wards', { params: { districtCode: code } }).subscribe({
             next: (d: Ward[]) => {
@@ -273,6 +298,7 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
     resetDraft(): void {
         this.draft = {};
         this.selectedGender = null;
+        this.selectedOccupation = null;
         this.keywordControl.setValue('');
         this.minPriceControl.setValue('');
         this.maxPriceControl.setValue('');
@@ -299,10 +325,13 @@ export class FilterPopupComponent implements OnInit, OnDestroy, OnChanges {
             wardName: this.selectedWard?.name,
             minPrice: this.draft.minPrice,
             maxPrice: this.draft.maxPrice,
+            minArea: this.draft.minArea,
+            maxArea: this.draft.maxArea,
             isRoommateMode: this.isRoommateMode,
             gender: this.isRoommateMode ? this.draft.gender : undefined,
             minAge: this.isRoommateMode ? this.draft.minAge : undefined,
             maxAge: this.isRoommateMode ? this.draft.maxAge : undefined,
+            occupation: this.isRoommateMode ? this.draft.occupation : undefined,
             amenityCodes: this.draftAmenities.filter(c => c.active).map(c => c.code),
         };
         this.apply.emit(result);

@@ -144,6 +144,7 @@ export class AuthService {
       }),
       tap(accessToken => {
         localStorage.setItem('accessToken', accessToken);
+        window.dispatchEvent(new CustomEvent('roommatch:access-token-changed', { detail: accessToken }));
       })
     );
   }

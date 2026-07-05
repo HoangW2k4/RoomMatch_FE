@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ChatService } from '../../../modules/chat/chat.service';
-import { ChatPostAttachment, ChatPostInfo, ChatResponse, ChatConversationParticipant } from '../../../modules/chat/chat.interface';
+import { ChatAckResponse, ChatPostAttachment, ChatPostInfo, ChatResponse, ChatConversationParticipant, ChatRequest } from '../../../modules/chat/chat.interface';
 import { WebsocketService } from '../../../services/websocket.service';
 import { ChatUiService, OpenConversationPayload } from '../../../services/chat-ui.service';
 import { PostDetailComponent } from '../../../modules/home/components/post-detail/post-detail.component';
@@ -67,6 +67,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   
   private readonly conversationIdResolveMaxAttempts = 6;
   private readonly conversationIdResolveDelayMs = 600;
+  private readonly ackTimeoutMs = 10000;
+  private readonly ackTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   get openConversations(): Conversation[] {
     return this.conversations.filter(c => c.isOpen);
@@ -102,6 +104,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngOnDestroy(): void {
+    this.ackTimers.forEach(timer => clearTimeout(timer));
+    this.ackTimers.clear();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -179,14 +183,6 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
         return;
       }
       this.sendMediaMessageOverRest(conv, text);
-      return;
-    }
-
-    if (conv.isTemporary) {
-      const sent = this.sendRealtimeMessage(conv, text);
-      if (sent) {
-        this.resolveConversationIdAfterFirstSend(conv);
-      }
       return;
     }
 
@@ -269,24 +265,22 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
   private sendRealtimeMessage(conv: Conversation, text: string): boolean {
     const typeToSend = conv.postAttachment ? 'POST_SHARE' : 'TEXT';
     const postAttachmentToKeep = conv.postAttachment || null;
-
-    const sent = this.websocketService.sendChatMessage({
+    const clientMessageId = this.buildTempMessageId();
+    const request: ChatRequest = {
+      clientMessageId,
       recipientId: conv.partnerId,
       content: text,
       type: typeToSend,
       postAttachment: postAttachmentToKeep
-    });
-
-    if (!sent) {
-      return false;
-    }
+    };
 
     conv.messages.push({
-      id: this.buildTempMessageId(),
+      id: clientMessageId,
       text,
       isSent: true,
       time: new Date(),
       read: true,
+      isSending: true,
       postInfo: postAttachmentToKeep ? {
         postId: postAttachmentToKeep.postId,
         title: postAttachmentToKeep.title,
@@ -296,11 +290,77 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     conv.lastMessageText = text || (postAttachmentToKeep ? 'Đã chia sẻ bài viết' : '');
     conv.updatedAt = new Date();
-
     conv.inputText = '';
     conv.postAttachment = undefined;
     this.shouldScroll = true;
+
+    const sent = this.websocketService.sendChatMessage(request);
+
+    if (!sent) {
+      this.sendTextMessageOverRest(conv, request);
+      return true;
+    }
+
+    const timer = setTimeout(() => this.markMessageFailed(clientMessageId), this.ackTimeoutMs);
+    this.ackTimers.set(clientMessageId, timer);
     return true;
+  }
+
+  private sendTextMessageOverRest(conv: Conversation, request: ChatRequest): void {
+    this.chatService.sendMessage(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: saved => this.confirmSavedMessage(conv, request.clientMessageId!, saved.id, saved.conversationId, saved),
+        error: error => {
+          console.error('Không thể gửi tin nhắn', error);
+          this.markMessageFailed(request.clientMessageId!);
+        }
+      });
+  }
+
+  private handleChatAck(ack: ChatAckResponse): void {
+    const conv = this.conversations.find(item =>
+      item.messages.some(message => message.id === ack.clientMessageId)
+    );
+    if (!conv || ack.status !== 'SAVED') {
+      this.markMessageFailed(ack.clientMessageId);
+      return;
+    }
+    this.confirmSavedMessage(conv, ack.clientMessageId, ack.messageId, ack.conversationId, ack.message);
+  }
+
+  private confirmSavedMessage(conv: Conversation, clientMessageId: string, messageId: string, conversationId: string, saved: ChatResponse): void {
+    const timer = this.ackTimers.get(clientMessageId);
+    if (timer) clearTimeout(timer);
+    this.ackTimers.delete(clientMessageId);
+
+    const message = conv.messages.find(item => item.id === clientMessageId);
+    if (message) {
+      message.id = messageId;
+      message.isSending = false;
+      message.isError = false;
+      message.time = new Date(saved.sentAt);
+      message.read = saved.read;
+      message.postInfo = saved.postInfo ?? message.postInfo;
+    }
+
+    conv.id = conversationId;
+    conv.isTemporary = false;
+    conv.historyLoaded = true;
+  }
+
+  private markMessageFailed(clientMessageId: string): void {
+    const timer = this.ackTimers.get(clientMessageId);
+    if (timer) clearTimeout(timer);
+    this.ackTimers.delete(clientMessageId);
+    for (const conv of this.conversations) {
+      const message = conv.messages.find(item => item.id === clientMessageId);
+      if (message) {
+        message.isSending = false;
+        message.isError = true;
+        return;
+      }
+    }
   }
 
   private resolveConversationIdAfterFirstSend(conv: Conversation, attempt: number = 1): void {
@@ -356,6 +416,10 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       .subscribe((incomingMessage) => {
         this.handleIncomingMessage(incomingMessage);
       });
+    this.websocketService
+      .subscribeToChatAcks()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ack => this.handleChatAck(ack));
   }
 
   private loadConversations(): void {
@@ -415,7 +479,8 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (messages) => {
-          conv.messages = messages.map((message) => ({
+          const pendingMessages = conv.messages.filter(message => message.isSending || message.isError);
+          const historyMessages: ChatMessage[] = messages.map((message) => ({
             id: message.id,
             text: message.content,
             isSent: message.senderId === this.currentUserId,
@@ -424,6 +489,11 @@ export class ChatPopupComponent implements OnInit, OnDestroy, AfterViewChecked {
             medias: message.medias ? message.medias.map(m => ({ url: m.url, type: m.type })) : undefined,
             postInfo: message.postInfo
           }));
+          const historyIds = new Set(historyMessages.map(message => message.id));
+          conv.messages = [
+            ...historyMessages,
+            ...pendingMessages.filter(message => !historyIds.has(message.id))
+          ];
 
           conv.historyLoaded = true;
           this.shouldScroll = true;

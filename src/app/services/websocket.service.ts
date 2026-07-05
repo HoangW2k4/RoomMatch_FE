@@ -2,43 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { environment } from '../../environments/environment';
-
-type ChatMessageType = 'TEXT' | 'IMAGE' | 'POST_SHARE';
-
-interface ChatPostAttachment {
-  postId: string;
-  title: string;
-  thumbnailUrl?: string | null;
-}
-
-interface ChatRequest {
-  recipientId: string;
-  content: string;
-  type: ChatMessageType;
-  postAttachment: ChatPostAttachment | null;
-}
-
-interface ChatResponse {
-  id: string;
-  conversationId: string;
-  senderId: string;
-  senderName?: string;
-  senderAvatarUrl?: string;
-  type: ChatMessageType;
-  content: string;
-  postInfo: {
-    postId: string;
-    title: string;
-    posterName?: string;
-    media?: {
-      url: string;
-      type: string;
-    };
-    thumbnailUrl?: string | null;
-  } | null;
-  sentAt: string;
-  read: boolean;
-}
+import { ChatAckResponse, ChatRequest, ChatResponse } from '../modules/chat/chat.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -55,14 +19,19 @@ export class WebsocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectTimerId: ReturnType<typeof setTimeout> | null = null;
+  private currentAccessToken: string | null = null;
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private ngZone: NgZone) {
+    window.addEventListener('roommatch:access-token-changed', ((event: CustomEvent<string>) => {
+      if (event.detail) this.connect(event.detail);
+    }) as EventListener);
+  }
 
   /**
    * Kết nối tới WebSocket server theo STOMP + SockJS
    */
   connect(accessToken: string, url: string = environment.websocketUrl): void {
-    if (this.isConnected) {
+    if (this.isConnected && this.currentAccessToken === accessToken) {
       return;
     }
 
@@ -72,6 +41,14 @@ export class WebsocketService {
     }
 
     this.manuallyDisconnected = false;
+    this.currentAccessToken = accessToken;
+
+    if (this.stompClient) {
+      void this.stompClient.deactivate();
+      this.stompClient = null;
+      this.isConnected = false;
+      this.detachAllSubscriptions();
+    }
 
     try {
       this.stompClient = new Client({
@@ -105,6 +82,9 @@ export class WebsocketService {
           }
         },
         onStompError: (frame) => {
+          this.isConnected = false;
+          this.connectionSubject.next(false);
+          this.detachAllSubscriptions();
           console.error('STOMP lỗi:', frame.headers['message'], frame.body);
         },
         onWebSocketError: (error) => {
@@ -177,6 +157,10 @@ export class WebsocketService {
     return this.subscribeDestination<ChatResponse>(`/queue/messages/${currentUserId}`);
   }
 
+  subscribeToChatAcks(): Observable<ChatAckResponse> {
+    return this.subscribeDestination<ChatAckResponse>('/user/queue/chat-acks');
+  }
+
   subscribeToNotifications(currentUserId: string): Observable<unknown> {
     return this.subscribeDestination<unknown>(`/topic/notifications/${currentUserId}`);
   }
@@ -245,6 +229,7 @@ export class WebsocketService {
     }
 
     this.isConnected = false;
+    this.currentAccessToken = null;
     this.connectionSubject.next(false);
   }
 

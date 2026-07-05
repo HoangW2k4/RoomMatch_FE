@@ -4,6 +4,9 @@ export type ChatMessageType = 'TEXT' | 'IMAGE' | 'POST_SHARE';
 
 export interface ChatPostAttachment {
   postId: string;
+  attachmentType?: 'ROOM_POST' | 'REPOST';
+  referenceId?: string;
+  originalPostId?: string;
   title: string;
   thumbnailUrl?: string | null;
   price?: number;
@@ -29,10 +32,19 @@ export interface ChatMedia {
 }
 
 export interface ChatRequest {
+  clientMessageId?: string;
   recipientId: string;
   content: string;
   type: ChatMessageType;
   postAttachment: ChatPostAttachment | null;
+}
+
+export interface ChatAckResponse {
+  clientMessageId: string;
+  messageId: string;
+  conversationId: string;
+  status: 'SAVED' | string;
+  message: ChatResponse;
 }
 
 export interface ChatResponse {

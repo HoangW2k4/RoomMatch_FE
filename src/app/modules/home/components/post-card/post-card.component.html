@@ -3,7 +3,7 @@
     <div class="user-info">
       <div class="avatar-wrapper" (click)="onGoToProfile($event)" style="cursor: pointer;">
         <img
-          [src]="post.landlordInfo?.avatarUrl || 'assets/images/avatar_default.jpg'"
+          [src]="displayActor.avatarUrl || 'assets/images/avatar_default.jpg'"
           class="avatar"
           title="avatar"
           (error)="onAvatarError($event)"
@@ -12,16 +12,18 @@
       </div>
       <div class="user-details">
         <div class="user-name-row" (click)="onGoToProfile($event)" style="cursor: pointer;">
-          <span class="user-name">{{ post.landlordInfo?.name || 'Chủ phòng' }}</span>
-          <img src="/assets/icons/ic_verified.svg" class="verified-badge" width="16" height="16" alt="verified">
+          <span class="user-name">{{ displayActor.name }}</span>
+          <img *ngIf="feedItemType === 'ROOM_POST'" src="/assets/icons/ic_verified.svg" class="verified-badge" width="16" height="16" alt="verified">
         </div>
         <div class="post-meta-info">
-          {{ formatDate(post.createdAt) }} · {{ post.address.districtName || post.address.provinceName || '' }}
+          {{ formatDate(publishedAt || post.createdAt) }} · {{ post.address.districtName || post.address.provinceName || '' }}
         </div>
       </div>
     </div>
     <span class="status-badge">CÒN PHÒNG</span>
   </div>
+
+  <p class="repost-caption" *ngIf="feedItemType === 'REPOST' && caption">{{ caption }}</p>
 
   <!-- Title -->
   <h3 class="post-title">{{ post.title }}</h3>
@@ -76,7 +78,7 @@
         <span class="count">{{ post.statistics.shareCount || 0 }}</span>
       </button>
     </div>
-    <button class="contact-btn" *ngIf="!isOwner" (click)="onContact($event)">
+    <button class="contact-btn" *ngIf="canContact && !isOwner" (click)="onContact($event)">
       <img src="/assets/icons/ic_send.svg" width="16" height="16" alt="send">
       <span>Contact</span>
     </button>
