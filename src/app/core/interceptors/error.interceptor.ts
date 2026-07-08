@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError, switchMap, filter, take, BehaviorSubject, Observable } from 'rxjs';
 import { AlertService } from '../services/alert.service';
 import { ApiResponse } from '../models/base.interface';
-import { environment } from '../../../environments/environment';
+import { runtimeEnvironment } from '../config/runtime-environment';
 
 let isRefreshing = false;
 let refreshTokenSubject = new BehaviorSubject<string | null>(null);
@@ -130,7 +130,7 @@ function refreshAccessToken(refreshToken: string, httpBackend: HttpBackend): Obs
   const http = new HttpClient(httpBackend);
 
   return http.post<ApiResponse<string>>(
-    `${environment.apiUrl}/auth/refresh-access`,
+    `${runtimeEnvironment.apiUrl}/auth/refresh-access`,
     {},
     {
       headers: {

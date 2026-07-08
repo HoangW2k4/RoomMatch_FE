@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
-import { environment } from '../../environments/environment';
+import { runtimeEnvironment } from '../core/config/runtime-environment';
 import { ChatAckResponse, ChatRequest, ChatResponse } from '../modules/chat/chat.interface';
 
 @Injectable({
@@ -30,7 +30,7 @@ export class WebsocketService {
   /**
    * Kết nối tới WebSocket server theo STOMP + SockJS
    */
-  connect(accessToken: string, url: string = environment.websocketUrl): void {
+  connect(accessToken: string, url: string = runtimeEnvironment.websocketUrl): void {
     if (this.isConnected && this.currentAccessToken === accessToken) {
       return;
     }

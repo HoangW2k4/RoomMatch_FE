@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ApiResponse } from '../models/base.interface';
-import { environment } from '../../../environments/environment';
+import { runtimeEnvironment } from '../config/runtime-environment';
 
 
 // JWT Response from backend
@@ -103,7 +103,7 @@ export class AuthService {
 
 
   logout(): void {
-    this.http.post<ApiResponse<string>>(`${environment.apiUrl}/auth/signout`, {}).subscribe({
+    this.http.post<ApiResponse<string>>(`${runtimeEnvironment.apiUrl}/auth/signout`, {}).subscribe({
       next: () => {
         this.clearLocalData();
       },
@@ -130,7 +130,7 @@ export class AuthService {
     }
 
     return this.http.post<ApiResponse<string>>(
-      `${environment.apiUrl}/auth/refresh-access`,
+      `${runtimeEnvironment.apiUrl}/auth/refresh-access`,
       {},
       {
         headers: {
